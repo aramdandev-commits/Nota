@@ -1,0 +1,29 @@
+name: nota
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_svg: ^2.0.10
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/logos/frame_10.svg
+
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: fonts/static/Inter_18pt-Regular.ttf
+        - asset: fonts/static/Inter_18pt-Bold.ttf

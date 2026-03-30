@@ -1,8 +1,46 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:nota/helper/splashScreenFunctions.dart';
+import 'package:nota/screens/introScreen.dart';
 
-class SplashScreen3 extends StatelessWidget {
-  const SplashScreen3({super.key});
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  static String id = "splash_screen";
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  int _activeDot = 0;
+  late Timer _timer;
+
+  @override
+  @override
+  void initState() {
+    super.initState();
+
+    // Start the dot animation (optional, already in your code)
+    _timer = Timer.periodic(const Duration(milliseconds: 400), (timer) {
+      setState(() {
+        _activeDot = (_activeDot + 1) % 3;
+      });
+    });
+
+    // Navigate to the next screen after 2 seconds
+    Future.delayed(const Duration(seconds: 4), () {
+      Navigator.pushReplacementNamed(context, Introscreen.id);
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,30 +57,29 @@ class SplashScreen3 extends StatelessWidget {
         ),
         child: Stack(
           children: [
-            /// 🔵 Glow فوق
+            // glow top
             Positioned(
               top: 50,
               left: 0,
               right: 0,
-              child: _glow(color: Color(0xFF7C3AED)),
+              child: glow(color: const Color(0xFF7C3AED)),
             ),
 
-            /// 🔴 Glow تحت
+            // glow bottom
             Positioned(
               bottom: 50,
               left: 0,
               right: 0,
-              child: _glow(color: Color(0xFFDB2777)),
+              child: glow(color: const Color(0xFFDB2777)),
             ),
 
-            /// 🎯 المحتوى
+            // content
             Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20), // 🔥 مهم
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    /// 🟣 Logo
                     Container(
                       width: 90,
                       height: 90,
@@ -54,16 +91,13 @@ class SplashScreen3 extends StatelessWidget {
                       ),
                       child: Center(
                         child: SvgPicture.asset(
-                          "assets/logos/frame_10.svg",
+                          "assets/images/frame_10.svg",
                           width: 45,
                           height: 45,
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 24),
-
-                    /// 🟡 Title
                     const Text(
                       "Nota",
                       style: TextStyle(
@@ -75,14 +109,11 @@ class SplashScreen3 extends StatelessWidget {
                         color: Colors.white,
                       ),
                     ),
-
                     const SizedBox(height: 10),
-
-                    /// 🟣 Divider
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _line(),
+                        line(),
                         const SizedBox(width: 10),
                         const Text(
                           "NOTA",
@@ -93,17 +124,14 @@ class SplashScreen3 extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 10),
-                        _line(),
+                        line(),
                       ],
                     ),
-
                     const SizedBox(height: 10),
-
-                    /// 🟢 subtitle (FIXED 💥)
                     const Text(
                       "AI-Powered Note-Taking Platform",
                       textAlign: TextAlign.center,
-                      overflow: TextOverflow.ellipsis, // 🔥 مهم
+                      overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                       style: TextStyle(
                         color: Color(0xFFDAB2FF),
@@ -116,8 +144,6 @@ class SplashScreen3 extends StatelessWidget {
                 ),
               ),
             ),
-
-            /// 🔴 dots
             Positioned(
               bottom: MediaQuery.of(context).size.height * 0.08,
               left: 0,
@@ -128,60 +154,20 @@ class SplashScreen3 extends StatelessWidget {
                   height: 8,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      dot(),
-                      const SizedBox(width: 6.8),
-                      dot(),
-                      const SizedBox(width: 6.8),
-                      dot(isActive: true),
-                    ],
+                    children: List.generate(3, (index) {
+                      return Row(
+                        children: [
+                          dot(isActive: _activeDot == index),
+                          if (index != 2) const SizedBox(width: 6.8),
+                        ],
+                      );
+                    }),
                   ),
                 ),
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _glow({required Color color}) {
-    return Center(
-      child: Container(
-        width: 300,
-        height: 300,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [
-              color.withOpacity(0.2),
-              color.withOpacity(0.06),
-              Colors.transparent,
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _line() {
-    return Container(
-      width: 40,
-      height: 1,
-      color: const Color(0xFFFB64B6).withOpacity(0.6),
-    );
-  }
-
-  Widget dot({bool isActive = false}) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      width: isActive ? 8 : 6,
-      height: isActive ? 8 : 6,
-      decoration: BoxDecoration(
-        color: isActive
-            ? const Color(0xFFFF4DA6).withOpacity(0.82)
-            : const Color(0xFFFF4DA6).withOpacity(0.57),
-        shape: BoxShape.circle,
       ),
     );
   }

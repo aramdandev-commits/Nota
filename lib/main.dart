@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:nota/splash.dart';
-import 'package:nota/splash2.dart';
-import 'package:nota/splash3.dart';
+import 'package:nota/screens/introScreen.dart';
+import 'package:nota/screens/splashScreen.dart';
 
 void main() {
   runApp(MainApp());
@@ -12,9 +11,13 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: SplashScreen3(),
+      initialRoute: SplashScreen.id,
+      routes: {
+        SplashScreen.id: (context) => const SplashScreen(),
+        Introscreen.id: (context) => const Introscreen(),
+      },
     );
   }
 }

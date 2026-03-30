@@ -9,7 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_native_splash: ^2.4.7
   flutter_svg: ^2.0.10
+  smooth_page_indicator: ^2.0.1
 
 dev_dependencies:
   flutter_test:
@@ -20,10 +22,11 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/logos/frame_10.svg
+    - assets/images/frame_10.svg
+    - assets/images/splashBackground.png
 
   fonts:
     - family: Inter
       fonts:
-        - asset: fonts/static/Inter_18pt-Regular.ttf
-        - asset: fonts/static/Inter_18pt-Bold.ttf
+        - asset: assets/fonts/static/Inter_18pt-Regular.ttf
+        - asset: assets/fonts/static/Inter_18pt-Bold.ttf

@@ -24,6 +24,10 @@ flutter:
   assets:
     - assets/images/frame_10.svg
     - assets/images/splashBackground.png
+    - assets/images/board1.png
+    - assets/images/board2.png
+    - assets/images/board3.png
+    - assets/images/nota.png
 
   fonts:
     - family: Inter

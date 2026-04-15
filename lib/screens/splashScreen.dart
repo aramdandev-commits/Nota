@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nota/helper/splashScreenFunctions.dart';
-import 'package:nota/screens/introScreen.dart';
+import 'package:nota/screens/onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -32,7 +32,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Navigate to the next screen after 2 seconds
     Future.delayed(const Duration(seconds: 4), () {
-      Navigator.pushReplacementNamed(context, Introscreen.id);
+      Navigator.pushReplacementNamed(context, OnboardingScreen.id);
     });
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:nota/screens/introScreen.dart';
+import 'package:nota/screens/next.dart';
+import 'package:nota/screens/onboarding_screen.dart';
 import 'package:nota/screens/splashScreen.dart';
 
 void main() {
@@ -16,7 +17,8 @@ class MainApp extends StatelessWidget {
       initialRoute: SplashScreen.id,
       routes: {
         SplashScreen.id: (context) => const SplashScreen(),
-        Introscreen.id: (context) => const Introscreen(),
+        OnboardingScreen.id: (context) => const OnboardingScreen(),
+        MyWidget.id: (context) => const MyWidget(),
       },
     );
   }

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nota/helper/onboarding_data.dart';
-import 'package:nota/screens/next.dart';
 import 'package:nota/widgets/custom_page_indicator.dart';
 import 'package:nota/widgets/onboarding_button.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -44,7 +45,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           SizedBox(width: 10),
           TextButton(
             onPressed: () async {
-              Navigator.pushReplacementNamed(context, MyWidget.id);
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setBool("onboardingSeen", true);
+              context.go("/home");
             },
             child: Text(
               'Skip',
@@ -118,7 +121,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               totalPages: onboardingList.length,
               currentIndex: currentIndex,
               onGetStarted: () async {
-                Navigator.pushReplacementNamed(context, MyWidget.id);
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool("onboardingSeen", true);
+                context.go("/home");
               },
             ),
             SizedBox(height: 10),

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:nota/screens/next.dart';
-import 'package:nota/screens/onboarding_screen.dart';
-import 'package:nota/screens/splashScreen.dart';
+import 'package:go_router/go_router.dart';
+import 'package:nota/helper/router.dart';
 
-void main() {
+late final GoRouter router;
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  router = createRouter();
+
   runApp(MainApp());
 }
 
@@ -12,14 +15,9 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
+      routerConfig: router,
       debugShowCheckedModeBanner: false,
-      initialRoute: SplashScreen.id,
-      routes: {
-        SplashScreen.id: (context) => const SplashScreen(),
-        OnboardingScreen.id: (context) => const OnboardingScreen(),
-        MyWidget.id: (context) => const MyWidget(),
-      },
     );
   }
 }

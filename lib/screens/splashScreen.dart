@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nota/helper/splashScreenFunctions.dart';
-import 'package:nota/screens/onboarding_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -31,8 +32,15 @@ class _SplashScreenState extends State<SplashScreen>
     });
 
     // Navigate to the next screen after 2 seconds
-    Future.delayed(const Duration(seconds: 4), () {
-      Navigator.pushReplacementNamed(context, OnboardingScreen.id);
+    Future.delayed(const Duration(seconds: 4), () async {
+      final prefs = await SharedPreferences.getInstance();
+      final seen = prefs.getBool("onboardingSeen") ?? false;
+      if (!mounted) return;
+      if (seen) {
+        context.go("/home");
+      } else {
+        context.go("/onboarding");
+      }
     });
   }
 

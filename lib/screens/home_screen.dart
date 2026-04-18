@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nota/widgets/bottom_navigation.dart';
 import '../widgets/home_header.dart';
 import '../widgets/search_bar.dart';
 import '../widgets/ai_card.dart';
@@ -177,7 +178,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         const SizedBox(width: 4),
-                        Icon(Icons.chevron_right, color: const Color(0xFF3377FF), size: 16),
+                        Icon(Icons.chevron_right,
+                            color: const Color(0xFF3377FF), size: 16),
                       ],
                     ),
                   ),
@@ -202,7 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFE520A4).withOpacity(0.3),
+                color: const Color(0xFFE520A4).withAlpha(77),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -218,10 +220,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF0F111A).withOpacity(0.95),
+            color: const Color(0xFF0F111A).withAlpha(242),
             border: Border(
               top: BorderSide(
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withAlpha(13),
                 width: 1,
               ),
             ),
@@ -239,48 +241,37 @@ class _HomeScreenState extends State<HomeScreen> {
             selectedFontSize: 10,
             unselectedFontSize: 10,
             items: [
-              BottomNavigationBarItem(
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: _selectedIndex == 0 ? const Color(0xFF162544) : Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.home_filled),
-                ),
+              buildItem(
+                icon: Icons.home_filled,
                 label: 'Home',
+                index: 0,
+                selectedIndex: _selectedIndex,
               ),
-              const BottomNavigationBarItem(
-                icon: Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Icon(Icons.description_outlined),
-                ),
+              buildItem(
+                icon: Icons.description_outlined,
                 label: 'Notes',
+                index: 1,
+                selectedIndex: _selectedIndex,
               ),
-              BottomNavigationBarItem(
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2C134A),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.auto_awesome, color: Color(0xFFC084FC)),
-                ),
+              buildItem(
+                icon: Icons.auto_awesome,
                 label: '',
+                index: 2,
+                selectedIndex: _selectedIndex,
+                activeBg: const Color(0xFF2C134A),
+                iconColor: const Color(0xFFC084FC),
               ),
-              const BottomNavigationBarItem(
-                icon: Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Icon(Icons.folder_outlined),
-                ),
+              buildItem(
+                icon: Icons.folder_outlined,
                 label: 'Spaces',
+                index: 3,
+                selectedIndex: _selectedIndex,
               ),
-              const BottomNavigationBarItem(
-                icon: Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Icon(Icons.settings_outlined),
-                ),
+              buildItem(
+                icon: Icons.settings_outlined,
                 label: 'Settings',
+                index: 4,
+                selectedIndex: _selectedIndex,
               ),
             ],
           ),

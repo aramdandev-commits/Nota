@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class AICard extends StatelessWidget {
   const AICard({super.key});
@@ -20,7 +21,8 @@ class AICard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.auto_awesome, color: const Color(0xFFC084FC), size: 16),
+              Icon(Icons.auto_awesome,
+                  color: const Color(0xFFC084FC), size: 16),
               const SizedBox(width: 8),
               Text(
                 'AI NOTA',
@@ -50,10 +52,12 @@ class AICard extends StatelessWidget {
               const SizedBox(width: 16),
               GestureDetector(
                 onTap: () {
+                  context.go("/ai");
                   // TODO: Implement AI feature navigation or logic
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     color: const Color(0xFF6B4EE6),
                     borderRadius: BorderRadius.circular(20),

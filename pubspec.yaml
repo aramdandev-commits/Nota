@@ -1,0 +1,43 @@
+name: nota
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ">=3.1.3 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_native_splash: ^2.4.7
+  flutter_quill: ^11.5.0
+  flutter_svg: ^2.0.10
+  go_router: ^17.2.1
+  image_picker: ^1.2.1
+  intl: ^0.20.2
+  permission_handler: ^12.0.1
+  provider: ^6.1.5+1
+  shared_preferences: ^2.5.5
+  smooth_page_indicator: ^2.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/frame_10.svg
+    - assets/images/splashBackground.png
+    - assets/images/board1.png
+    - assets/images/board2.png
+    - assets/images/board3.png
+    - assets/images/nota.png
+
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/static/Inter_18pt-Regular.ttf
+        - asset: assets/fonts/static/Inter_18pt-Bold.ttf

@@ -19,6 +19,7 @@ dependencies:
   provider: ^6.1.5+1
   shared_preferences: ^2.5.5
   smooth_page_indicator: ^2.0.1
+  file_picker: ^8.1.7
 
 dev_dependencies:
   flutter_test:
@@ -35,6 +36,7 @@ flutter:
     - assets/images/board2.png
     - assets/images/board3.png
     - assets/images/nota.png
+    - assets/images/nota.svg
 
   fonts:
     - family: Inter

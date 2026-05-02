@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nota/widgets/import_pdf.dart';
 import 'package:provider/provider.dart';
 import '../controllers/note_provider.dart';
 import '../widgets/home_header.dart';
@@ -8,6 +9,7 @@ import '../widgets/search_bar.dart';
 import '../widgets/ai_card.dart';
 import '../widgets/quick_action_button.dart';
 import '../widgets/favorite_card.dart';
+import '../widgets/nota_modal_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,6 +21,17 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
+  void _showImportPdfSheet(BuildContext context) {
+    NotaModalSheet.show(
+      context: context,
+      icon: Icons.picture_as_pdf_rounded,
+      title: 'Import PDF',
+      subtitle: 'Upload a PDF file to convert into a note',
+      body: const ImportPdfBody(),
+      cancelLabel: 'Cancel',
+    );
+  }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -26,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     switch (index) {
       case 0:
-      // Already on Home
+        // Already on Home
         break;
       case 1:
         context.push('/notes');
@@ -131,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       iconBackgroundColor: const Color(0xFFFF8A00),
                       title: 'Import PDF',
                       subtitle: 'PDF → Note',
-                      onTap: () => context.push('/import-pdf'),
+                      onTap: () => _showImportPdfSheet(context),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -240,7 +253,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: recentNotes.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: 12),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       final note = recentNotes[index];
 
@@ -273,13 +287,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           decoration: BoxDecoration(
                             color: const Color(0xFF1E1E24),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                            border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.05)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                note.title.isNotEmpty ? note.title : 'Untitled Note',
+                                note.title.isNotEmpty
+                                    ? note.title
+                                    : 'Untitled Note',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 16,
@@ -288,7 +305,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                previewText.isNotEmpty ? previewText : 'Empty Note',
+                                previewText.isNotEmpty
+                                    ? previewText
+                                    : 'Empty Note',
                                 style: const TextStyle(
                                   color: Colors.white54,
                                   fontSize: 14,

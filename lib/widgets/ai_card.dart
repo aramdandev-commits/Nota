@@ -52,8 +52,7 @@ class AICard extends StatelessWidget {
               const SizedBox(width: 16),
               GestureDetector(
                 onTap: () {
-                  context.go("/ai");
-                  // TODO: Implement AI feature navigation or logic
+                  context.push('/ai-analyze');
                 },
                 child: Container(
                   padding:

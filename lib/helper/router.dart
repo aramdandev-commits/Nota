@@ -1,6 +1,9 @@
 import 'package:go_router/go_router.dart';
+import 'package:nota/screens/accountcreated_screen.dart';
+import 'package:nota/screens/auth_screen.dart';
+import 'package:nota/screens/resetpassword_screen.dart';
 import '../screens/onboarding_screen.dart';
-import '../screens/splashScreen.dart';
+import '../screens/splash_screen.dart';
 import '../screens/home_screen.dart';
 import '../screens/new_note_screen.dart';
 import '../screens/ai_analyze_screen.dart';
@@ -25,11 +28,15 @@ GoRouter createRouter() {
       ),
       GoRoute(
         path: '/onboarding',
-        builder: (context, state) => OnboardingScreen(), // Keep exactly as it was
+        builder: (context, state) =>
+            OnboardingScreen(), // Keep exactly as it was
       ),
       GoRoute(
         path: '/new-note',
-        builder: (context, state) => const NewNoteScreen(),
+        builder: (context, state) {
+          final noteId = state.extra as String?;
+          return NewNoteScreen(noteId: noteId);
+        },
       ),
       GoRoute(
         path: '/ai-analyze',
@@ -58,6 +65,18 @@ GoRouter createRouter() {
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/auth',
+        builder: (context, state) => const AuthScreen(),
+      ),
+      GoRoute(
+        path: '/reset-password',
+        builder: (context, state) => const ResetPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/account-created',
+        builder: (context, state) => const AccountCreatedScreen(),
       ),
     ],
   );

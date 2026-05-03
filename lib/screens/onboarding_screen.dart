@@ -21,9 +21,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0x0A0E1A),
+      backgroundColor: Color(0xFF0A0E1A),
       appBar: AppBar(
-        backgroundColor: Color(0x0A0E1A),
+        backgroundColor: Color(0xFF0A0E1A),
         elevation: 0,
         title: Row(
           children: [
@@ -47,6 +47,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             onPressed: () async {
               final prefs = await SharedPreferences.getInstance();
               await prefs.setBool("onboardingSeen", true);
+              if (!context.mounted) return;
               context.go("/home");
             },
             child: Text(
@@ -123,6 +124,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               onGetStarted: () async {
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.setBool("onboardingSeen", true);
+                if (!context.mounted) return;
                 context.go("/home");
               },
             ),

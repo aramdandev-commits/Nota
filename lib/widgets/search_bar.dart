@@ -21,7 +21,9 @@ class CustomSearchBar extends StatelessWidget {
           borderSide: BorderSide.none,
         ),
       ),
-      // TODO: Implement search logic later
+      onChanged: (value) {
+        // Search logic to be added here
+      },
     );
   }
 }

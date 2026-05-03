@@ -1,11 +1,15 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nota/widgets/bottom_navigation.dart';
+import 'package:nota/widgets/import_pdf.dart';
+import 'package:provider/provider.dart';
+import '../controllers/note_provider.dart';
 import '../widgets/home_header.dart';
 import '../widgets/search_bar.dart';
 import '../widgets/ai_card.dart';
 import '../widgets/quick_action_button.dart';
 import '../widgets/favorite_card.dart';
+import '../widgets/nota_modal_sheet.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,6 +20,17 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+
+  void _showImportPdfSheet(BuildContext context) {
+    NotaModalSheet.show(
+      context: context,
+      icon: Icons.picture_as_pdf_rounded,
+      title: 'Import PDF',
+      subtitle: 'Upload a PDF file to convert into a note',
+      body: const ImportPdfBody(),
+      cancelLabel: 'Cancel',
+    );
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -41,6 +56,33 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  BottomNavigationBarItem _buildItem({
+    required IconData icon,
+    required String label,
+    required int index,
+    required int selectedIndex,
+    Color? activeBg,
+    Color? iconColor,
+  }) {
+    final bool isSelected = index == selectedIndex;
+    return BottomNavigationBarItem(
+      icon: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: isSelected && activeBg != null ? activeBg : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(
+          icon,
+          color: isSelected
+              ? (iconColor ?? const Color(0xFF3377FF))
+              : const Color(0xFF8E9099),
+        ),
+      ),
+      label: label,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,10 +99,10 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 24),
               const AICard(),
               const SizedBox(height: 24),
-              Text(
+              const Text(
                 'QUICK ACTIONS',
                 style: TextStyle(
-                  color: const Color(0xFF8E9099),
+                  color: Color(0xFF8E9099),
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.0,
@@ -102,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       iconBackgroundColor: const Color(0xFFFF8A00),
                       title: 'Import PDF',
                       subtitle: 'PDF → Note',
-                      onTap: () => context.push('/import-pdf'),
+                      onTap: () => _showImportPdfSheet(context),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -119,10 +161,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               const SizedBox(height: 32),
-              Text(
+              const Text(
                 'FAVORITES',
                 style: TextStyle(
-                  color: const Color(0xFF8E9099),
+                  color: Color(0xFF8E9099),
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.0,
@@ -132,21 +174,21 @@ class _HomeScreenState extends State<HomeScreen> {
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: [
-                    const FavoriteCard(
+                  children: const [
+                    FavoriteCard(
                       date: 'Nov 19',
                       title: 'Project Ideas 💡',
                       subtitle: 'Collection of innovative project',
                       icon: Icons.star,
                     ),
-                    const SizedBox(width: 16),
-                    const FavoriteCard(
+                    SizedBox(width: 16),
+                    FavoriteCard(
                       date: 'Nov 17',
                       title: 'Reading Notes - AI Research',
                       subtitle: 'Key insights from recent AI papers: large',
                       icon: Icons.star,
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: 16),
                   ],
                 ),
               ),
@@ -154,10 +196,10 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  const Text(
                     'RECENT NOTES',
                     style: TextStyle(
-                      color: const Color(0xFF8E9099),
+                      color: Color(0xFF8E9099),
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.0,
@@ -165,27 +207,131 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   GestureDetector(
                     onTap: () {
-                      // TODO: View all recent notes
+                      context.push('/notes');
                     },
                     child: Row(
-                      children: [
+                      children: const [
                         Text(
                           'View All',
                           style: TextStyle(
-                            color: const Color(0xFF3377FF),
+                            color: Color(0xFF3377FF),
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(width: 4),
+                        SizedBox(width: 4),
                         Icon(Icons.chevron_right,
-                            color: const Color(0xFF3377FF), size: 16),
+                            color: Color(0xFF3377FF), size: 16),
                       ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 80), // Padding for Bottom Nav and FAB
+              const SizedBox(height: 16),
+              Consumer<NoteProvider>(
+                builder: (context, noteProvider, child) {
+                  final recentNotes = noteProvider.notes.take(5).toList();
+
+                  if (recentNotes.isEmpty) {
+                    return Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 32),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E1E24),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'No recent notes yet.',
+                          style: TextStyle(color: Colors.white54, fontSize: 14),
+                        ),
+                      ),
+                    );
+                  }
+
+                  return ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: recentNotes.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final note = recentNotes[index];
+
+                      String previewText = "No content";
+                      try {
+                        if (note.content.isNotEmpty) {
+                          final List<dynamic> ops = jsonDecode(note.content);
+                          previewText = ops
+                              .map((op) => op['insert']?.toString() ?? '')
+                              .join('')
+                              .replaceAll('\n', ' ')
+                              .trim();
+                          if (previewText.length > 50) {
+                            previewText = '${previewText.substring(0, 50)}...';
+                          }
+                        }
+                      } catch (e) {
+                        previewText = note.content;
+                        if (previewText.length > 50) {
+                          previewText = '${previewText.substring(0, 50)}...';
+                        }
+                      }
+
+                      return GestureDetector(
+                        onTap: () {
+                          context.push('/new-note', extra: note.id);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E1E24),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.05)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                note.title.isNotEmpty
+                                    ? note.title
+                                    : 'Untitled Note',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                previewText.isNotEmpty
+                                    ? previewText
+                                    : 'Empty Note',
+                                style: const TextStyle(
+                                  color: Colors.white54,
+                                  fontSize: 14,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Updated: ${note.updatedAt.toString().substring(0, 16)}',
+                                style: const TextStyle(
+                                  color: Colors.white38,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+              const SizedBox(height: 80),
             ],
           ),
         ),
@@ -204,7 +350,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFE520A4).withAlpha(77),
+                color: const Color(0xFFE520A4).withValues(alpha: 0.3),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -220,10 +366,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF0F111A).withAlpha(242),
+            color: const Color(0xFF0F111A).withValues(alpha: 0.95),
             border: Border(
               top: BorderSide(
-                color: Colors.white.withAlpha(13),
+                color: Colors.white.withValues(alpha: 0.05),
                 width: 1,
               ),
             ),
@@ -241,19 +387,19 @@ class _HomeScreenState extends State<HomeScreen> {
             selectedFontSize: 10,
             unselectedFontSize: 10,
             items: [
-              buildItem(
+              _buildItem(
                 icon: Icons.home_filled,
                 label: 'Home',
                 index: 0,
                 selectedIndex: _selectedIndex,
               ),
-              buildItem(
+              _buildItem(
                 icon: Icons.description_outlined,
                 label: 'Notes',
                 index: 1,
                 selectedIndex: _selectedIndex,
               ),
-              buildItem(
+              _buildItem(
                 icon: Icons.auto_awesome,
                 label: '',
                 index: 2,
@@ -261,13 +407,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 activeBg: const Color(0xFF2C134A),
                 iconColor: const Color(0xFFC084FC),
               ),
-              buildItem(
+              _buildItem(
                 icon: Icons.folder_outlined,
                 label: 'Spaces',
                 index: 3,
                 selectedIndex: _selectedIndex,
               ),
-              buildItem(
+              _buildItem(
                 icon: Icons.settings_outlined,
                 label: 'Settings',
                 index: 4,

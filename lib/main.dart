@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:nota/helper/router.dart';
 import 'package:provider/provider.dart';
 import 'package:nota/controllers/note_provider.dart';
+import 'package:nota/controllers/spaces_provider.dart';
+import 'package:nota/controllers/space_details_provider.dart';
 
 late final GoRouter router;
 
@@ -14,6 +16,8 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => NoteProvider()),
+        ChangeNotifierProvider(create: (_) => SpacesProvider()),
+        ChangeNotifierProvider(create: (_) => SpaceDetailsProvider()),
       ],
       child: const MainApp(),
     ),

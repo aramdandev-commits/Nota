@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nota/widgets/auth/bottom_navigation.dart';
+import 'package:nota/widgets/home/bottom_navigation.dart';
 import 'package:nota/widgets/pdf/import_pdf.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/note_provider.dart';

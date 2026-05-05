@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../controllers/spaces_provider.dart';
-import '../../widgets/auth/bottom_navigation.dart';
+import '../../widgets/home/bottom_navigation.dart';
 import '../../widgets/spa/space_card.dart';
 import '../../widgets/spa/create_space_bottom_sheet.dart';
 

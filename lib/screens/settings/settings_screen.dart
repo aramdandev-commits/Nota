@@ -4,7 +4,7 @@ import '../../widgets/settings/settings_tile.dart';
 import '../../widgets/settings/settings_card.dart';
 import '../../widgets/settings/section_title.dart';
 import '../../widgets/settings/user_card.dart';
-import '../../widgets/auth/bottom_navigation.dart';
+import '../../widgets/home/bottom_navigation.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});

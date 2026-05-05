@@ -12,19 +12,19 @@ class BottomNavigation extends StatelessWidget {
   void _onItemTapped(BuildContext context, int index) {
     switch (index) {
       case 0:
-        context.push('/home');
+        context.go('/home');
         break;
       case 1:
-        context.push('/notes');
+        context.go('/notes');
         break;
       case 2:
-        context.push('/ai-analyze');
+        context.go('/ai-analyze');
         break;
       case 3:
-        context.push('/spaces');
+        context.go('/spaces');
         break;
       case 4:
-        context.push('/settings');
+        context.go('/settings');
         break;
     }
   }

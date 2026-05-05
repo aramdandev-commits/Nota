@@ -1,18 +1,16 @@
 import 'package:go_router/go_router.dart';
-import 'package:nota/screens/accountcreated_screen.dart';
-import 'package:nota/screens/auth_screen.dart';
-import 'package:nota/screens/resetpassword_screen.dart';
-import '../screens/onboarding_screen.dart';
-import '../screens/splash_screen.dart';
-import '../screens/home_screen.dart';
-import '../screens/new_note_screen.dart';
-import '../screens/ai_analyze_screen.dart';
-import '../screens/import_pdf_screen.dart';
-import '../screens/collaborate_screen.dart';
-import '../screens/notes_screen.dart';
-import '../screens/ai_screen.dart';
-import '../screens/spaces_screen.dart';
-import '../screens/settings_screen.dart';
+import 'package:nota/screens/auth/accountcreated_screen.dart';
+import 'package:nota/screens/auth/auth_screen.dart';
+import 'package:nota/screens/auth/resetpassword_screen.dart';
+import '../screens/start/onboarding_screen.dart';
+import '../screens/start/splash_screen.dart';
+import '../screens/home/home_screen.dart';
+import '../screens/note/new_note_screen.dart';
+import '../screens/AI/ai_analyze_screen.dart';
+import '../screens/pdf/import_pdf_screen.dart';
+import '../screens/note/notes_screen.dart';
+import '../screens/spa/spaces_screen.dart';
+import '../screens/settings/settings_screen.dart';
 
 GoRouter createRouter() {
   return GoRouter(
@@ -47,16 +45,8 @@ GoRouter createRouter() {
         builder: (context, state) => const ImportPDFScreen(),
       ),
       GoRoute(
-        path: '/collaborate',
-        builder: (context, state) => const CollaborateScreen(),
-      ),
-      GoRoute(
         path: '/notes',
         builder: (context, state) => const NotesScreen(),
-      ),
-      GoRoute(
-        path: '/ai',
-        builder: (context, state) => const AIScreen(),
       ),
       GoRoute(
         path: '/spaces',

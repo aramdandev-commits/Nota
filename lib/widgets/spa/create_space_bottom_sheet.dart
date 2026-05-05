@@ -1,0 +1,314 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'dart:math';
+import '../../controllers/spaces_provider.dart';
+import '../../model/space_model.dart';
+
+class CreateSpaceBottomSheet extends StatefulWidget {
+  const CreateSpaceBottomSheet({Key? key}) : super(key: key);
+
+  @override
+  State<CreateSpaceBottomSheet> createState() => _CreateSpaceBottomSheetState();
+}
+
+class _CreateSpaceBottomSheetState extends State<CreateSpaceBottomSheet> {
+  String _selectedPrivacy = 'Private';
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _descController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Determine bottom padding for keyboard
+    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFF151821), // Bottom sheet background
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 24 + bottomPadding),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Handle
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF374151),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            const Text(
+              'Create New Space',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Create a workspace to organize notes',
+              style: TextStyle(
+                color: Color(0xFF8B949E),
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Space Name Field
+            const Text(
+              'Space Name',
+              style: TextStyle(
+                color: Color(0xFFD1D5DB),
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            _buildTextField(
+              controller: _nameController,
+              hintText: 'Enter space name',
+            ),
+            const SizedBox(height: 20),
+
+            // Description Field
+            const Text(
+              'Description',
+              style: TextStyle(
+                color: Color(0xFFD1D5DB),
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            _buildTextField(
+              controller: _descController,
+              hintText: 'Enter description',
+            ),
+            const SizedBox(height: 24),
+
+            // Privacy Section
+            const Text(
+              'Privacy',
+              style: TextStyle(
+                color: Color(0xFFD1D5DB),
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildPrivacyOption(
+              title: 'Private',
+              description: 'Only invited members can access',
+              icon: Icons.lock_outline,
+              isSelected: _selectedPrivacy == 'Private',
+              onTap: () => setState(() => _selectedPrivacy = 'Private'),
+            ),
+            const SizedBox(height: 12),
+            _buildPrivacyOption(
+              title: 'Public',
+              description: 'Anyone can join',
+              icon: Icons.language,
+              isSelected: _selectedPrivacy == 'Public',
+              onTap: () => setState(() => _selectedPrivacy = 'Public'),
+            ),
+            const SizedBox(height: 32),
+
+            // Action Buttons
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF202430),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Cancel',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      final newSpace = SpaceModel(
+                        id: Random().nextInt(10000).toString(),
+                        title: _nameController.text.isEmpty
+                            ? 'New Space'
+                            : _nameController.text,
+                        description: _descController.text.isEmpty
+                            ? 'No description'
+                            : _descController.text,
+                        role: SpaceRole.admin,
+                        memberCount: 1,
+                        noteCount: 0,
+                        iconColor: const Color(0xFF6B58FF), // Default color
+                        iconData: Icons.folder_open,
+                        privacy: _selectedPrivacy == 'Private'
+                            ? SpacePrivacy.private
+                            : SpacePrivacy.public,
+                        lastEditedBy: 'You',
+                        lastEditedAction: 'created this space',
+                        lastEditedAt: DateTime.now(),
+                      );
+                      context.read<SpacesProvider>().addSpace(newSpace);
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6B58FF),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Create',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hintText,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF202430),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: TextField(
+        controller: controller,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: const TextStyle(color: Color(0xFF6B7280)),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          border: InputBorder.none,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPrivacyOption({
+    required String title,
+    required String description,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF1E1B3A) : const Color(0xFF202430),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF6B58FF) : Colors.transparent,
+            width: 1,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: isSelected
+                  ? const Color(0xFFD1D5DB)
+                  : const Color(0xFF6B7280),
+              size: 24,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    description,
+                    style: const TextStyle(
+                      color: Color(0xFF8B949E),
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Custom Radio Button
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected ? Colors.white : Colors.transparent,
+                border: Border.all(
+                  color: isSelected
+                      ? const Color(0xFF6B58FF)
+                      : const Color(0xFF4B5563),
+                  width: isSelected
+                      ? 6
+                      : 2, // Inner dot effect via thick border or white center
+                ),
+              ),
+              child: isSelected
+                  ? Center(
+                      child: Container(
+                        width: 12,
+                        height: 12,
+                        decoration: const BoxDecoration(
+                          color: Color(
+                              0xFFD838B5), // Pinkish purple dot from the image inside white border? Actually the image shows a purple circle with white center dot. Let's adjust.
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

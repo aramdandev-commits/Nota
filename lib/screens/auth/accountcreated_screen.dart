@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'auth_screen.dart';
 import '../../widgets/auth/auth_header.dart';
 import '../../widgets/auth/auth_button.dart';
@@ -68,7 +69,7 @@ class AccountCreatedScreen extends StatelessWidget {
               AuthButton(
                 label: 'Get Started',
                 onTap: () {
-                  // TODO: navigate to home
+                  context.push('/onboarding');
                 },
               ),
             ],

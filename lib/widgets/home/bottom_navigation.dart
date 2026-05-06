@@ -15,7 +15,7 @@ class BottomNavigation extends StatelessWidget {
         context.go('/home');
         break;
       case 1:
-        context.go('/notes');
+        context.push('/notes');
         break;
       case 2:
         context.go('/ai-analyze');

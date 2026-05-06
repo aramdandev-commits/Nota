@@ -7,7 +7,7 @@ import '../../widgets/auth/auth_footer.dart';
 import '../../widgets/auth/auth_header.dart';
 import '../../widgets/auth/auth_tab_toggle.dart';
 import '../../widgets/auth/auth_text_field.dart';
-import '../../widgets/note/social_buttons_row.dart';
+import '../../widgets/auth/social_buttons_row.dart';
 import '../../helper/auth_validators.dart';
 
 class NotaColors {
@@ -65,11 +65,12 @@ class _AuthScreenState extends State<AuthScreen> {
 
     if (_isLogin) {
       debugPrint('Login => ${_emailController.text}');
-      context.push('/home');
+      context.go('/home');
     } else {
       debugPrint(
         'Sign Up => ${_nameController.text} | ${_emailController.text}',
       );
+      context.push('/account-created');
     }
   }
 
@@ -224,7 +225,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 AuthFooter(isLogin: _isLogin, onActionTap: _toggleMode),
                 const SizedBox(height: 24),
                 AuthDivider(
-                  text: _isLogin ? 'OR CONTINUE WITH' : 'OR SIGN UP WITH',
+                  text: _isLogin ? 'OR LOGIN WITH' : 'OR SIGN UP WITH',
                 ),
                 const SizedBox(height: 20),
                 const SocialButtonsRow(),

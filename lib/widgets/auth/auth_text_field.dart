@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../screens/auth/auth_screen.dart';
 
 class AuthTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -21,25 +20,28 @@ class AuthTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       decoration: BoxDecoration(
-        color: NotaColors.inputBg,
+        color: isDark ? const Color(0xFF1A1A26) : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: NotaColors.border),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
       ),
       child: TextFormField(
         controller: controller,
         obscureText: obscureText,
         keyboardType: keyboardType,
         validator: validator,
-        style: const TextStyle(
-          color: NotaColors.textPrimary,
+        style: TextStyle(
+          color: cs.onSurface,
           fontSize: 14,
           fontWeight: FontWeight.w400,
         ),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: const TextStyle(color: NotaColors.textMuted, fontSize: 14),
+          hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.5), fontSize: 14),
           border: InputBorder.none,
           errorBorder: InputBorder.none,
           focusedErrorBorder: InputBorder.none,
@@ -49,7 +51,7 @@ class AuthTextField extends StatelessWidget {
           ),
           suffixIcon: suffixIcon,
         ),
-        cursorColor: NotaColors.purple,
+        cursorColor: const Color(0xFF9810FA),
       ),
     );
   }

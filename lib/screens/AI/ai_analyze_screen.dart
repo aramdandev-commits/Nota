@@ -68,7 +68,7 @@ class _AIAnalyzeScreenState extends State<AIAnalyzeScreen> {
       child: Consumer2<AiAnalyzeProvider, NoteProvider>(
         builder: (context, aiProvider, noteProvider, _) {
           return Scaffold(
-            backgroundColor: const Color(0xFF0F111A),
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             body: SafeArea(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
@@ -139,6 +139,7 @@ class _AIAnalyzeScreenState extends State<AIAnalyzeScreen> {
 class _AiHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Row(
       children: [
         Container(
@@ -157,11 +158,11 @@ class _AiHeader extends StatelessWidget {
         const SizedBox(width: 14),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             Text(
               'AI Analyzer',
               style: TextStyle(
-                color: Colors.white,
+                color: cs.onSurface,
                 fontSize: 18,
                 fontFamily: 'Inter',
                 fontWeight: FontWeight.w700,
@@ -170,7 +171,7 @@ class _AiHeader extends StatelessWidget {
             Text(
               'Summarize & extract insights',
               style: TextStyle(
-                color: Color(0xFF8E9099),
+                color: cs.onSurface.withValues(alpha: 0.5),
                 fontSize: 12,
                 fontFamily: 'Inter',
               ),
@@ -188,11 +189,13 @@ class _ErrorBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF2B0D0D),
+        color: isDark ? const Color(0xFF2B0D0D) : const Color(0xFFFEF2F2),
         borderRadius: BorderRadius.circular(12),
         border:
             Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.3)),

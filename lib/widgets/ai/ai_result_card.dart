@@ -21,14 +21,17 @@ class AiResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs     = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? const Color(0xFF1A1A2E) : Theme.of(context).cardColor;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Title ──────────────────────────────────────────────────────────
-        const Text(
+        Text(
           'Analysis Results',
           style: TextStyle(
-            color: Colors.white,
+            color: cs.onSurface,
             fontSize: 20,
             fontFamily: 'Inter',
             fontWeight: FontWeight.w700,
@@ -36,25 +39,23 @@ class AiResultCard extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-        // ── Result body ────────────────────────────────────────────────────
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: const Color(0xFF1A1A2E),
+            color: cardBg,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+            border: Border.all(color: cs.onSurface.withValues(alpha: 0.07)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Summary section
               _SectionLabel(label: 'SUMMARY'),
               const SizedBox(height: 10),
               Text(
                 result.summary,
-                style: const TextStyle(
-                  color: Color(0xFFD0D0E8),
+                style: TextStyle(
+                  color: cs.onSurface.withValues(alpha: 0.85),
                   fontSize: 14,
                   fontFamily: 'Inter',
                   height: 1.6,
@@ -62,7 +63,6 @@ class AiResultCard extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // Key points section
               _SectionLabel(label: 'KEY POINTS'),
               const SizedBox(height: 10),
               ...result.keyPoints.map(
@@ -84,8 +84,8 @@ class AiResultCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           point,
-                          style: const TextStyle(
-                            color: Color(0xFFD0D0E8),
+                          style: TextStyle(
+                            color: cs.onSurface.withValues(alpha: 0.85),
                             fontSize: 14,
                             fontFamily: 'Inter',
                             height: 1.5,
@@ -101,7 +101,6 @@ class AiResultCard extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-        // ── Action buttons ─────────────────────────────────────────────────
         Row(
           children: [
             Expanded(
@@ -109,8 +108,7 @@ class AiResultCard extends StatelessWidget {
                 icon: copied ? Icons.check_rounded : Icons.copy_rounded,
                 label: copied ? 'Copied!' : 'Copy',
                 onTap: () {
-                  final text =
-                      '${result.summary}\n\n${result.keyPoints.join('\n')}';
+                  final text = '${result.summary}\n\n${result.keyPoints.join('\n')}';
                   Clipboard.setData(ClipboardData(text: text));
                   onCopy();
                 },
@@ -131,16 +129,14 @@ class AiResultCard extends StatelessWidget {
         ),
         const SizedBox(height: 12),
 
-        // ── New Analysis ───────────────────────────────────────────────────
         Center(
           child: TextButton.icon(
             onPressed: onNewAnalysis,
-            icon: const Icon(Icons.refresh_rounded,
-                color: Color(0xFF8E9099), size: 18),
-            label: const Text(
+            icon: Icon(Icons.refresh_rounded, color: cs.onSurface.withValues(alpha: 0.5), size: 18),
+            label: Text(
               'New Analysis',
               style: TextStyle(
-                color: Color(0xFF8E9099),
+                color: cs.onSurface.withValues(alpha: 0.5),
                 fontSize: 14,
                 fontFamily: 'Inter',
                 fontWeight: FontWeight.w500,
@@ -153,8 +149,6 @@ class AiResultCard extends StatelessWidget {
   }
 }
 
-// ── Private helpers ──────────────────────────────────────────────────────────
-
 class _SectionLabel extends StatelessWidget {
   final String label;
   const _SectionLabel({required this.label});
@@ -163,8 +157,8 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       label,
-      style: const TextStyle(
-        color: Color(0xFF8E9099),
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
         fontSize: 11,
         fontFamily: 'Inter',
         fontWeight: FontWeight.w700,
@@ -191,6 +185,10 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs     = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final nonAccentBg = isDark ? const Color(0xFF252535) : const Color(0xFFEEEEF5);
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -204,25 +202,23 @@ class _ActionButton extends StatelessWidget {
                   end: Alignment.centerRight,
                 )
               : null,
-          color: isAccent ? null : const Color(0xFF252535),
+          color: isAccent ? null : nonAccentBg,
           borderRadius: BorderRadius.circular(12),
-          border: isAccent
-              ? null
-              : Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          border: isAccent ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.08)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
-              color: isCopied ? const Color(0xFF22C55E) : Colors.white,
+              color: isCopied ? const Color(0xFF22C55E) : (isAccent ? Colors.white : cs.onSurface),
               size: 18,
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
-                color: isCopied ? const Color(0xFF22C55E) : Colors.white,
+                color: isCopied ? const Color(0xFF22C55E) : (isAccent ? Colors.white : cs.onSurface),
                 fontSize: 14,
                 fontFamily: 'Inter',
                 fontWeight: FontWeight.w600,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:nota/helper/app_theme.dart';
 
 class ShareNoteSheet extends StatefulWidget {
   const ShareNoteSheet({super.key});
@@ -46,20 +47,17 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
 
   @override
   Widget build(BuildContext context) {
-    const Color sheetColor = Color(0xFF1E1E2A);
-    const Color inputColor = Color(0xFF2A2A38);
-    const Color textColor = Colors.white;
-    const Color subtitleColor = Colors.grey;
+    final cs      = Theme.of(context).colorScheme;
+    final sheetBg = AppTheme.sheetColor(context);
+    final itemBg  = AppTheme.itemColor(context);
 
     return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         padding: const EdgeInsets.all(20.0),
-        decoration: const BoxDecoration(
-          color: sheetColor,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        decoration: BoxDecoration(
+          color: sheetBg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -70,7 +68,7 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.4),
+                  color: cs.onSurface.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -79,12 +77,12 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Share Note',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: textColor,
+                    color: cs.onSurface,
                   ),
                 ),
                 InkWell(
@@ -92,22 +90,16 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
                     padding: const EdgeInsets.all(6),
-                    decoration: const BoxDecoration(
-                      color: inputColor,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.close, color: Colors.grey, size: 18),
+                    decoration: BoxDecoration(color: itemBg, shape: BoxShape.circle),
+                    child: Icon(Icons.close, color: cs.onSurface.withValues(alpha: 0.5), size: 18),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'Share this note with your team',
-              style: TextStyle(
-                color: subtitleColor,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5), fontSize: 14),
             ),
             const SizedBox(height: 20),
             Row(
@@ -116,17 +108,17 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
                   child: Container(
                     height: 50,
                     decoration: BoxDecoration(
-                      color: inputColor,
+                      color: itemBg,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: TextField(
                       controller: _emailController,
-                      style: const TextStyle(color: textColor),
-                      decoration: const InputDecoration(
+                      style: TextStyle(color: cs.onSurface),
+                      decoration: InputDecoration(
                         hintText: 'Enter email address',
-                        hintStyle: TextStyle(color: subtitleColor, fontSize: 14),
+                        hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.4), fontSize: 14),
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                       ),
                     ),
                   ),
@@ -136,15 +128,15 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
                   height: 50,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
-                    color: inputColor,
+                    color: itemBg,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
                       value: _permissionLevel,
-                      dropdownColor: inputColor,
-                      icon: const Icon(Icons.keyboard_arrow_down, color: subtitleColor, size: 18),
-                      style: const TextStyle(color: textColor, fontSize: 14),
+                      dropdownColor: itemBg,
+                      icon: Icon(Icons.keyboard_arrow_down, color: cs.onSurface.withValues(alpha: 0.5), size: 18),
+                      style: TextStyle(color: cs.onSurface, fontSize: 14),
                       items: <String>['Can Edit', 'Can View'].map((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
@@ -153,9 +145,7 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
                       }).toList(),
                       onChanged: (String? newValue) {
                         if (newValue != null) {
-                          setState(() {
-                            _permissionLevel = newValue;
-                          });
+                          setState(() => _permissionLevel = newValue);
                         }
                       },
                     ),
@@ -170,10 +160,7 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFF9D50FF),
-                    Color(0xFF3D7AF9),
-                  ],
+                  colors: [Color(0xFF9D50FF), Color(0xFF3D7AF9)],
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                 ),
@@ -182,18 +169,12 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: _sendInvite,
                 child: const Text(
                   'Send Invite',
-                  style: TextStyle(
-                    color: textColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -203,21 +184,15 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
               height: 50,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF202434),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  backgroundColor: itemBg,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   elevation: 0,
                 ),
                 onPressed: _copyLink,
                 icon: const Icon(Icons.copy, color: Color(0xFF3D7AF9), size: 18),
                 label: const Text(
                   'Copy Link',
-                  style: TextStyle(
-                    color: Color(0xFF3D7AF9),
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(color: Color(0xFF3D7AF9), fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ),

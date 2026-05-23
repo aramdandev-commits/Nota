@@ -9,20 +9,21 @@ class NotesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0F111A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: Color(0xFF3377FF), size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF3377FF), size: 20),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
+        title: Text(
           'All Notes',
           style: TextStyle(
-            color: Colors.white,
+            color: cs.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -38,20 +39,20 @@ class NotesScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.description_outlined,
-                      size: 80, color: Colors.white.withValues(alpha: 0.1)),
+                  Icon(Icons.description_outlined, size: 80, color: cs.onSurface.withValues(alpha: 0.15)),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'No notes yet',
                     style: TextStyle(
-                        color: Colors.white54,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600),
+                      color: cs.onSurface.withValues(alpha: 0.54),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Tap the + button to create your first note',
-                    style: TextStyle(color: Colors.white38, fontSize: 14),
+                    style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 14),
                   ),
                 ],
               ),
@@ -74,7 +75,6 @@ class NotesScreen extends StatelessWidget {
                       .join('')
                       .replaceAll('\n', ' ')
                       .trim();
-
                   if (previewText.length > 80) {
                     previewText = '${previewText.substring(0, 80)}...';
                   }
@@ -87,24 +87,21 @@ class NotesScreen extends StatelessWidget {
               }
 
               return GestureDetector(
-                onTap: () {
-                  context.push('/new-note', extra: note.id);
-                },
+                onTap: () => context.push('/new-note', extra: note.id),
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E24),
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(16),
-                    border:
-                        Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                    border: Border.all(color: cs.onSurface.withValues(alpha: 0.06)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         note.title.isNotEmpty ? note.title : 'Untitled Note',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: cs.onSurface,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -112,8 +109,8 @@ class NotesScreen extends StatelessWidget {
                       const SizedBox(height: 8),
                       Text(
                         previewText.isNotEmpty ? previewText : 'Empty Note',
-                        style: const TextStyle(
-                          color: Colors.white54,
+                        style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.54),
                           fontSize: 14,
                           height: 1.4,
                         ),
@@ -126,14 +123,12 @@ class NotesScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Updated: ${note.updatedAt.toString().substring(0, 10)}',
-                            style: const TextStyle(
-                              color: Colors.white38,
+                            style: TextStyle(
+                              color: cs.onSurface.withValues(alpha: 0.38),
                               fontSize: 12,
                             ),
                           ),
-                          Icon(Icons.chevron_right,
-                              color: Colors.white.withValues(alpha: 0.2),
-                              size: 18),
+                          Icon(Icons.chevron_right, color: cs.onSurface.withValues(alpha: 0.25), size: 18),
                         ],
                       ),
                     ],

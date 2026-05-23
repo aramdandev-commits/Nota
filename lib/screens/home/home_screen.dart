@@ -42,7 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F111A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20.0),
@@ -55,10 +55,10 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 24),
               const AICard(),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 'QUICK ACTIONS',
                 style: TextStyle(
-                  color: Color(0xFF8E9099),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                   fontSize: 12,
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.bold,
@@ -153,10 +153,10 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'RECENT NOTES',
                     style: TextStyle(
-                      color: Color(0xFF8E9099),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.0,
@@ -194,13 +194,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 32),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E1E24),
+                        color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
                           'No recent notes yet.',
-                          style: TextStyle(color: Colors.white54, fontSize: 14),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 14),
                         ),
                       ),
                     );
@@ -242,10 +242,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E1E24),
+                            color: Theme.of(context).cardColor,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.05)),
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,8 +254,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 note.title.isNotEmpty
                                     ? note.title
                                     : 'Untitled Note',
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface,
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -265,8 +265,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 previewText.isNotEmpty
                                     ? previewText
                                     : 'Empty Note',
-                                style: const TextStyle(
-                                  color: Colors.white54,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54),
                                   fontSize: 14,
                                 ),
                                 maxLines: 1,
@@ -275,8 +275,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               const SizedBox(height: 8),
                               Text(
                                 'Updated: ${note.updatedAt.toString().substring(0, 16)}',
-                                style: const TextStyle(
-                                  color: Colors.white38,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
                                   fontSize: 12,
                                 ),
                               ),

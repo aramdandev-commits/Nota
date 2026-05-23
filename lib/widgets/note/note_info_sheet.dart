@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nota/helper/app_theme.dart';
 import 'package:intl/intl.dart';
 
 class NoteInfoSheet extends StatelessWidget {
@@ -15,25 +16,23 @@ class NoteInfoSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color sheetColor = Color(0xFF1E1E2A);
-    const Color itemColor = Color(0xFF2A2A38);
-    const Color textColor = Colors.white;
-    const Color subtitleColor = Colors.grey;
+    final cs = Theme.of(context).colorScheme;
+    final sheetBg = AppTheme.sheetColor(context);
+    final itemBg  = AppTheme.itemColor(context);
 
-    final DateTime actualCreated = createdAt ?? DateTime.now();
+    final DateTime actualCreated  = createdAt  ?? DateTime.now();
     final DateTime actualModified = modifiedAt ?? DateTime.now();
 
-    final String createdDate = DateFormat.yMMMMd().format(actualCreated);
-    final String createdTime = DateFormat('hh:mm a').format(actualCreated);
-
+    final String createdDate  = DateFormat.yMMMMd().format(actualCreated);
+    final String createdTime  = DateFormat('hh:mm a').format(actualCreated);
     final String modifiedDate = DateFormat.yMMMMd().format(actualModified);
     final String modifiedTime = DateFormat('hh:mm a').format(actualModified);
 
     return Container(
       padding: const EdgeInsets.all(20.0),
-      decoration: const BoxDecoration(
-        color: sheetColor,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: sheetBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -43,7 +42,7 @@ class NoteInfoSheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.4),
+                color: cs.onSurface.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -56,23 +55,23 @@ class NoteInfoSheet extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: itemColor,
+                  decoration: BoxDecoration(
+                    color: itemBg,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.arrow_back, color: subtitleColor, size: 20),
+                  child: Icon(Icons.arrow_back, color: cs.onSurface.withValues(alpha: 0.6), size: 20),
                 ),
               ),
               const SizedBox(width: 12),
-              const Icon(Icons.info_outline, color: Colors.cyanAccent, size: 22),
+              Icon(Icons.info_outline, color: Colors.cyanAccent, size: 22),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Note Info',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: textColor,
+                    color: cs.onSurface,
                   ),
                 ),
               ),
@@ -81,40 +80,43 @@ class NoteInfoSheet extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: itemColor,
+                  decoration: BoxDecoration(
+                    color: itemBg,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.close, color: subtitleColor, size: 20),
+                  child: Icon(Icons.close, color: cs.onSurface.withValues(alpha: 0.6), size: 20),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 24),
           _buildInfoCard(
+            context: context,
             icon: Icons.calendar_today_outlined,
             iconColor: Colors.purpleAccent,
             label: 'Created',
             value: createdDate,
             time: createdTime,
-            bgColor: itemColor,
+            bgColor: itemBg,
           ),
           const SizedBox(height: 12),
           _buildInfoCard(
+            context: context,
             icon: Icons.access_time_rounded,
             iconColor: Colors.blueAccent,
             label: 'Last Modified',
             value: modifiedDate,
             time: modifiedTime,
-            bgColor: itemColor,
+            bgColor: itemBg,
           ),
           const SizedBox(height: 12),
           _buildInfoCard(
+            context: context,
             icon: Icons.folder_outlined,
             iconColor: Colors.greenAccent,
             label: 'Space',
             value: spaceName,
-            bgColor: itemColor,
+            bgColor: itemBg,
           ),
           const SizedBox(height: 24),
           SizedBox(
@@ -122,17 +124,18 @@ class NoteInfoSheet extends StatelessWidget {
             height: 50,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: itemColor,
+                backgroundColor: itemBg,
+                foregroundColor: cs.onSurface,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
                 elevation: 0,
               ),
               onPressed: () => Navigator.pop(context),
-              child: const Text(
+              child: Text(
                 'Done',
                 style: TextStyle(
-                  color: textColor,
+                  color: cs.onSurface,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -146,6 +149,7 @@ class NoteInfoSheet extends StatelessWidget {
   }
 
   Widget _buildInfoCard({
+    required BuildContext context,
     required IconData icon,
     required Color iconColor,
     required String label,
@@ -153,6 +157,7 @@ class NoteInfoSheet extends StatelessWidget {
     String? time,
     required Color bgColor,
   }) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
@@ -169,8 +174,8 @@ class NoteInfoSheet extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
-                    color: Colors.grey,
+                  style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.5),
                     fontSize: 12,
                   ),
                 ),
@@ -180,8 +185,8 @@ class NoteInfoSheet extends StatelessWidget {
                   children: [
                     Text(
                       value,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: cs.onSurface,
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
                       ),
@@ -192,8 +197,8 @@ class NoteInfoSheet extends StatelessWidget {
                         padding: const EdgeInsets.only(bottom: 1),
                         child: Text(
                           time,
-                          style: const TextStyle(
-                            color: Colors.white54,
+                          style: TextStyle(
+                            color: cs.onSurface.withValues(alpha: 0.5),
                             fontSize: 13,
                           ),
                         ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../screens/auth/auth_screen.dart';
 
 class AuthFooter extends StatelessWidget {
   final bool isLogin;
@@ -13,13 +12,15 @@ class AuthFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    
     return Center(
       child: RichText(
         text: TextSpan(
           text: isLogin
               ? "Don't have an account?  "
               : "Already have an account?  ",
-          style: const TextStyle(color: NotaColors.textMuted, fontSize: 13),
+          style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5), fontSize: 13),
           children: [
             WidgetSpan(
               alignment: PlaceholderAlignment.middle,
@@ -28,7 +29,7 @@ class AuthFooter extends StatelessWidget {
                 child: Text(
                   isLogin ? 'Sign up' : 'Log in',
                   style: const TextStyle(
-                    color: NotaColors.purple,
+                    color: Color(0xFF9810FA),
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),

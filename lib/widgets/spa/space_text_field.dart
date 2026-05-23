@@ -19,20 +19,24 @@ class SpaceTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF202430),
+        color: isDark ? const Color(0xFF202430) : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
+        border: isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
       ),
       child: TextField(
         controller: controller,
         maxLines: maxLines,
         keyboardType: keyboardType,
         onChanged: onChanged,
-        style: const TextStyle(color: Colors.white, fontSize: 14),
+        style: TextStyle(color: cs.onSurface, fontSize: 14),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: const TextStyle(color: Color(0xFF6B7280)),
+          hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.5)),
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           border: InputBorder.none,

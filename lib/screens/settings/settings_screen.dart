@@ -5,6 +5,8 @@ import '../../widgets/settings/settings_card.dart';
 import '../../widgets/settings/section_title.dart';
 import '../../widgets/settings/user_card.dart';
 import '../../widgets/home/bottom_navigation.dart';
+import 'package:provider/provider.dart';
+import '../../controllers/theme_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -25,18 +27,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final settings = controller.settings;
+    final themeProvider = context.watch<ThemeProvider>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F111A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Settings',
-                style: TextStyle(color: Colors.white, fontSize: 28),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 28),
               ),
 
               const SizedBox(height: 24),
@@ -58,18 +61,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: 'Language',
                   trailing: Text(
                     settings.language,
-                    style: const TextStyle(color: Colors.white54),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
                   ),
                 ),
                 const Divider(indent: 60),
-                SettingsTile(
-                  icon: Icons.dark_mode,
-                  iconBgColor: Colors.purple.withOpacity(0.15),
-                  iconColor: Colors.purple,
-                  title: 'Appearance',
-                  trailing: Text(
-                    settings.appearance,
-                    style: const TextStyle(color: Colors.white54),
+                GestureDetector(
+                  onTap: () {
+                    context.read<ThemeProvider>().toggleTheme();
+                  },
+                  child: SettingsTile(
+                    icon: themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                    iconBgColor: Colors.purple.withOpacity(0.15),
+                    iconColor: Colors.purple,
+                    title: 'Appearance',
+                    trailing: Text(
+                      themeProvider.isDarkMode ? 'Dark Theme' : 'Light Theme',
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
+                    ),
                   ),
                 ),
               ]),

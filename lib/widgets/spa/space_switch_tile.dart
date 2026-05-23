@@ -17,11 +17,15 @@ class SpaceSwitchTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF151821),
+        color: isDark ? const Color(0xFF151821) : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
+        border: isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
@@ -31,8 +35,8 @@ class SpaceSwitchTile extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: cs.onSurface,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -40,8 +44,8 @@ class SpaceSwitchTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    color: Color(0xFF8B949E),
+                  style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.5),
                     fontSize: 12,
                   ),
                 ),
@@ -51,10 +55,10 @@ class SpaceSwitchTile extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: const Color(0xFF6B58FF),
-            activeTrackColor: const Color(0xFF6B58FF).withValues(alpha: 0.3),
-            inactiveThumbColor: const Color(0xFF6B7280),
-            inactiveTrackColor: const Color(0xFF202430),
+            activeColor: cs.primary,
+            activeTrackColor: cs.primary.withValues(alpha: 0.3),
+            inactiveThumbColor: cs.onSurface.withValues(alpha: 0.4),
+            inactiveTrackColor: isDark ? const Color(0xFF202430) : Theme.of(context).scaffoldBackgroundColor,
           ),
         ],
       ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../screens/auth/auth_screen.dart';
 
 class AuthButton extends StatelessWidget {
   final String label;
@@ -9,22 +8,29 @@ class AuthButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const purple = Color(0xFF9810FA);
+    const pink = Color(0xFFDB2777);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: double.infinity,
         height: 54,
         decoration: BoxDecoration(
-          gradient: NotaColors.gradient,
+          gradient: const LinearGradient(
+            colors: [purple, pink],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: NotaColors.purple.withValues(alpha: .35),
+              color: purple.withValues(alpha: 0.35),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
             BoxShadow(
-              color: NotaColors.pink.withValues(alpha: 0.2),
+              color: pink.withValues(alpha: 0.2),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),

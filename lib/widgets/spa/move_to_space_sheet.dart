@@ -88,16 +88,16 @@ class _MoveToSpaceSheetState extends State<MoveToSpaceSheet> {
 
   @override
   Widget build(BuildContext context) {
-    const Color sheetColor = Color(0xFF1E1E2A);
-    const Color inputColor = Color(0xFF2A2A38);
-    const Color textColor = Colors.white;
-    const Color subtitleColor = Colors.grey;
+    final cs      = Theme.of(context).colorScheme;
+    final isDark  = Theme.of(context).brightness == Brightness.dark;
+    final sheetBg = isDark ? const Color(0xFF1E1E2A) : Theme.of(context).scaffoldBackgroundColor;
+    final itemBg  = isDark ? const Color(0xFF2A2A38) : Theme.of(context).cardColor;
 
     return Container(
       padding: const EdgeInsets.all(20.0),
-      decoration: const BoxDecoration(
-        color: sheetColor,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: sheetBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -107,7 +107,7 @@ class _MoveToSpaceSheetState extends State<MoveToSpaceSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.4),
+                color: cs.onSurface.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -120,33 +120,23 @@ class _MoveToSpaceSheetState extends State<MoveToSpaceSheet> {
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: inputColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.arrow_back, color: subtitleColor, size: 20),
+                  decoration: BoxDecoration(color: itemBg, shape: BoxShape.circle),
+                  child: Icon(Icons.arrow_back, color: cs.onSurface.withValues(alpha: 0.5), size: 20),
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
                       'Move to Space',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: textColor,
-                      ),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: cs.onSurface),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
                       'Select a space for this note',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: subtitleColor,
-                      ),
+                      style: TextStyle(fontSize: 13, color: cs.onSurface.withValues(alpha: 0.5)),
                     ),
                   ],
                 ),
@@ -156,11 +146,8 @@ class _MoveToSpaceSheetState extends State<MoveToSpaceSheet> {
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
-                    color: inputColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.close, color: subtitleColor, size: 20),
+                  decoration: BoxDecoration(color: itemBg, shape: BoxShape.circle),
+                  child: Icon(Icons.close, color: cs.onSurface.withValues(alpha: 0.5), size: 20),
                 ),
               ),
             ],
@@ -173,7 +160,7 @@ class _MoveToSpaceSheetState extends State<MoveToSpaceSheet> {
               separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final space = _dummySpaces[index];
-                return _buildSpaceItem(space);
+                return _buildSpaceItem(context, space, itemBg, cs);
               },
             ),
           ),
@@ -191,11 +178,7 @@ class _MoveToSpaceSheetState extends State<MoveToSpaceSheet> {
                   SizedBox(width: 12),
                   Text(
                     'Moved successfully',
-                    style: TextStyle(
-                      color: Color(0xFF4CAF50),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: TextStyle(color: Color(0xFF4CAF50), fontSize: 14, fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
@@ -207,17 +190,17 @@ class _MoveToSpaceSheetState extends State<MoveToSpaceSheet> {
     );
   }
 
-  Widget _buildSpaceItem(SpaceModel space) {
+  Widget _buildSpaceItem(BuildContext context, SpaceModel space, Color itemBg, ColorScheme cs) {
     return InkWell(
       onTap: space.isCurrent ? null : () => _moveToSpace(space.id),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFF2A2A38),
+          color: itemBg,
           borderRadius: BorderRadius.circular(12),
           border: space.isCurrent
-              ? Border.all(color: const Color(0xFF3D7AF9).withOpacity(0.3), width: 1)
+              ? Border.all(color: const Color(0xFF3D7AF9).withValues(alpha: 0.3), width: 1)
               : null,
         ),
         child: Row(
@@ -238,19 +221,12 @@ class _MoveToSpaceSheetState extends State<MoveToSpaceSheet> {
                 children: [
                   Text(
                     space.name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(color: cs.onSurface, fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '${space.notesCount} notes · ${space.membersCount} member${space.membersCount > 1 ? 's' : ''}',
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5), fontSize: 12),
                   ),
                 ],
               ),
@@ -259,16 +235,12 @@ class _MoveToSpaceSheetState extends State<MoveToSpaceSheet> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3D7AF9).withOpacity(0.2),
+                  color: const Color(0xFF3D7AF9).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text(
                   'Current',
-                  style: TextStyle(
-                    color: Color(0xFF3D7AF9),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TextStyle(color: Color(0xFF3D7AF9), fontSize: 12, fontWeight: FontWeight.w500),
                 ),
               ),
           ],

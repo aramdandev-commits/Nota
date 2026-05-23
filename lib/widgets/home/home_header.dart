@@ -5,6 +5,12 @@ class HomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs      = Theme.of(context).colorScheme;
+    final isDark  = Theme.of(context).brightness == Brightness.dark;
+    final syncBg  = isDark ? const Color(0xFF0F2922) : const Color(0xFFE8F8F1);
+    final syncColor = const Color(0xFF00B074);
+    final notifBg  = isDark ? const Color(0xFF1E2029) : const Color(0xFFEEEEF5);
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -15,7 +21,7 @@ class HomeHeader extends StatelessWidget {
             Text(
               'Good afternoon',
               style: TextStyle(
-                color: const Color(0xFF8E9099),
+                color: cs.onSurface.withValues(alpha: 0.5),
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -24,7 +30,7 @@ class HomeHeader extends StatelessWidget {
             Text(
               'Welcome\nback 👋',
               style: TextStyle(
-                color: Colors.white,
+                color: cs.onSurface,
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 height: 1.2,
@@ -37,17 +43,17 @@ class HomeHeader extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFF0F2922),
+                color: syncBg,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.cloud_done_outlined, color: const Color(0xFF00B074), size: 16),
+                  Icon(Icons.cloud_done_outlined, color: syncColor, size: 16),
                   const SizedBox(width: 8),
                   Text(
                     'All changes\nsynced',
                     style: TextStyle(
-                      color: const Color(0xFF00B074),
+                      color: syncColor,
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
                     ),
@@ -61,15 +67,15 @@ class HomeHeader extends StatelessWidget {
                 showDialog(
                   context: context,
                   builder: (context) => AlertDialog(
-                    backgroundColor: const Color(0xFF1E2029),
-                    title: const Text('Notifications', style: TextStyle(color: Colors.white)),
+                    backgroundColor: Theme.of(context).cardColor,
+                    title: Text('Notifications', style: TextStyle(color: cs.onSurface)),
                     content: Row(
                       children: [
-                        Icon(Icons.cloud_done_outlined, color: const Color(0xFF00B074), size: 24),
+                        Icon(Icons.cloud_done_outlined, color: syncColor, size: 24),
                         const SizedBox(width: 12),
-                        const Text(
+                        Text(
                           'All changes synced',
-                          style: TextStyle(color: Colors.white),
+                          style: TextStyle(color: cs.onSurface),
                         ),
                       ],
                     ),
@@ -85,12 +91,12 @@ class HomeHeader extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E2029),
+                  color: notifBg,
                   shape: BoxShape.circle,
                 ),
                 child: Stack(
                   children: [
-                    Icon(Icons.notifications_none, color: const Color(0xFF8E9099), size: 24),
+                    Icon(Icons.notifications_none, color: cs.onSurface.withValues(alpha: 0.5), size: 24),
                     Positioned(
                       right: 0,
                       top: 0,

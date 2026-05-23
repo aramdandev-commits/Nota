@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../screens/auth/auth_screen.dart';
 
 /// A reusable modal bottom sheet for Nota.
 ///
@@ -92,11 +91,19 @@ class _NotaModalSheetState extends State<NotaModalSheet> {
   @override
   Widget build(BuildContext context) {
     final hasTabs = widget.tabs != null && widget.tabs!.isNotEmpty;
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final Color sheetBg = isDark ? const Color(0xFF12121C) : Theme.of(context).scaffoldBackgroundColor;
+    final Color surfaceColor = isDark ? const Color(0xFF1E1E2A) : Theme.of(context).cardColor;
+    final Color borderColor = isDark ? const Color(0xFF2A2A38) : cs.onSurface.withValues(alpha: 0.1);
+    final Color textPrimary = cs.onSurface;
+    final Color textMuted = cs.onSurface.withValues(alpha: 0.6);
 
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF12121C),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: sheetBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom + 16,
@@ -110,7 +117,7 @@ class _NotaModalSheetState extends State<NotaModalSheet> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: NotaColors.textMuted.withValues(alpha: 0.4),
+              color: textMuted.withValues(alpha: 0.4),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -127,7 +134,7 @@ class _NotaModalSheetState extends State<NotaModalSheet> {
                   height: 48,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [NotaColors.purple, NotaColors.pink],
+                      colors: [Color(0xFF7A36DC), Color(0xFFE520A4)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -143,8 +150,8 @@ class _NotaModalSheetState extends State<NotaModalSheet> {
                     children: [
                       Text(
                         widget.title,
-                        style: const TextStyle(
-                          color: NotaColors.textPrimary,
+                        style: TextStyle(
+                          color: textPrimary,
                           fontSize: 17,
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w700,
@@ -153,8 +160,8 @@ class _NotaModalSheetState extends State<NotaModalSheet> {
                       const SizedBox(height: 2),
                       Text(
                         widget.subtitle,
-                        style: const TextStyle(
-                          color: NotaColors.textMuted,
+                        style: TextStyle(
+                          color: textMuted,
                           fontSize: 13,
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w400,
@@ -170,13 +177,13 @@ class _NotaModalSheetState extends State<NotaModalSheet> {
                     width: 34,
                     height: 34,
                     decoration: BoxDecoration(
-                      color: NotaColors.surface,
+                      color: surfaceColor,
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: NotaColors.border),
+                      border: Border.all(color: borderColor),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.close_rounded,
-                      color: NotaColors.textMuted,
+                      color: textMuted,
                       size: 18,
                     ),
                   ),
@@ -242,12 +249,18 @@ class _TabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color surfaceColor = isDark ? const Color(0xFF1E1E2A) : Theme.of(context).cardColor;
+    final Color borderColor = isDark ? const Color(0xFF2A2A38) : cs.onSurface.withValues(alpha: 0.1);
+    final Color textMuted = cs.onSurface.withValues(alpha: 0.6);
+
     return Container(
       height: 46,
       decoration: BoxDecoration(
-        color: NotaColors.surface,
+        color: surfaceColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: NotaColors.border),
+        border: Border.all(color: borderColor),
       ),
       child: Row(
         children: List.generate(tabs.length, (i) {
@@ -259,7 +272,7 @@ class _TabBar extends StatelessWidget {
                 duration: const Duration(milliseconds: 200),
                 margin: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  gradient: selected ? NotaColors.gradient : null,
+                  gradient: selected ? const LinearGradient(colors: [Color(0xFF7A36DC), Color(0xFFE520A4)]) : null,
                   borderRadius: BorderRadius.circular(9),
                 ),
                 child: Row(
@@ -269,14 +282,14 @@ class _TabBar extends StatelessWidget {
                       Icon(
                         icons![i],
                         size: 15,
-                        color: selected ? Colors.white : NotaColors.textMuted,
+                        color: selected ? Colors.white : textMuted,
                       ),
                       const SizedBox(width: 6),
                     ],
                     Text(
                       tabs[i],
                       style: TextStyle(
-                        color: selected ? Colors.white : NotaColors.textMuted,
+                        color: selected ? Colors.white : textMuted,
                         fontSize: 13,
                         fontFamily: 'Inter',
                         fontWeight: FontWeight.w600,
@@ -301,21 +314,27 @@ class _CancelButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color surfaceColor = isDark ? const Color(0xFF1E1E2A) : Theme.of(context).cardColor;
+    final Color borderColor = isDark ? const Color(0xFF2A2A38) : cs.onSurface.withValues(alpha: 0.1);
+    final Color textMuted = cs.onSurface.withValues(alpha: 0.6);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: double.infinity,
         height: 52,
         decoration: BoxDecoration(
-          color: NotaColors.surface,
+          color: surfaceColor,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: NotaColors.border),
+          border: Border.all(color: borderColor),
         ),
         alignment: Alignment.center,
         child: Text(
           label,
-          style: const TextStyle(
-            color: NotaColors.textMuted,
+          style: TextStyle(
+            color: textMuted,
             fontSize: 15,
             fontFamily: 'Inter',
             fontWeight: FontWeight.w600,

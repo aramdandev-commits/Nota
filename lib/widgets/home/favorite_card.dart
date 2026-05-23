@@ -16,12 +16,16 @@ class FavoriteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs     = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       width: 160,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF161821),
+        color: isDark ? const Color(0xFF161821) : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
+        border: isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.08)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -33,7 +37,7 @@ class FavoriteCard extends StatelessWidget {
               Text(
                 date,
                 style: TextStyle(
-                  color: const Color(0xFF8E9099),
+                  color: cs.onSurface.withValues(alpha: 0.5),
                   fontSize: 12,
                 ),
               ),
@@ -43,7 +47,7 @@ class FavoriteCard extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-              color: Colors.white,
+              color: cs.onSurface,
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
@@ -54,7 +58,7 @@ class FavoriteCard extends StatelessWidget {
           Text(
             subtitle,
             style: TextStyle(
-              color: const Color(0xFF8E9099),
+              color: cs.onSurface.withValues(alpha: 0.5),
               fontSize: 12,
             ),
             maxLines: 2,

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../controllers/google_auth_service.dart';
-import '../../screens/auth/auth_screen.dart';
 
 class SocialButtonsRow extends StatefulWidget {
   const SocialButtonsRow({super.key});
@@ -23,12 +22,12 @@ class _SocialButtonsRowState extends State<SocialButtonsRow> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text(
               'Google Sign-In failed. Please try again.',
-              style: const TextStyle(fontFamily: 'Inter'),
+              style: TextStyle(fontFamily: 'Inter'),
             ),
-            backgroundColor: const Color(0xFF2B0D0D),
+            backgroundColor: Color(0xFF2B0D0D),
           ),
         );
       }
@@ -39,15 +38,18 @@ class _SocialButtonsRowState extends State<SocialButtonsRow> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: _handleGoogleSignIn,
       child: Container(
         width: double.infinity,
         height: 52,
         decoration: BoxDecoration(
-          color: NotaColors.socialBg,
+          color: isDark ? const Color(0xFF1C1C2A) : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: NotaColors.border),
+          border: Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
         ),
         child: _loading
             ? const Center(
@@ -69,10 +71,10 @@ class _SocialButtonsRowState extends State<SocialButtonsRow> {
                     height: 22,
                   ),
                   const SizedBox(width: 10),
-                  const Text(
+                  Text(
                     'Continue with Google',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: cs.onSurface,
                       fontSize: 14,
                       fontFamily: 'Inter',
                       fontWeight: FontWeight.w500,

@@ -20,13 +20,17 @@ class QuickActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs     = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF161821),
+          color: isDark ? const Color(0xFF161821) : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
+          border: isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.08)),
         ),
         child: Row(
           children: [
@@ -46,27 +50,28 @@ class QuickActionButton extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        title,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Inter',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      )),
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        color: cs.onSurface,
+                        fontFamily: 'Inter',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 2),
                   FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(
                       subtitle,
                       style: TextStyle(
-                        color: const Color(0xFF8E9099),
+                        color: cs.onSurface.withValues(alpha: 0.5),
                         fontSize: 11,
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),

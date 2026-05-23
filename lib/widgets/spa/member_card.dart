@@ -42,12 +42,16 @@ class MemberCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF151821),
+        color: isDark ? const Color(0xFF151821) : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
+        border: isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
@@ -58,7 +62,7 @@ class MemberCard extends StatelessWidget {
                 radius: 22,
                 backgroundColor: member.avatarColor,
                 child: Text(member.initials,
-                    style: const TextStyle(
+                    style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 14)),
@@ -74,7 +78,7 @@ class MemberCard extends StatelessWidget {
                       color: const Color(0xFF07C168),
                       shape: BoxShape.circle,
                       border:
-                          Border.all(color: const Color(0xFF151821), width: 2),
+                          Border.all(color: isDark ? const Color(0xFF151821) : Theme.of(context).cardColor, width: 2),
                     ),
                   ),
                 ),
@@ -89,8 +93,8 @@ class MemberCard extends StatelessWidget {
                 Row(
                   children: [
                     Text(member.name,
-                        style: const TextStyle(
-                            color: Colors.white,
+                        style: TextStyle(
+                            color: cs.onSurface,
                             fontSize: 14,
                             fontWeight: FontWeight.w600)),
                     if (member.isCurrentUser) ...[
@@ -102,21 +106,21 @@ class MemberCard extends StatelessWidget {
                           color: const Color(0xFF202430),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text('You',
+                        child: Text('You',
                             style: TextStyle(
-                                color: Color(0xFF8B949E), fontSize: 10)),
+                                color: cs.onSurface.withValues(alpha: 0.5), fontSize: 10)),
                       ),
                     ],
                   ],
                 ),
                 const SizedBox(height: 2),
                 Text(member.email,
-                    style: const TextStyle(
-                        color: Color(0xFF8B949E), fontSize: 12)),
+                    style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.5), fontSize: 12)),
                 const SizedBox(height: 2),
                 Text(_joinedLabel(member.joinedAt),
-                    style: const TextStyle(
-                        color: Color(0xFF6B7280), fontSize: 11)),
+                    style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.4), fontSize: 11)),
               ],
             ),
           ),
@@ -127,8 +131,8 @@ class MemberCard extends StatelessWidget {
             const SizedBox(width: 8),
             GestureDetector(
               onTap: () => _showMemberOptions(context),
-              child: const Icon(Icons.more_vert,
-                  color: Color(0xFF6B7280), size: 20),
+              child: Icon(Icons.more_vert,
+                  color: cs.onSurface.withValues(alpha: 0.4), size: 20),
             ),
           ],
         ],
@@ -205,10 +209,13 @@ class _MemberOptionsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF1C2030),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1C2030) : Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
       child: Column(
@@ -219,7 +226,7 @@ class _MemberOptionsSheet extends StatelessWidget {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                  color: const Color(0xFF374151),
+                  color: cs.onSurface.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(2)),
             ),
           ),
@@ -230,7 +237,7 @@ class _MemberOptionsSheet extends StatelessWidget {
             label: 'Change Role',
             onTap: () => _showChangeRole(context),
           ),
-          const Divider(color: Color(0xFF1E212B), height: 8),
+          Divider(color: cs.onSurface.withValues(alpha: 0.1), height: 8),
           _SheetTile(
             icon: Icons.delete_outline,
             iconColor: const Color(0xFFEF4444),
@@ -257,10 +264,13 @@ class _ChangeRoleSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF1C2030),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1C2030) : Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
       child: Column(
@@ -271,14 +281,14 @@ class _ChangeRoleSheet extends StatelessWidget {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                  color: const Color(0xFF374151),
+                  color: cs.onSurface.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(2)),
             ),
           ),
           const SizedBox(height: 16),
-          const Text('Change Role',
+          Text('Change Role',
               style: TextStyle(
-                  color: Colors.white,
+                  color: cs.onSurface,
                   fontSize: 16,
                   fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
@@ -316,26 +326,36 @@ class _RoleOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1A1F36) : const Color(0xFF202430),
+          color: isSelected 
+              ? (isDark ? const Color(0xFF1A1F36) : cs.primary.withValues(alpha: 0.1)) 
+              : (isDark ? const Color(0xFF202430) : Theme.of(context).cardColor),
           borderRadius: BorderRadius.circular(12),
-          border:
-              isSelected ? Border.all(color: const Color(0xFF6B58FF)) : null,
+          border: isSelected
+              ? Border.all(color: cs.primary)
+              : (isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.1))),
         ),
         child: Row(
           children: [
             Expanded(
               child: Text(_label,
-                  style: const TextStyle(color: Colors.white, fontSize: 14)),
+                  style: TextStyle(
+                    color: isSelected ? cs.primary : cs.onSurface, 
+                    fontSize: 14,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  )),
             ),
             if (isSelected)
-              const Icon(Icons.check_circle,
-                  color: Color(0xFF6B58FF), size: 18),
+              Icon(Icons.check_circle,
+                  color: cs.primary, size: 18),
           ],
         ),
       ),
@@ -360,6 +380,7 @@ class _SheetTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -379,7 +400,7 @@ class _SheetTile extends StatelessWidget {
             const SizedBox(width: 12),
             Text(label,
                 style: TextStyle(
-                    color: labelColor ?? Colors.white,
+                    color: labelColor ?? cs.onSurface,
                     fontSize: 14,
                     fontWeight: FontWeight.w500)),
           ],

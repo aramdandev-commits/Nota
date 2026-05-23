@@ -25,13 +25,14 @@ class _CreateSpaceBottomSheetState extends State<CreateSpaceBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    // Determine bottom padding for keyboard
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF151821), // Bottom sheet background
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF151821) : Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(20, 12, 20, 24 + bottomPadding),
       child: SingleChildScrollView(
@@ -52,10 +53,10 @@ class _CreateSpaceBottomSheetState extends State<CreateSpaceBottomSheet> {
             ),
             const SizedBox(height: 24),
 
-            const Text(
+            Text(
               'Create New Space',
               style: TextStyle(
-                color: Colors.white,
+                color: cs.onSurface,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -71,10 +72,10 @@ class _CreateSpaceBottomSheetState extends State<CreateSpaceBottomSheet> {
             const SizedBox(height: 24),
 
             // Space Name Field
-            const Text(
+            Text(
               'Space Name',
               style: TextStyle(
-                color: Color(0xFFD1D5DB),
+                color: cs.onSurface.withValues(alpha: 0.6),
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -87,10 +88,10 @@ class _CreateSpaceBottomSheetState extends State<CreateSpaceBottomSheet> {
             const SizedBox(height: 20),
 
             // Description Field
-            const Text(
+            Text(
               'Description',
               style: TextStyle(
-                color: Color(0xFFD1D5DB),
+                color: cs.onSurface.withValues(alpha: 0.6),
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -103,10 +104,10 @@ class _CreateSpaceBottomSheetState extends State<CreateSpaceBottomSheet> {
             const SizedBox(height: 24),
 
             // Privacy Section
-            const Text(
+            Text(
               'Privacy',
               style: TextStyle(
-                color: Color(0xFFD1D5DB),
+                color: cs.onSurface.withValues(alpha: 0.6),
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -136,11 +137,12 @@ class _CreateSpaceBottomSheetState extends State<CreateSpaceBottomSheet> {
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF202430),
-                      foregroundColor: Colors.white,
+                      backgroundColor: isDark ? const Color(0xFF202430) : Theme.of(context).cardColor,
+                      foregroundColor: cs.onSurface,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
+                        side: isDark ? BorderSide.none : BorderSide(color: cs.onSurface.withValues(alpha: 0.1)),
                       ),
                       elevation: 0,
                     ),
@@ -206,17 +208,20 @@ class _CreateSpaceBottomSheetState extends State<CreateSpaceBottomSheet> {
     required TextEditingController controller,
     required String hintText,
   }) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF202430),
+        color: isDark ? const Color(0xFF202430) : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
+        border: isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
       ),
       child: TextField(
         controller: controller,
-        style: const TextStyle(color: Colors.white),
+        style: TextStyle(color: cs.onSurface),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: const TextStyle(color: Color(0xFF6B7280)),
+          hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.5)),
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           border: InputBorder.none,
@@ -232,14 +237,20 @@ class _CreateSpaceBottomSheetState extends State<CreateSpaceBottomSheet> {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1E1B3A) : const Color(0xFF202430),
+          color: isSelected 
+              ? (isDark ? const Color(0xFF1E1B3A) : cs.primary.withValues(alpha: 0.05))
+              : (isDark ? const Color(0xFF202430) : Theme.of(context).cardColor),
           border: Border.all(
-            color: isSelected ? const Color(0xFF6B58FF) : Colors.transparent,
+            color: isSelected 
+                ? cs.primary 
+                : (isDark ? Colors.transparent : cs.onSurface.withValues(alpha: 0.1)),
             width: 1,
           ),
           borderRadius: BorderRadius.circular(12),
@@ -249,8 +260,8 @@ class _CreateSpaceBottomSheetState extends State<CreateSpaceBottomSheet> {
             Icon(
               icon,
               color: isSelected
-                  ? const Color(0xFFD1D5DB)
-                  : const Color(0xFF6B7280),
+                  ? cs.primary
+                  : cs.onSurface.withValues(alpha: 0.4),
               size: 24,
             ),
             const SizedBox(width: 16),
@@ -260,8 +271,8 @@ class _CreateSpaceBottomSheetState extends State<CreateSpaceBottomSheet> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: cs.onSurface,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -269,8 +280,8 @@ class _CreateSpaceBottomSheetState extends State<CreateSpaceBottomSheet> {
                   const SizedBox(height: 2),
                   Text(
                     description,
-                    style: const TextStyle(
-                      color: Color(0xFF8B949E),
+                    style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.5),
                       fontSize: 13,
                     ),
                   ),
@@ -283,14 +294,14 @@ class _CreateSpaceBottomSheetState extends State<CreateSpaceBottomSheet> {
               height: 24,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isSelected ? Colors.white : Colors.transparent,
+                color: isSelected ? (isDark ? Colors.white : cs.primary) : Colors.transparent,
                 border: Border.all(
                   color: isSelected
-                      ? const Color(0xFF6B58FF)
-                      : const Color(0xFF4B5563),
+                      ? cs.primary
+                      : cs.onSurface.withValues(alpha: 0.3),
                   width: isSelected
                       ? 6
-                      : 2, // Inner dot effect via thick border or white center
+                      : 2, 
                 ),
               ),
               child: isSelected
@@ -298,9 +309,8 @@ class _CreateSpaceBottomSheetState extends State<CreateSpaceBottomSheet> {
                       child: Container(
                         width: 12,
                         height: 12,
-                        decoration: const BoxDecoration(
-                          color: Color(
-                              0xFFD838B5), // Pinkish purple dot from the image inside white border? Actually the image shows a purple circle with white center dot. Let's adjust.
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFFD838B5) : Colors.white, 
                         ),
                       ),
                     )

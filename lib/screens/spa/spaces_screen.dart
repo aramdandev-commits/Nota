@@ -27,8 +27,11 @@ class _SpacesScreenState extends State<SpacesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0D14), // Main dark background
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -42,20 +45,20 @@ class _SpacesScreenState extends State<SpacesScreen> {
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
                           'Spaces',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: cs.onSurface,
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           'Organize & collaborate\nwith workspaces',
                           style: TextStyle(
-                            color: Color(0xFF8B949E),
+                            color: cs.onSurface.withValues(alpha: 0.5),
                             fontSize: 14,
                             height: 1.4,
                           ),
@@ -74,7 +77,7 @@ class _SpacesScreenState extends State<SpacesScreen> {
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6B58FF),
+                      backgroundColor: const Color(0xFF9810FA),
                       foregroundColor: Colors.white,
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(
@@ -93,20 +96,21 @@ class _SpacesScreenState extends State<SpacesScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF151821),
+                  color: isDark ? const Color(0xFF151821) : Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(16),
+                  border: isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
                 ),
                 child: TextField(
                   onChanged: (value) =>
                       Provider.of<SpacesProvider>(context, listen: false)
                           .searchSpaces(value),
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: cs.onSurface),
+                  decoration: InputDecoration(
                     hintText: 'Search spaces...',
-                    hintStyle: TextStyle(color: Color(0xFF6B7280)),
-                    prefixIcon: Icon(Icons.search, color: Color(0xFF6B7280)),
+                    hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.5)),
+                    prefixIcon: Icon(Icons.search, color: cs.onSurface.withValues(alpha: 0.5)),
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical: 16),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                 ),
               ),
@@ -150,10 +154,10 @@ class _SpacesScreenState extends State<SpacesScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // MY SPACES Title
-                        const Text(
+                        Text(
                           'MY SPACES',
                           style: TextStyle(
-                            color: Color(0xFF6B7280),
+                            color: cs.onSurface.withValues(alpha: 0.5),
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1.2,
@@ -162,12 +166,12 @@ class _SpacesScreenState extends State<SpacesScreen> {
                         const SizedBox(height: 16),
 
                         if (spaces.isEmpty)
-                          const Center(
+                          Center(
                             child: Padding(
-                              padding: EdgeInsets.all(32.0),
+                              padding: const EdgeInsets.all(32.0),
                               child: Text(
                                 'No spaces found.',
-                                style: TextStyle(color: Colors.white),
+                                style: TextStyle(color: cs.onSurface),
                               ),
                             ),
                           )
@@ -186,10 +190,10 @@ class _SpacesScreenState extends State<SpacesScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
+                              Text(
                                 'RECENT ACTIVITY',
                                 style: TextStyle(
-                                  color: Color(0xFF6B7280),
+                                  color: cs.onSurface.withValues(alpha: 0.5),
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                   letterSpacing: 1.2,
@@ -212,8 +216,9 @@ class _SpacesScreenState extends State<SpacesScreen> {
                             margin: const EdgeInsets.only(bottom: 24),
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF151821),
+                              color: isDark ? const Color(0xFF151821) : Theme.of(context).cardColor,
                               borderRadius: BorderRadius.circular(16),
+                              border: isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
                             ),
                             child: Row(
                               children: [
@@ -234,16 +239,16 @@ class _SpacesScreenState extends State<SpacesScreen> {
                                 Expanded(
                                   child: RichText(
                                     text: TextSpan(
-                                      style: const TextStyle(
-                                        color: Color(0xFF8B949E),
+                                      style: TextStyle(
+                                        color: cs.onSurface.withValues(alpha: 0.5),
                                         fontSize: 13,
                                       ),
                                       children: [
                                         TextSpan(
                                           text:
                                               '${spaceWithActivity.lastEditedBy} ',
-                                          style: const TextStyle(
-                                            color: Colors.white,
+                                          style: TextStyle(
+                                            color: cs.onSurface,
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
@@ -255,8 +260,8 @@ class _SpacesScreenState extends State<SpacesScreen> {
                                           TextSpan(
                                             text:
                                                 '· ${_timeAgo(spaceWithActivity.lastEditedAt!)}',
-                                            style: const TextStyle(
-                                              color: Color(0xFF6B7280),
+                                            style: TextStyle(
+                                              color: cs.onSurface.withValues(alpha: 0.5),
                                             ),
                                           ),
                                       ],

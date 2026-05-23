@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:nota/controllers/note_provider.dart';
 import 'package:nota/controllers/spaces_provider.dart';
 import 'package:nota/controllers/space_details_provider.dart';
+import 'package:nota/controllers/theme_provider.dart';
+import 'package:nota/helper/app_theme.dart';
 
 late final GoRouter router;
 
@@ -18,6 +20,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => NoteProvider()),
         ChangeNotifierProvider(create: (_) => SpacesProvider()),
         ChangeNotifierProvider(create: (_) => SpaceDetailsProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: const MainApp(),
     ),
@@ -29,23 +32,15 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'Nota App',
       routerConfig: router,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0F111A),
-        canvasColor: const Color(0xFF0F111A),
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-        pageTransitionsTheme: const PageTransitionsTheme(
-          builders: {
-            TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
-            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-          },
-        ),
-      ),
+      themeMode: themeProvider.themeMode,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
     );
   }
 }

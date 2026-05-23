@@ -11,6 +11,9 @@ class SpaceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: () {
         // Reset and load notes for the tapped space
@@ -26,7 +29,7 @@ class SpaceCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF151821),
+          color: isDark ? const Color(0xFF151821) : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -58,8 +61,8 @@ class SpaceCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           space.title,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: cs.onSurface,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
@@ -85,8 +88,8 @@ class SpaceCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     space.description,
-                    style: const TextStyle(
-                      color: Color(0xFF8B949E),
+                    style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.5),
                       fontSize: 13,
                     ),
                     maxLines: 1,
@@ -97,11 +100,15 @@ class SpaceCard extends StatelessWidget {
                     children: [
                       _buildRoleBadge(space.role),
                       const SizedBox(width: 12),
-                      Text(
-                        '${space.memberCount} members  ·  ${space.noteCount} notes',
-                        style: const TextStyle(
-                          color: Color(0xFF6B7280),
-                          fontSize: 12,
+                      Expanded(
+                        child: Text(
+                          '${space.memberCount} members  ·  ${space.noteCount} notes',
+                          style: TextStyle(
+                            color: cs.onSurface.withValues(alpha: 0.4),
+                            fontSize: 12,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],

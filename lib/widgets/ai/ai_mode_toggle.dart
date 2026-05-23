@@ -14,10 +14,13 @@ class AiModeToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF1A1A2E) : const Color(0xFFEEEEF5);
+
     return Container(
       height: 44,
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A2E),
+        color: bgColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -51,6 +54,8 @@ class _Tab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -71,7 +76,7 @@ class _Tab extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.white : const Color(0xFF8E9099),
+              color: isSelected ? Colors.white : cs.onSurface.withValues(alpha: 0.5),
               fontSize: 14,
               fontFamily: 'Inter',
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,

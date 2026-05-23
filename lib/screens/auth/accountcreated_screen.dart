@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'auth_screen.dart';
+
 import '../../widgets/auth/auth_header.dart';
 import '../../widgets/auth/auth_button.dart';
 
@@ -9,8 +9,10 @@ class AccountCreatedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: NotaColors.bg,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -39,11 +41,11 @@ class AccountCreatedScreen extends StatelessWidget {
               const SizedBox(height: 28),
 
               // Title
-              const Text(
+              Text(
                 'Account Created!',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: NotaColors.textPrimary,
+                  color: cs.onSurface,
                   fontSize: 24,
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.bold,
@@ -53,11 +55,11 @@ class AccountCreatedScreen extends StatelessWidget {
               const SizedBox(height: 10),
 
               // Subtitle
-              const Text(
+              Text(
                 "You're all set to start taking notes.",
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: NotaColors.textMuted,
+                  color: cs.onSurface.withValues(alpha: 0.5),
                   fontSize: 14,
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.w400,

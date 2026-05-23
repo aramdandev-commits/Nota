@@ -15,6 +15,8 @@ class NoteAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return SafeArea(
       child: Container(
         height: 60,
@@ -26,11 +28,10 @@ class NoteAppBar extends StatelessWidget implements PreferredSizeWidget {
             GestureDetector(
               onTap: () => Navigator.pop(context),
               child: Row(
-                children: const [
-                  Icon(Icons.arrow_back_ios_new,
-                      color: Colors.blueAccent, size: 18),
-                  SizedBox(width: 4),
-                  Text(
+                children: [
+                  const Icon(Icons.arrow_back_ios_new, color: Colors.blueAccent, size: 18),
+                  const SizedBox(width: 4),
+                  const Text(
                     'Notes',
                     style: TextStyle(
                       color: Colors.blueAccent,
@@ -42,20 +43,20 @@ class NoteAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
 
-            // Center: Saved status (Animated)
+            // Center: Saved status
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
               child: Text(
                 saveState,
                 key: ValueKey<String>(saveState),
-                style: const TextStyle(
-                  color: Colors.white38,
+                style: TextStyle(
+                  color: cs.onSurface.withValues(alpha: 0.38),
                   fontSize: 14,
                 ),
               ),
             ),
 
-            // Right: Avatars and action buttons
+            // Right: Action buttons
             Row(
               children: [
                 // Avatars
@@ -69,11 +70,10 @@ class NoteAppBar extends StatelessWidget implements PreferredSizeWidget {
                         child: CircleAvatar(
                           radius: 16,
                           backgroundColor: Colors.pinkAccent,
-                          child: const Text('ME',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold)),
+                          child: const Text(
+                            'ME',
+                            style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                       Positioned(
@@ -81,11 +81,10 @@ class NoteAppBar extends StatelessWidget implements PreferredSizeWidget {
                         child: CircleAvatar(
                           radius: 16,
                           backgroundColor: Colors.lightBlue,
-                          child: const Text('SK',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold)),
+                          child: const Text(
+                            'SK',
+                            style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                     ],
@@ -93,7 +92,7 @@ class NoteAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
                 const SizedBox(width: 12),
 
-                // Sparkle button (AI Summary)
+                // AI Summary button
                 GestureDetector(
                   onTap: () {
                     showModalBottomSheet(
@@ -110,8 +109,7 @@ class NoteAppBar extends StatelessWidget implements PreferredSizeWidget {
                       color: Colors.purple.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.auto_awesome,
-                        color: Colors.purpleAccent, size: 20),
+                    child: const Icon(Icons.auto_awesome, color: Colors.purpleAccent, size: 20),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -133,13 +131,12 @@ class NoteAppBar extends StatelessWidget implements PreferredSizeWidget {
                       color: Colors.blue.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.share,
-                        color: Colors.blueAccent, size: 18),
+                    child: const Icon(Icons.share, color: Colors.blueAccent, size: 18),
                   ),
                 ),
                 const SizedBox(width: 8),
 
-                // More button (Options)
+                // More options button
                 GestureDetector(
                   onTap: () {
                     showModalBottomSheet(
@@ -153,11 +150,10 @@ class NoteAppBar extends StatelessWidget implements PreferredSizeWidget {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.05),
+                      color: cs.onSurface.withValues(alpha: 0.07),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.more_horiz,
-                        color: Colors.white70, size: 20),
+                    child: Icon(Icons.more_horiz, color: cs.onSurface.withValues(alpha: 0.7), size: 20),
                   ),
                 ),
               ],

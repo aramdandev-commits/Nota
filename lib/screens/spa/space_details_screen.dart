@@ -58,9 +58,11 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final space = widget.space;
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0D14),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -71,8 +73,8 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: const Icon(Icons.arrow_back_ios_new,
-                        color: Colors.white, size: 20),
+                    child: Icon(Icons.arrow_back_ios_new,
+                        color: cs.onSurface, size: 20),
                   ),
                   const SizedBox(width: 12),
                   Container(
@@ -89,13 +91,13 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(space.title,
-                            style: const TextStyle(
-                                color: Colors.white,
+                            style: TextStyle(
+                                color: cs.onSurface,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold)),
                         Text(space.description,
-                            style: const TextStyle(
-                                color: Color(0xFF8B949E), fontSize: 12),
+                            style: TextStyle(
+                                color: cs.onSurface.withValues(alpha: 0.5), fontSize: 12),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis),
                       ],
@@ -103,8 +105,8 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
                   ),
                   GestureDetector(
                     onTap: _showOptionsSheet,
-                    child: const Icon(Icons.settings_outlined,
-                        color: Color(0xFF8B949E), size: 22),
+                    child: Icon(Icons.settings_outlined,
+                        color: cs.onSurface.withValues(alpha: 0.5), size: 22),
                   ),
                 ],
               ),
@@ -113,41 +115,56 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
             // Meta row
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: Row(
+              child: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 8,
                 children: [
-                  const Icon(Icons.description_outlined,
-                      color: Color(0xFF6B7280), size: 14),
-                  const SizedBox(width: 4),
-                  Consumer<SpaceDetailsProvider>(
-                    builder: (_, p, __) => Text('${p.notes.length} notes',
-                        style: const TextStyle(
-                            color: Color(0xFF6B7280), fontSize: 12)),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.description_outlined,
+                          color: cs.onSurface.withValues(alpha: 0.4), size: 14),
+                      const SizedBox(width: 4),
+                      Consumer<SpaceDetailsProvider>(
+                        builder: (_, p, __) => Text('${p.notes.length} notes',
+                            style: TextStyle(
+                                color: cs.onSurface.withValues(alpha: 0.4), fontSize: 12)),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  const Icon(Icons.people_outline,
-                      color: Color(0xFF6B7280), size: 14),
-                  const SizedBox(width: 4),
-                  Consumer<SpaceDetailsProvider>(
-                    builder: (_, p, __) => Text('${p.members.length} members',
-                        style: const TextStyle(
-                            color: Color(0xFF6B7280), fontSize: 12)),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.people_outline,
+                          color: cs.onSurface.withValues(alpha: 0.4), size: 14),
+                      const SizedBox(width: 4),
+                      Consumer<SpaceDetailsProvider>(
+                        builder: (_, p, __) => Text('${p.members.length} members',
+                            style: TextStyle(
+                                color: cs.onSurface.withValues(alpha: 0.4), fontSize: 12)),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
                   _RoleBadge(role: space.role),
-                  const SizedBox(width: 8),
-                  Icon(
-                      space.privacy == SpacePrivacy.private
-                          ? Icons.lock_outline
-                          : Icons.language,
-                      color: const Color(0xFF6B7280),
-                      size: 14),
-                  const SizedBox(width: 4),
-                  Text(
-                      space.privacy == SpacePrivacy.private
-                          ? 'Private'
-                          : 'Public',
-                      style: const TextStyle(
-                          color: Color(0xFF6B7280), fontSize: 12)),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                          space.privacy == SpacePrivacy.private
+                              ? Icons.lock_outline
+                              : Icons.language,
+                          color: cs.onSurface.withValues(alpha: 0.4),
+                          size: 14),
+                      const SizedBox(width: 4),
+                      Text(
+                          space.privacy == SpacePrivacy.private
+                              ? 'Private'
+                              : 'Public',
+                          style: TextStyle(
+                              color: cs.onSurface.withValues(alpha: 0.4), fontSize: 12)),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -187,22 +204,23 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
                         child: Container(
                           height: 40,
                           decoration: BoxDecoration(
-                              color: const Color(0xFF151821),
-                              borderRadius: BorderRadius.circular(12)),
+                              color: isDark ? const Color(0xFF151821) : Theme.of(context).cardColor,
+                              borderRadius: BorderRadius.circular(12),
+                              border: isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.1))),
                           child: TextField(
                             onChanged: isMembersTab
                                 ? provider.searchMembers
                                 : provider.searchNotes,
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 14),
+                            style: TextStyle(
+                                color: cs.onSurface, fontSize: 14),
                             decoration: InputDecoration(
                               hintText: isMembersTab
                                   ? 'Search members...'
                                   : 'Search notes...',
                               hintStyle:
-                                  const TextStyle(color: Color(0xFF6B7280)),
-                              prefixIcon: const Icon(Icons.search,
-                                  color: Color(0xFF6B7280), size: 18),
+                                  TextStyle(color: cs.onSurface.withValues(alpha: 0.4)),
+                              prefixIcon: Icon(Icons.search,
+                                  color: cs.onSurface.withValues(alpha: 0.4), size: 18),
                               border: InputBorder.none,
                               contentPadding:
                                   const EdgeInsets.symmetric(vertical: 10),
@@ -366,13 +384,17 @@ class _NoteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
         onTap: () => Navigator.push(context,
             MaterialPageRoute(builder: (_) => SpaceNoteViewScreen(note: note))),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-              color: const Color(0xFF151821),
+              color: isDark ? const Color(0xFF151821) : Theme.of(context).cardColor,
+              border: isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
               borderRadius: BorderRadius.circular(16)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -383,8 +405,8 @@ class _NoteCard extends StatelessWidget {
                     child: Row(children: [
                       Flexible(
                           child: Text(note.title,
-                              style: const TextStyle(
-                                  color: Colors.white,
+                              style: TextStyle(
+                                  color: cs.onSurface,
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600),
                               maxLines: 1,
@@ -398,26 +420,26 @@ class _NoteCard extends StatelessWidget {
                   ),
                   GestureDetector(
                       onTap: () => _showOptions(context),
-                      child: const Icon(Icons.more_vert,
-                          color: Color(0xFF6B7280), size: 20)),
+                      child: Icon(Icons.more_vert,
+                          color: cs.onSurface.withValues(alpha: 0.4), size: 20)),
                 ],
               ),
               const SizedBox(height: 6),
               Text(note.content,
                   style:
-                      const TextStyle(color: Color(0xFF8B949E), fontSize: 13),
+                      TextStyle(color: cs.onSurface.withValues(alpha: 0.5), fontSize: 13),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis),
               const SizedBox(height: 10),
               Row(children: [
-                const Icon(Icons.access_time,
-                    color: Color(0xFF6B7280), size: 12),
+                Icon(Icons.access_time,
+                    color: cs.onSurface.withValues(alpha: 0.4), size: 12),
                 const SizedBox(width: 4),
                 Text(
                     _timeLabel(note.updatedAt ?? note.createdAt,
                         isEdited: note.updatedAt != null),
-                    style: const TextStyle(
-                        color: Color(0xFF6B7280), fontSize: 11)),
+                    style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.4), fontSize: 11)),
                 const SizedBox(width: 10),
                 Expanded(
                     child: Wrap(
@@ -435,14 +457,20 @@ class _TagChip extends StatelessWidget {
   final String tag;
   const _TagChip({required this.tag});
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
-            color: const Color(0xFF202430),
+            color: isDark ? const Color(0xFF202430) : Theme.of(context).cardColor,
+            border: isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
             borderRadius: BorderRadius.circular(6)),
         child: Text(tag,
-            style: const TextStyle(color: Color(0xFF8B949E), fontSize: 10)),
+            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5), fontSize: 10)),
       );
+  }
 }
 
 // ── Create Note Sheet ─────────────────────────────────────────────────────────
@@ -480,11 +508,14 @@ class _CreateNoteSheetState extends State<_CreateNoteSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final bottom = MediaQuery.of(context).viewInsets.bottom;
+
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF151821),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF151821) : Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(20, 12, 20, 24 + bottom),
       child: Column(
@@ -494,8 +525,8 @@ class _CreateNoteSheetState extends State<_CreateNoteSheet> {
           _Handle(),
           const SizedBox(height: 20),
           Text(widget.note == null ? 'Create Note' : 'Edit Note',
-              style: const TextStyle(
-                  color: Colors.white,
+              style: TextStyle(
+                  color: cs.onSurface,
                   fontSize: 20,
                   fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
@@ -503,19 +534,19 @@ class _CreateNoteSheetState extends State<_CreateNoteSheet> {
               widget.note == null
                   ? 'Give your note a name to get started'
                   : 'Update the details of your note',
-              style: const TextStyle(color: Color(0xFF8B949E), fontSize: 13)),
+              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5), fontSize: 13)),
           const SizedBox(height: 20),
-          const Text('Note Name',
+          Text('Note Name',
               style: TextStyle(
-                  color: Color(0xFFD1D5DB),
+                  color: cs.onSurface.withValues(alpha: 0.6),
                   fontSize: 13,
                   fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
           SpaceTextField(controller: _nameCtrl, hintText: 'Enter note name...'),
           const SizedBox(height: 16),
-          const Text('Description',
+          Text('Description',
               style: TextStyle(
-                  color: Color(0xFFD1D5DB),
+                  color: cs.onSurface.withValues(alpha: 0.6),
                   fontSize: 13,
                   fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
@@ -526,9 +557,9 @@ class _CreateNoteSheetState extends State<_CreateNoteSheet> {
             keyboardType: TextInputType.multiline,
           ),
           const SizedBox(height: 16),
-          const Text('Tags (optional)',
+          Text('Tags (optional)',
               style: TextStyle(
-                  color: Color(0xFFD1D5DB),
+                  color: cs.onSurface.withValues(alpha: 0.6),
                   fontSize: 13,
                   fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
@@ -587,12 +618,14 @@ class _NoteOptionsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final canDelete =
         spaceRole == SpaceRole.admin || spaceRole == SpaceRole.contributor;
     return Container(
-      decoration: const BoxDecoration(
-          color: Color(0xFF151821),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF151821) : Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -610,7 +643,7 @@ class _NoteOptionsSheet extends StatelessWidget {
             },
           ),
           if (canDelete) ...[
-            const Divider(color: Color(0xFF1E212B)),
+            Divider(color: cs.onSurface.withValues(alpha: 0.1)),
             _OptionTile(
               icon: Icons.edit_outlined,
               iconColor: const Color(0xFF60A5FA),
@@ -652,11 +685,13 @@ class _OptionsBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isAdmin = space.role == SpaceRole.admin;
     return Container(
-      decoration: const BoxDecoration(
-          color: Color(0xFF151821),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF151821) : Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -679,7 +714,7 @@ class _OptionsBottomSheet extends StatelessWidget {
                 );
               },
             ),
-            const Divider(color: Color(0xFF1E212B)),
+            Divider(color: cs.onSurface.withValues(alpha: 0.1)),
             _OptionTile(
               icon: Icons.delete_outline,
               iconColor: const Color(0xFFEF4444),
@@ -689,19 +724,19 @@ class _OptionsBottomSheet extends StatelessWidget {
                 showDialog(
                   context: context,
                   builder: (dialogCtx) => AlertDialog(
-                    backgroundColor: const Color(0xFF151821),
+                    backgroundColor: isDark ? const Color(0xFF151821) : Theme.of(context).scaffoldBackgroundColor,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16)),
-                    title: const Text('Delete Space',
-                        style: TextStyle(color: Colors.white)),
+                    title: Text('Delete Space',
+                        style: TextStyle(color: cs.onSurface)),
                     content: Text(
                         'Delete "${space.title}"? This cannot be undone.',
-                        style: const TextStyle(color: Color(0xFF8B949E))),
+                        style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5))),
                     actions: [
                       TextButton(
                           onPressed: () => Navigator.pop(dialogCtx),
-                          child: const Text('Cancel',
-                              style: TextStyle(color: Color(0xFF8B949E)))),
+                          child: Text('Cancel',
+                              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5)))),
                       TextButton(
                         onPressed: () {
                           final provider = dialogCtx.read<SpacesProvider>();
@@ -766,12 +801,14 @@ class _EditSpaceSheetState extends State<_EditSpaceSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final bottom = MediaQuery.of(context).viewInsets.bottom;
     return Consumer<SpaceDetailsProvider>(
       builder: (ctx, provider, _) => Container(
-        decoration: const BoxDecoration(
-            color: Color(0xFF151821),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF151821) : Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
         padding: EdgeInsets.fromLTRB(20, 12, 20, 24 + bottom),
         child: SingleChildScrollView(
           child: Column(
@@ -780,24 +817,24 @@ class _EditSpaceSheetState extends State<_EditSpaceSheet> {
             children: [
               _Handle(),
               const SizedBox(height: 20),
-              const Text('Edit Space',
+              Text('Edit Space',
                   style: TextStyle(
-                      color: Colors.white,
+                      color: cs.onSurface,
                       fontSize: 20,
                       fontWeight: FontWeight.bold)),
               const SizedBox(height: 20),
-              const Text('Space Name',
+              Text('Space Name',
                   style: TextStyle(
-                      color: Color(0xFFD1D5DB),
+                      color: cs.onSurface.withValues(alpha: 0.6),
                       fontSize: 13,
                       fontWeight: FontWeight.w500)),
               const SizedBox(height: 8),
               SpaceTextField(
                   controller: _nameCtrl, hintText: 'Enter space name'),
               const SizedBox(height: 16),
-              const Text('Description',
+              Text('Description',
                   style: TextStyle(
-                      color: Color(0xFFD1D5DB),
+                      color: cs.onSurface.withValues(alpha: 0.6),
                       fontSize: 13,
                       fontWeight: FontWeight.w500)),
               const SizedBox(height: 8),
@@ -876,11 +913,13 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final bottom = MediaQuery.of(context).viewInsets.bottom;
     return Container(
-      decoration: const BoxDecoration(
-          color: Color(0xFF151821),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF151821) : Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
       padding: EdgeInsets.fromLTRB(20, 12, 20, 24 + bottom),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -888,18 +927,18 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
         children: [
           _Handle(),
           const SizedBox(height: 20),
-          const Text('Invite Member',
+          Text('Invite Member',
               style: TextStyle(
-                  color: Colors.white,
+                  color: cs.onSurface,
                   fontSize: 20,
                   fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
-          const Text('Send an invite by email address',
-              style: TextStyle(color: Color(0xFF8B949E), fontSize: 14)),
+          Text('Send an invite by email address',
+              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5), fontSize: 14)),
           const SizedBox(height: 20),
-          const Text('Email Address',
+          Text('Email Address',
               style: TextStyle(
-                  color: Color(0xFFD1D5DB),
+                  color: cs.onSurface.withValues(alpha: 0.6),
                   fontSize: 13,
                   fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
@@ -964,7 +1003,9 @@ class _OptionTile extends StatelessWidget {
       required this.onTap});
 
   @override
-  Widget build(BuildContext context) => InkWell(
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
@@ -981,12 +1022,13 @@ class _OptionTile extends StatelessWidget {
             const SizedBox(width: 14),
             Text(label,
                 style: TextStyle(
-                    color: labelColor ?? Colors.white,
+                    color: labelColor ?? cs.onSurface,
                     fontSize: 15,
                     fontWeight: FontWeight.w500)),
           ]),
         ),
       );
+  }
 }
 
 class _TabButton extends StatelessWidget {
@@ -1001,35 +1043,42 @@ class _TabButton extends StatelessWidget {
       required this.onTap});
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GestureDetector(
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            color:
-                isSelected ? const Color(0xFF1A1F36) : const Color(0xFF151821),
+            color: isDark 
+                ? (isSelected ? const Color(0xFF1A1F36) : const Color(0xFF151821))
+                : (isSelected ? cs.primary.withValues(alpha: 0.1) : Theme.of(context).cardColor),
             borderRadius: BorderRadius.circular(12),
-            border:
-                isSelected ? Border.all(color: const Color(0xFF6B58FF)) : null,
+            border: isSelected
+                ? Border.all(color: cs.primary)
+                : (isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.1))),
           ),
           child: Row(children: [
             Icon(icon,
                 color: isSelected
-                    ? const Color(0xFF6B58FF)
-                    : const Color(0xFF6B7280),
+                    ? cs.primary
+                    : cs.onSurface.withValues(alpha: 0.4),
                 size: 16),
             const SizedBox(width: 6),
             Text(label,
                 style: TextStyle(
                     color: isSelected
-                        ? const Color(0xFF6B58FF)
-                        : const Color(0xFF6B7280),
+                        ? cs.primary
+                        : cs.onSurface.withValues(alpha: 0.4),
                     fontSize: 13,
                     fontWeight:
                         isSelected ? FontWeight.w600 : FontWeight.normal)),
           ]),
         ),
       );
+  }
 }
 
 class _RoleBadge extends StatelessWidget {

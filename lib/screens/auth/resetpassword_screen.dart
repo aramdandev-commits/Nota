@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:nota/widgets/auth/auth_button.dart';
 import 'package:nota/widgets/auth/auth_header.dart';
 import 'package:nota/widgets/auth/auth_text_field.dart';
-import 'auth_screen.dart';
+
 import '../../helper/auth_validators.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
@@ -32,8 +32,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    
     return Scaffold(
-      backgroundColor: NotaColors.bg,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -53,13 +55,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     children: [
                       Icon(
                         Icons.chevron_left_rounded,
-                        color: NotaColors.purple,
+                        color: Color(0xFF9810FA),
                         size: 20,
                       ),
                       Text(
                         'Back to Login',
                         style: TextStyle(
-                          color: NotaColors.purple,
+                          color: Color(0xFF9810FA),
                           fontSize: 14,
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w500,
@@ -71,10 +73,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 const SizedBox(height: 20),
 
                 // Title
-                const Text(
+                Text(
                   'Reset Password',
                   style: TextStyle(
-                    color: NotaColors.textPrimary,
+                    color: cs.onSurface,
                     fontSize: 22,
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.w700,

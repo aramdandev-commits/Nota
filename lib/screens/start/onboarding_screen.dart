@@ -20,29 +20,31 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    
     return Scaffold(
-      backgroundColor: Color(0xFF0A0E1A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Color(0xFF0A0E1A),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         title: Row(
           children: [
             Image.asset('assets/images/nota.png'),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Text(
               'Nota',
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: 18,
                 fontFamily: 'Inter',
-                color: Colors.white,
+                color: cs.onSurface,
               ),
             ),
           ],
         ),
         actions: [
-          IconButton(onPressed: () {}, icon: Icon(Icons.language)),
-          SizedBox(width: 10),
+          IconButton(onPressed: () {}, icon: Icon(Icons.language, color: cs.onSurface)),
+          const SizedBox(width: 10),
           TextButton(
             onPressed: () async {
               final prefs = await SharedPreferences.getInstance();
@@ -56,7 +58,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 fontWeight: FontWeight.w400,
                 fontFamily: 'Inter',
                 fontSize: 14,
-                color: Colors.white,
+                color: cs.onSurface,
               ),
             ),
           ),
@@ -83,11 +85,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       Text(
                         onboardingList[index].title,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 30,
                           fontWeight: FontWeight.w700,
                           fontFamily: 'Inter',
-                          color: Colors.white,
+                          color: cs.onSurface,
                           height: 1,
                         ),
                       ),
@@ -96,11 +98,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         onboardingList[index].description,
                         textAlign: TextAlign.center,
                         textWidthBasis: TextWidthBasis.longestLine,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w400,
                           fontFamily: 'Inter',
-                          color: Colors.grey,
+                          color: cs.onSurface.withValues(alpha: 0.6),
                           height: 1,
                         ),
                       ),

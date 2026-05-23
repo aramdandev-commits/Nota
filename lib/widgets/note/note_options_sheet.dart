@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:nota/helper/app_theme.dart';
 import '../../controllers/note_provider.dart';
 
 import '../spa/delete_note_sheet.dart';
@@ -14,16 +15,17 @@ class NoteOptionsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color sheetColor = Color(0xFF1E1E2A);
-    const Color itemColor = Color(0xFF2A2A38);
+    final cs      = Theme.of(context).colorScheme;
+    final sheetBg = AppTheme.sheetColor(context);
+    final itemBg  = AppTheme.itemColor(context);
     const Color destructiveColor = Color(0xFF3A1E24);
-    const Color iconAccentColor = Color(0xFF3D7AF9);
+    const Color iconAccentColor  = Color(0xFF3D7AF9);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      decoration: const BoxDecoration(
-        color: sheetColor,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: sheetBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -32,38 +34,41 @@ class NoteOptionsSheet extends StatelessWidget {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2)),
+              color: cs.onSurface.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(2),
+            ),
           ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Options',
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white)),
+              Text(
+                'Options',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: cs.onSurface,
+                ),
+              ),
               InkWell(
                 onTap: () => Navigator.pop(context),
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
                   padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                      color: itemColor, shape: BoxShape.circle),
-                  child: const Icon(Icons.close, color: Colors.grey, size: 20),
+                  decoration: BoxDecoration(color: itemBg, shape: BoxShape.circle),
+                  child: Icon(Icons.close, color: cs.onSurface.withValues(alpha: 0.5), size: 20),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 20),
 
-          // Share Button
           _buildOptionItem(
+            context: context,
             icon: Icons.share_outlined,
             iconColor: iconAccentColor,
             title: 'Share',
-            bgColor: itemColor,
+            bgColor: itemBg,
             onTap: () {
               Navigator.pop(context);
               showModalBottomSheet(
@@ -76,14 +81,14 @@ class NoteOptionsSheet extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          // Move to Space Button
           _buildOptionItem(
+            context: context,
             icon: Icons.folder_outlined,
             iconColor: Colors.tealAccent,
             title: 'Move to Space',
             subtitle: 'Research Space',
             showArrow: true,
-            bgColor: itemColor,
+            bgColor: itemBg,
             onTap: () {
               Navigator.pop(context);
               showModalBottomSheet(
@@ -96,18 +101,17 @@ class NoteOptionsSheet extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          // Note Info Button
           _buildOptionItem(
+            context: context,
             icon: Icons.info_outline_rounded,
             iconColor: Colors.cyanAccent,
             title: 'Note Info',
             showArrow: true,
-            bgColor: itemColor,
+            bgColor: itemBg,
             onTap: () {
               final note = Provider.of<NoteProvider>(context, listen: false)
                   .notes
                   .firstWhere((n) => n.id == noteId);
-
               Navigator.pop(context);
               showModalBottomSheet(
                 context: context,
@@ -122,8 +126,8 @@ class NoteOptionsSheet extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          // Delete Button
           _buildOptionItem(
+            context: context,
             icon: Icons.delete_outline_rounded,
             iconColor: Colors.redAccent,
             title: 'Delete Note',
@@ -147,22 +151,28 @@ class NoteOptionsSheet extends StatelessWidget {
   }
 
   Widget _buildOptionItem({
+    required BuildContext context,
     required IconData icon,
     required Color iconColor,
     required String title,
-    Color titleColor = Colors.white,
+    Color? titleColor,
     String? subtitle,
     bool showArrow = false,
     required Color bgColor,
     required VoidCallback onTap,
   }) {
+    final cs = Theme.of(context).colorScheme;
+    final effectiveTitleColor = titleColor ?? cs.onSurface;
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-            color: bgColor, borderRadius: BorderRadius.circular(12)),
+          color: bgColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: Row(
           children: [
             Icon(icon, color: iconColor, size: 24),
@@ -171,22 +181,29 @@ class NoteOptionsSheet extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: TextStyle(
-                          color: titleColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500)),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: effectiveTitleColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   if (subtitle != null) ...[
                     const SizedBox(height: 4),
-                    Text(subtitle,
-                        style:
-                            const TextStyle(color: Colors.grey, fontSize: 12)),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.5),
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                 ],
               ),
             ),
             if (showArrow)
-              const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+              Icon(Icons.chevron_right_rounded, color: cs.onSurface.withValues(alpha: 0.5)),
           ],
         ),
       ),

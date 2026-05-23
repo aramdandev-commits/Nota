@@ -9,18 +9,21 @@ class DeleteNoteSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color sheetColor = Color(0xFF1E1E2A);
-    const Color itemColor = Color(0xFF2A2A38);
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final Color sheetColor = isDark ? const Color(0xFF1E1E2A) : Theme.of(context).scaffoldBackgroundColor;
+    final Color itemColor = isDark ? const Color(0xFF2A2A38) : Theme.of(context).cardColor;
     const Color deleteRed = Color(0xFFD32F2F);
-    const Color iconBgRed = Color(0xFF3A1E24);
-    const Color textColor = Colors.white;
-    const Color subtitleColor = Colors.grey;
+    final Color iconBgRed = isDark ? const Color(0xFF3A1E24) : const Color(0xFFFEF2F2);
+    final Color textColor = cs.onSurface;
+    final Color subtitleColor = cs.onSurface.withValues(alpha: 0.6);
 
     return Container(
       padding: const EdgeInsets.all(24.0),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: sheetColor,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -39,7 +42,7 @@ class DeleteNoteSheet extends StatelessWidget {
 
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: iconBgRed,
               shape: BoxShape.circle,
             ),
@@ -49,7 +52,7 @@ class DeleteNoteSheet extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Titles
-          const Text(
+          Text(
             'Delete this note?',
             style: TextStyle(
               fontSize: 20,
@@ -58,7 +61,7 @@ class DeleteNoteSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'This note will be moved to trash.',
             style: TextStyle(
               fontSize: 14,
@@ -89,7 +92,7 @@ class DeleteNoteSheet extends StatelessWidget {
               child: const Text(
                 'Delete',
                 style: TextStyle(
-                    color: textColor,
+                    color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.bold),
               ),
@@ -110,7 +113,7 @@ class DeleteNoteSheet extends StatelessWidget {
                 elevation: 0,
               ),
               onPressed: () => Navigator.pop(context),
-              child: const Text(
+              child: Text(
                 'Cancel',
                 style: TextStyle(
                     color: subtitleColor,

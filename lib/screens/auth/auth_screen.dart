@@ -10,23 +10,7 @@ import '../../widgets/auth/auth_text_field.dart';
 import '../../widgets/auth/social_buttons_row.dart';
 import '../../helper/auth_validators.dart';
 
-class NotaColors {
-  static const bg = Color(0XFF0A0E1A);
-  static const surface = Color(0xFF15151F);
-  static const inputBg = Color(0xFF1A1A26);
-  static const border = Color(0x12FFFFFF);
-  static const textPrimary = Color(0xFFF0F0F8);
-  static const textMuted = Color(0xFF6A7282);
-  static const purple = Color(0xFF9810FA);
-  static const pink = Color(0xFFDB2777);
-  static const socialBg = Color(0xFF1C1C2A);
-
-  static const gradient = LinearGradient(
-    colors: [purple, pink],
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
-  );
-}
+// Colors removed, using theme context
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -87,11 +71,11 @@ class _AuthScreenState extends State<AuthScreen> {
     return const SizedBox.shrink();
   }
 
-  Widget _sectionLabel(String text) {
+  Widget _sectionLabel(String text, ColorScheme cs) {
     return Text(
       text,
-      style: const TextStyle(
-        color: NotaColors.textMuted,
+      style: TextStyle(
+        color: cs.onSurface.withValues(alpha: 0.5),
         fontSize: 13,
         fontWeight: FontWeight.w500,
       ),
@@ -100,8 +84,10 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    
     return Scaffold(
-      backgroundColor: NotaColors.bg,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -119,7 +105,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 28),
                 if (!_isLogin) ...[
-                  _sectionLabel('Full Name'),
+                  _sectionLabel('Full Name', cs),
                   const SizedBox(height: 8),
                   AuthTextField(
                     controller: _nameController,
@@ -128,7 +114,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                   const SizedBox(height: 18),
                 ],
-                _sectionLabel('Email'),
+                _sectionLabel('Email', cs),
                 const SizedBox(height: 8),
                 AuthTextField(
                   controller: _emailController,
@@ -137,7 +123,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   validator: AuthValidators.validateEmail,
                 ),
                 const SizedBox(height: 18),
-                _sectionLabel('Password'),
+                _sectionLabel('Password', cs),
                 const SizedBox(height: 8),
                 AuthTextField(
                   controller: _passwordController,
@@ -149,7 +135,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       _obscurePassword
                           ? Icons.visibility_outlined
                           : Icons.visibility_off_outlined,
-                      color: NotaColors.textMuted,
+                      color: cs.onSurface.withValues(alpha: 0.5),
                       size: 20,
                     ),
                     onPressed: () {
@@ -179,7 +165,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       child: const Text(
                         'Forgot Password?',
                         style: TextStyle(
-                          color: NotaColors.purple,
+                          color: Color(0xFF9810FA),
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                         ),
@@ -189,7 +175,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 ],
                 if (!_isLogin) ...[
                   const SizedBox(height: 18),
-                  _sectionLabel('Confirm Password'),
+                  _sectionLabel('Confirm Password', cs),
                   const SizedBox(height: 8),
                   AuthTextField(
                     controller: _confirmPasswordController,
@@ -205,7 +191,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         _obscureConfirmPassword
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
-                        color: NotaColors.textMuted,
+                        color: cs.onSurface.withValues(alpha: 0.5),
                         size: 20,
                       ),
                       onPressed: () {

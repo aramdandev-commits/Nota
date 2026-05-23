@@ -66,10 +66,12 @@ class _SpaceNoteViewScreenState extends State<SpaceNoteViewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final note = widget.note;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0D14),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -80,8 +82,8 @@ class _SpaceNoteViewScreenState extends State<SpaceNoteViewScreen> {
                 children: [
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: const Icon(Icons.arrow_back_ios_new,
-                        color: Colors.white, size: 20),
+                    child: Icon(Icons.arrow_back_ios_new,
+                        color: cs.onSurface, size: 20),
                   ),
                   const Spacer(),
                   // Favorite star
@@ -89,12 +91,12 @@ class _SpaceNoteViewScreenState extends State<SpaceNoteViewScreen> {
                     note.isFavorite ? Icons.star : Icons.star_border,
                     color: note.isFavorite
                         ? const Color(0xFFFBBF24)
-                        : const Color(0xFF6B7280),
+                        : cs.onSurface.withValues(alpha: 0.4),
                     size: 22,
                   ),
                   const SizedBox(width: 16),
-                  const Icon(Icons.more_vert,
-                      color: Color(0xFF6B7280), size: 22),
+                  Icon(Icons.more_vert,
+                      color: cs.onSurface.withValues(alpha: 0.4), size: 22),
                 ],
               ),
             ),
@@ -109,8 +111,8 @@ class _SpaceNoteViewScreenState extends State<SpaceNoteViewScreen> {
                     // Title
                     Text(
                       note.title,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: cs.onSurface,
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
                         height: 1.3,
@@ -136,17 +138,17 @@ class _SpaceNoteViewScreenState extends State<SpaceNoteViewScreen> {
                         ),
                         const SizedBox(width: 8),
                         Text(note.authorName,
-                            style: const TextStyle(
-                                color: Color(0xFFD1D5DB),
+                            style: TextStyle(
+                                color: cs.onSurface.withValues(alpha: 0.6),
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500)),
                         const SizedBox(width: 8),
-                        const Icon(Icons.circle,
-                            size: 4, color: Color(0xFF6B7280)),
+                        Icon(Icons.circle,
+                            size: 4, color: cs.onSurface.withValues(alpha: 0.4)),
                         const SizedBox(width: 8),
                         Text(_formatDate(note.createdAt),
-                            style: const TextStyle(
-                                color: Color(0xFF6B7280), fontSize: 12)),
+                            style: TextStyle(
+                                color: cs.onSurface.withValues(alpha: 0.4), fontSize: 12)),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -162,13 +164,13 @@ class _SpaceNoteViewScreenState extends State<SpaceNoteViewScreen> {
                       const SizedBox(height: 20),
                     ],
 
-                    const Divider(color: Color(0xFF1E212B)),
+                    Divider(color: cs.onSurface.withValues(alpha: 0.1)),
                     const SizedBox(height: 20),
 
                     // Rich text body
                     DefaultTextStyle(
-                      style: const TextStyle(
-                        color: Color(0xFFD1D5DB),
+                      style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.8),
                         fontSize: 16,
                         height: 1.7,
                       ),

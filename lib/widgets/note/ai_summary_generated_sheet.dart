@@ -79,15 +79,16 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
 
   @override
   Widget build(BuildContext context) {
-    const Color sheetColor = Color(0xFF1E1E2A);
-    const Color textColor = Colors.white;
-    const Color subtitleColor = Colors.grey;
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final Color sheetColor = isDark ? const Color(0xFF1E1E2A) : Theme.of(context).scaffoldBackgroundColor;
+    final Color textColor = cs.onSurface;
+    final Color subtitleColor = cs.onSurface.withValues(alpha: 0.6);
     const Color buttonColorStart = Color(0xFFE520A4);
     const Color buttonColorEnd = Color(0xFF7A36DC);
-    const Color closeButtonColor = Color(0xFF2A2A38);
-
-
-    const Color summaryBoxColor = Color(0xFF242038);
+    final Color closeButtonColor = isDark ? const Color(0xFF2A2A38) : Theme.of(context).cardColor;
+    final Color summaryBoxColor = isDark ? const Color(0xFF242038) : cs.primary.withValues(alpha: 0.05);
 
 
     return Padding(
@@ -99,9 +100,9 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
             ? MediaQuery.of(context).size.height * 0.45
             : MediaQuery.of(context).size.height * 0.55,
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: sheetColor,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,12 +142,12 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
                     const SizedBox(width: 12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
                           'AI Summary',
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
                         ),
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Text(
                           'AI-generated summary of your note',
                           style: TextStyle(fontSize: 13, color: subtitleColor),
@@ -160,8 +161,8 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
                     padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(color: closeButtonColor, shape: BoxShape.circle),
-                    child: const Icon(Icons.close, color: subtitleColor, size: 20),
+                    decoration: BoxDecoration(color: closeButtonColor, shape: BoxShape.circle),
+                    child: Icon(Icons.close, color: subtitleColor, size: 20),
                   ),
                 ),
               ],
@@ -170,7 +171,7 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
 
 
             Expanded(
-              child: _buildBody(summaryBoxColor, closeButtonColor),
+              child: _buildBody(context, summaryBoxColor, closeButtonColor),
             ),
           ],
         ),
@@ -178,7 +179,10 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
     );
   }
 
-  Widget _buildBody(Color summaryBoxColor, Color secondaryBtnColor) {
+  Widget _buildBody(BuildContext context, Color summaryBoxColor, Color secondaryBtnColor) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     switch (_currentState) {
       case SummaryState.loading:
         return const Center(
@@ -203,19 +207,19 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
                 child: isEditing
                     ? TextField(
                   controller: _summaryController,
-                  style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.5),
+                  style: TextStyle(color: cs.onSurface, fontSize: 14, height: 1.5),
                   maxLines: null,
                   expands: true,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     border: InputBorder.none,
                     hintText: 'Edit your summary...',
-                    hintStyle: TextStyle(color: Colors.grey),
+                    hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.5)),
                   ),
                 )
                     : SingleChildScrollView(
                   child: Text(
                     _summaryController.text,
-                    style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.5),
+                    style: TextStyle(color: cs.onSurface, fontSize: 14, height: 1.5),
                   ),
                 ),
               ),
@@ -266,8 +270,8 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
                           _currentState = isEditing ? SummaryState.generated : SummaryState.editing;
                         });
                       },
-                      icon: Icon(isEditing ? Icons.check : Icons.edit_outlined, color: Colors.white, size: 18),
-                      label: Text(isEditing ? 'Save' : 'Edit', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      icon: Icon(isEditing ? Icons.check : Icons.edit_outlined, color: cs.onSurface, size: 18),
+                      label: Text(isEditing ? 'Save' : 'Edit', style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ),
@@ -283,7 +287,7 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
                   ),
                   child: IconButton(
                     onPressed: _copyToClipboard,
-                    icon: const Icon(Icons.copy_rounded, color: Colors.white54, size: 20),
+                    icon: Icon(Icons.copy_rounded, color: cs.onSurface.withValues(alpha: 0.5), size: 20),
                   ),
                 ),
               ],

@@ -8,7 +8,7 @@ class UserCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E24),
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Row(

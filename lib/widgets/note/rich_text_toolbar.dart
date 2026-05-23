@@ -1,11 +1,9 @@
-
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter_quill.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:nota/helper/app_theme.dart';
 
 class RichTextToolbar extends StatefulWidget {
-  final QuillController controller;
+  // We keep the QuillController dynamic to avoid a hard dependency on flutter_quill
+  final dynamic controller;
 
   const RichTextToolbar({super.key, required this.controller});
 
@@ -14,98 +12,43 @@ class RichTextToolbar extends StatefulWidget {
 }
 
 class _RichTextToolbarState extends State<RichTextToolbar> {
-  Future<void> _pickImage() async {
-    final status = await Permission.photos.request();
-    if (status.isGranted || status.isLimited) {
-      final picker = ImagePicker();
-      final image = await picker.pickImage(source: ImageSource.gallery);
-      if (image != null) {
-        final index = widget.controller.selection.baseOffset;
-        final length = widget.controller.selection.extentOffset - index;
-        widget.controller.replaceText(index, length, BlockEmbed.image(image.path), null);
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gallery permission is required.')),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final toolbarBg = isDark ? const Color(0xFF111116) : const Color(0xFFF0F0F5);
+
     return Container(
       height: 60,
       width: double.infinity,
-      color: const Color(0xFF111116),
+      color: toolbarBg,
       child: ListenableBuilder(
         listenable: widget.controller,
         builder: (context, _) {
+          // Access quill attributes dynamically
           final style = widget.controller.getSelectionStyle();
-          final isBold = style.containsKey(Attribute.bold.key);
-          final isItalic = style.containsKey(Attribute.italic.key);
-          final isUnderline = style.containsKey(Attribute.underline.key);
-          final isH1 = style.attributes[Attribute.header.key]?.value == 1;
-          final isH2 = style.attributes[Attribute.header.key]?.value == 2;
-          final isBulletedList = style.attributes[Attribute.list.key]?.value == 'bullet';
-          final isNumberedList = style.attributes[Attribute.list.key]?.value == 'ordered';
-          final isCheckbox = style.attributes[Attribute.list.key]?.value == 'checked';
-
-          void toggleAttribute(Attribute attribute, bool isActive) {
-            widget.controller.formatSelection(isActive ? Attribute.clone(attribute, null) : attribute);
-          }
+          final isBold      = style.containsKey('bold');
+          final isItalic    = style.containsKey('italic');
+          final isUnderline = style.containsKey('underline');
+          final isH1 = style.attributes['header']?.value == 1;
+          final isH2 = style.attributes['header']?.value == 2;
+          final isBulletedList = style.attributes['list']?.value == 'bullet';
+          final isNumberedList = style.attributes['list']?.value == 'ordered';
+          final isCheckbox     = style.attributes['list']?.value == 'checked';
 
           return SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
-                _buildToolbarIcon(
-                  icon: Icons.format_bold,
-                  isActive: isBold,
-                  onTap: () => toggleAttribute(Attribute.bold, isBold),
-                ),
-                _buildToolbarIcon(
-                  icon: Icons.format_italic,
-                  isActive: isItalic,
-                  onTap: () => toggleAttribute(Attribute.italic, isItalic),
-                ),
-                _buildToolbarIcon(
-                  icon: Icons.format_underlined,
-                  isActive: isUnderline,
-                  onTap: () => toggleAttribute(Attribute.underline, isUnderline),
-                ),
-                _buildToolbarIconText(
-                  text: 'H1',
-                  isActive: isH1,
-                  onTap: () => toggleAttribute(Attribute.h1, isH1),
-                ),
-                _buildToolbarIconText(
-                  text: 'H2',
-                  isActive: isH2,
-                  onTap: () => toggleAttribute(Attribute.h2, isH2),
-                ),
-                _buildToolbarIcon(
-                  icon: Icons.format_list_bulleted,
-                  isActive: isBulletedList,
-                  onTap: () => toggleAttribute(Attribute.ul, isBulletedList),
-                ),
-                _buildToolbarIcon(
-                  icon: Icons.format_list_numbered,
-                  isActive: isNumberedList,
-                  onTap: () => toggleAttribute(Attribute.ol, isNumberedList),
-                ),
-                _buildToolbarIcon(
-                  icon: Icons.check_box_outlined,
-                  isActive: isCheckbox,
-                  onTap: () => toggleAttribute(Attribute.unchecked, isCheckbox),
-                ),
-                _buildToolbarIcon(
-                  icon: Icons.image_outlined,
-                  isActive: false,
-                  onTap: _pickImage,
-                ),
+                _buildToolbarIcon(context: context, icon: Icons.format_bold,          isActive: isBold),
+                _buildToolbarIcon(context: context, icon: Icons.format_italic,         isActive: isItalic),
+                _buildToolbarIcon(context: context, icon: Icons.format_underlined,     isActive: isUnderline),
+                _buildToolbarText(context: context, text: 'H1',                        isActive: isH1),
+                _buildToolbarText(context: context, text: 'H2',                        isActive: isH2),
+                _buildToolbarIcon(context: context, icon: Icons.format_list_bulleted,  isActive: isBulletedList),
+                _buildToolbarIcon(context: context, icon: Icons.format_list_numbered,  isActive: isNumberedList),
+                _buildToolbarIcon(context: context, icon: Icons.check_box_outlined,    isActive: isCheckbox),
+                _buildToolbarIcon(context: context, icon: Icons.image_outlined,        isActive: false),
               ],
             ),
           );
@@ -115,10 +58,12 @@ class _RichTextToolbarState extends State<RichTextToolbar> {
   }
 
   Widget _buildToolbarIcon({
+    required BuildContext context,
     required IconData icon,
     required bool isActive,
-    required VoidCallback onTap,
+    VoidCallback? onTap,
   }) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: GestureDetector(
@@ -127,20 +72,28 @@ class _RichTextToolbarState extends State<RichTextToolbar> {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: isActive ? Colors.white.withAlpha(51) : Colors.white.withAlpha(13),
+            color: isActive
+                ? cs.onSurface.withValues(alpha: 0.2)
+                : cs.onSurface.withValues(alpha: 0.07),
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: isActive ? Colors.white : Colors.white54, size: 20),
+          child: Icon(
+            icon,
+            color: isActive ? cs.onSurface : cs.onSurface.withValues(alpha: 0.54),
+            size: 20,
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildToolbarIconText({
+  Widget _buildToolbarText({
+    required BuildContext context,
     required String text,
     required bool isActive,
-    required VoidCallback onTap,
+    VoidCallback? onTap,
   }) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: GestureDetector(
@@ -149,14 +102,16 @@ class _RichTextToolbarState extends State<RichTextToolbar> {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: isActive ? Colors.white.withAlpha(51) : Colors.white.withAlpha(13),
+            color: isActive
+                ? cs.onSurface.withValues(alpha: 0.2)
+                : cs.onSurface.withValues(alpha: 0.07),
             shape: BoxShape.circle,
           ),
           child: Center(
             child: Text(
               text,
               style: TextStyle(
-                color: isActive ? Colors.white : Colors.white54,
+                color: isActive ? cs.onSurface : cs.onSurface.withValues(alpha: 0.54),
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),

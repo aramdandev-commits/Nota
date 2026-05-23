@@ -119,7 +119,7 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF111116),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
         child: ValueListenableBuilder<String>(
@@ -138,15 +138,15 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
               const SizedBox(height: 16),
               TextField(
                 controller: _titleController,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                 ),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'Untitled Note',
                   hintStyle: TextStyle(
-                    color: Colors.white24,
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.25),
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                   ),
@@ -159,16 +159,16 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.access_time,
-                    color: Colors.white38,
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
                     size: 16,
                   ),
                   const SizedBox(width: 6),
                   Text(
                     DateFormat('MMM dd, yyyy  hh:mm a').format(_createdAt),
-                    style: const TextStyle(
-                      color: Colors.white38,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
                       fontSize: 14,
                     ),
                   ),
@@ -177,8 +177,8 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
               const SizedBox(height: 24),
               Expanded(
                 child: DefaultTextStyle(
-                  style: const TextStyle(
-                    color: Colors.white70,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.85),
                     fontSize: 16,
                     height: 1.5,
                   ),

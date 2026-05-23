@@ -8,29 +8,33 @@ class AiTextInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs     = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF1A1A2E) : Theme.of(context).cardColor;
+
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A2E),
+        color: bgColor,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.07)),
       ),
       child: TextField(
         controller: controller,
         maxLines: 7,
         minLines: 7,
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: cs.onSurface,
           fontSize: 14,
           fontFamily: 'Inter',
         ),
-        decoration: const InputDecoration(
+        decoration: InputDecoration(
           hintText: 'Paste or type text to analyze...',
           hintStyle: TextStyle(
-            color: Color(0xFF4A4A6A),
+            color: cs.onSurface.withValues(alpha: 0.3),
             fontSize: 14,
             fontFamily: 'Inter',
           ),
-          contentPadding: EdgeInsets.all(16),
+          contentPadding: const EdgeInsets.all(16),
           border: InputBorder.none,
         ),
       ),

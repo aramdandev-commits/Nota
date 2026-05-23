@@ -16,29 +16,31 @@ class AiNoteSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs     = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF1A1A2E) : Theme.of(context).cardColor;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A2E),
+        color: bgColor,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+        border: Border.all(color: cs.onSurface.withValues(alpha: 0.07)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<NoteModel>(
           value: selected,
           isExpanded: true,
-          dropdownColor: const Color(0xFF1A1A2E),
-          icon: const Icon(Icons.keyboard_arrow_down_rounded,
-              color: Color(0xFF8E9099)),
+          dropdownColor: bgColor,
+          icon: Icon(Icons.keyboard_arrow_down_rounded, color: cs.onSurface.withValues(alpha: 0.5)),
           hint: Row(
-            children: const [
-              Icon(Icons.description_outlined,
-                  color: Color(0xFF4A4A6A), size: 18),
-              SizedBox(width: 10),
+            children: [
+              Icon(Icons.description_outlined, color: cs.onSurface.withValues(alpha: 0.3), size: 18),
+              const SizedBox(width: 10),
               Text(
                 'Select a note to analyze',
                 style: TextStyle(
-                  color: Color(0xFF4A4A6A),
+                  color: cs.onSurface.withValues(alpha: 0.3),
                   fontSize: 14,
                   fontFamily: 'Inter',
                 ),
@@ -50,8 +52,8 @@ class AiNoteSelector extends StatelessWidget {
               value: note,
               child: Text(
                 note.title.isNotEmpty ? note.title : 'Untitled Note',
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: cs.onSurface,
                   fontSize: 14,
                   fontFamily: 'Inter',
                 ),

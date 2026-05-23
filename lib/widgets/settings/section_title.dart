@@ -9,8 +9,8 @@ class SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: const TextStyle(
-        color: Color(0xFF8E9099),
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
         fontSize: 12,
         fontWeight: FontWeight.bold,
         letterSpacing: 1.2,

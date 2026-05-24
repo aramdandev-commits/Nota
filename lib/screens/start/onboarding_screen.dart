@@ -21,7 +21,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -43,14 +43,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ],
         ),
         actions: [
-          IconButton(onPressed: () {}, icon: Icon(Icons.language, color: cs.onSurface)),
+          IconButton(
+              onPressed: () {},
+              icon: Icon(Icons.language, color: cs.onSurface)),
           const SizedBox(width: 10),
           TextButton(
             onPressed: () async {
               final prefs = await SharedPreferences.getInstance();
               await prefs.setBool("onboardingSeen", true);
               if (!context.mounted) return;
-              context.go("/home");
+              context.go("/auth");
             },
             child: Text(
               'Skip',
@@ -127,7 +129,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.setBool("onboardingSeen", true);
                 if (!context.mounted) return;
-                context.go("/home");
+                context.go("/auth");
               },
             ),
             SizedBox(height: 10),

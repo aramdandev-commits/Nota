@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_quill/flutter_quill.dart' as quill;
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../widgets/note/note_app_bar.dart';
-import '../../widgets/note/rich_text_toolbar.dart';
 import '../../controllers/note_provider.dart';
 import '../../model/note_model.dart';
 import '../../controllers/note_formatting_controller.dart';
@@ -23,11 +24,13 @@ class NewNoteScreen extends StatefulWidget {
 
 class _NewNoteScreenState extends State<NewNoteScreen> {
   late final TextEditingController _titleController;
-  late final quill.QuillController _quillController;
+  late final WebViewController _webViewController;
   final NoteFormattingController _formattingController = NoteFormattingController();
+  Map<String, dynamic> _activeFormats = {};
 
   late final DateTime _createdAt;
-  late final String _noteId;
+  late String _noteId;
+  bool _isNewNote = false;
   Timer? _debounceTimer;
 
   final ValueNotifier<String> _saveStateNotifier =
@@ -49,6 +52,8 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
       }
     }
 
+    _isNewNote = existingNote == null && widget.noteId == null;
+
     _noteId = existingNote?.id ??
         widget.noteId ??
         DateTime.now().millisecondsSinceEpoch.toString();
@@ -56,47 +61,88 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
 
     _titleController = TextEditingController(text: existingNote?.title ?? '');
 
-    quill.Document document;
-    if (existingNote != null && existingNote.content.isNotEmpty) {
-      try {
-        document = quill.Document.fromJson(jsonDecode(existingNote.content));
-      } catch (e) {
-        document = quill.Document()..insert(0, existingNote.content);
-      }
-    } else {
-      document = quill.Document();
+    _webViewController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..addJavaScriptChannel(
+        'FormatChannel',
+        onMessageReceived: (JavaScriptMessage message) {
+          try {
+            final formats = jsonDecode(message.message) as Map<String, dynamic>;
+            if (mounted) {
+              setState(() {
+                _activeFormats = formats;
+              });
+              _formattingController.updateFormats(formats);
+            }
+          } catch (e) {
+            // ignore parsing errors
+          }
+        },
+      )
+      ..addJavaScriptChannel(
+        'TextChangeChannel',
+        onMessageReceived: (JavaScriptMessage message) {
+          if (message.message == 'changed') {
+            _saveStateNotifier.value = 'Saving...';
+            _onTextChanged(); 
+          }
+        },
+      )
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageFinished: (String url) {
+            _injectThemeAndInitialize(existingNote?.content ?? '');
+            
+            final noteContent = existingNote?.content ?? ''; 
+            if (noteContent.isNotEmpty && noteContent != 'No content') {
+              _webViewController.runJavaScript("window.loadEditorState('$noteContent');");
+            }
+          },
+        ),
+      );
+
+    _loadLocalHtml();
+    
+    if (_webViewController.platform is AndroidWebViewController) {
+      AndroidWebViewController.enableDebugging(true);
     }
 
-    _quillController = quill.QuillController(
-      document: document,
-      selection: const TextSelection.collapsed(offset: 0),
-    );
-
     _titleController.addListener(_onTextChanged);
-    _quillController.document.changes.listen((_) => _onTextChanged());
-    _quillController.addListener(_updateFormattingState);
   }
 
-  void _updateFormattingState() {
+  Future<void> _loadLocalHtml() async {
+    String htmlContent =
+        await rootBundle.loadString('assets/web_editor/index.html');
+    _webViewController.loadHtmlString(htmlContent, baseUrl: 'https://nota.local');
+  }
+
+  void _injectThemeAndInitialize(String initialContent) {
     if (!mounted) return;
-    final style = _quillController.getSelectionStyle();
-    final Map<String, dynamic> nativeFormatsMap = {
-      'bold': style.containsKey('bold'),
-      'italic': style.containsKey('italic'),
-      'underline': style.containsKey('underline'),
-      'header': style.attributes['header']?.value,
-      'list': style.attributes['list']?.value,
-    };
-    _formattingController.updateFormats(nativeFormatsMap);
+
+    final bgHex =
+        '#${Theme.of(context).scaffoldBackgroundColor.value.toRadixString(16).padLeft(8, '0').substring(2)}';
+    final textHex =
+        '#${(Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface).value.toRadixString(16).padLeft(8, '0').substring(2)}';
+
+    // Escape initial content securely if needed
+    final safeContent = initialContent.replaceAll("'", "\\'").replaceAll('\n', '\\n');
+
+    _webViewController.runJavaScript('''
+      document.body.style.setProperty('--bg-color', '$bgHex');
+      document.body.style.setProperty('--text-color', '$textHex');
+      
+      if (window.initEditor) {
+        window.initEditor('$_noteId', 'DUMMY_TOKEN', 'wss://synopsis-cursive-ethics.ngrok-free.dev');
+      }
+      
+    ''');
   }
 
   @override
   void dispose() {
-    _quillController.removeListener(_updateFormattingState);
     _debounceTimer?.cancel();
     _saveStateNotifier.dispose();
     _titleController.dispose();
-    _quillController.dispose();
     super.dispose();
   }
 
@@ -111,31 +157,52 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
       _debounceTimer!.cancel();
     }
 
-    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        final title = _titleController.text.isEmpty
-            ? 'Untitled Note'
-            : _titleController.text;
-        final contentJson =
-            jsonEncode(_quillController.document.toDelta().toJson());
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
+      if (!mounted) return;
+      
+      final title = _titleController.text.isEmpty
+          ? 'Untitled Note'
+          : _titleController.text;
+          
+      // Yjs base64 encoding/decoding logic hook
+      String contentString = '';
+      try {
+        final contentResult = await _webViewController.runJavaScriptReturningResult('window.getEditorState()');
+        contentString = contentResult.toString().replaceAll('"', '');
+        if (contentString == 'null') contentString = '';
+      } catch (e) {
+        // Fallback
+      }
 
-        final updatedNote = NoteModel(
-          id: _noteId,
-          title: title,
-          content: contentJson,
-          createdAt: _createdAt,
-          updatedAt: DateTime.now(),
-        );
+      final updatedNote = NoteModel(
+        id: _noteId,
+        title: title,
+        content: contentString,
+        createdAt: _createdAt,
+        updatedAt: DateTime.now(),
+      );
 
-        context.read<NoteProvider>().saveNote(updatedNote);
-
-        _saveStateNotifier.value = 'Saved';
+      try {
+        final newId = await context.read<NoteProvider>().saveNote(updatedNote, isNew: _isNewNote);
+        if (mounted) {
+          if (_isNewNote) {
+            _noteId = newId;
+            _isNewNote = false;
+          }
+          _saveStateNotifier.value = 'Saved';
+        }
+      } catch (e) {
+        if (mounted) {
+          _saveStateNotifier.value = 'Error';
+        }
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: PreferredSize(
@@ -157,17 +224,14 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
               TextField(
                 controller: _titleController,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
+                  color: cs.onSurface,
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                 ),
                 decoration: InputDecoration(
                   hintText: 'Untitled Note',
                   hintStyle: TextStyle(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.25),
+                    color: cs.onSurface.withValues(alpha: 0.25),
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                   ),
@@ -182,20 +246,14 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
                 children: [
                   Icon(
                     Icons.access_time,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.38),
+                    color: cs.onSurface.withValues(alpha: 0.38),
                     size: 16,
                   ),
                   const SizedBox(width: 6),
                   Text(
                     DateFormat('MMM dd, yyyy  hh:mm a').format(_createdAt),
                     style: TextStyle(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.38),
+                      color: cs.onSurface.withValues(alpha: 0.38),
                       fontSize: 14,
                     ),
                   ),
@@ -203,25 +261,183 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
               ),
               const SizedBox(height: 24),
               Expanded(
-                child: DefaultTextStyle(
-                  style: TextStyle(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.85),
-                    fontSize: 16,
-                    height: 1.5,
-                  ),
-                  child: quill.QuillEditor.basic(
-                    controller: _quillController,
-                  ),
-                ),
+                child: WebViewWidget(controller: _webViewController),
               ),
-              RichTextToolbar(
-                controller: _quillController,
-                formattingController: _formattingController,
+              ListenableBuilder(
+                listenable: _formattingController,
+                builder: (context, _) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF111116)
+                          : const Color(0xFFF0F0F5),
+                      border: Border(
+                        top: BorderSide(
+                          color: cs.onSurface.withValues(alpha: 0.1),
+                        ),
+                      ),
+                    ),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _ToolbarButton(
+                            icon: Icons.format_bold,
+                            isActive: _formattingController.isBold,
+                            onTap: () => _webViewController
+                                .runJavaScript("window.toggleFormat('bold');"),
+                          ),
+                          _ToolbarButton(
+                            icon: Icons.format_italic,
+                            isActive: _formattingController.isItalic,
+                            onTap: () => _webViewController
+                                .runJavaScript("window.toggleFormat('italic');"),
+                          ),
+                          _ToolbarButton(
+                            icon: Icons.format_underline,
+                            isActive: _formattingController.isUnderline,
+                            onTap: () => _webViewController
+                                .runJavaScript("window.toggleFormat('underline');"),
+                          ),
+                          _ToolbarButton(
+                            icon: Icons.format_strikethrough,
+                            isActive: _activeFormats['strike'] == true,
+                            onTap: () => _webViewController
+                                .runJavaScript("window.toggleFormat('strike');"),
+                          ),
+                          _Divider(),
+                          _ToolbarTextButton(
+                            text: 'H1',
+                            isActive: _formattingController.isH1,
+                            onTap: () => _webViewController
+                                .runJavaScript("window.toggleFormat('header', 1);"),
+                          ),
+                          _ToolbarTextButton(
+                            text: 'H2',
+                            isActive: _formattingController.isH2,
+                            onTap: () => _webViewController
+                                .runJavaScript("window.toggleFormat('header', 2);"),
+                          ),
+                          _Divider(),
+                          _ToolbarButton(
+                            icon: Icons.format_list_bulleted,
+                            isActive: _formattingController.isBulletedList,
+                            onTap: () => _webViewController
+                                .runJavaScript("window.toggleFormat('list', 'bullet');"),
+                          ),
+                          _ToolbarButton(
+                            icon: Icons.format_list_numbered,
+                            isActive: _formattingController.isNumberedList,
+                            onTap: () => _webViewController
+                                .runJavaScript("window.toggleFormat('list', 'ordered');"),
+                          ),
+                          _ToolbarButton(
+                            icon: Icons.check_box_outlined,
+                            isActive: _formattingController.isCheckbox,
+                            onTap: () => _webViewController
+                                .runJavaScript("window.toggleFormat('list', 'unchecked');"),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Divider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 1,
+      height: 24,
+      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2),
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+    );
+  }
+}
+
+class _ToolbarButton extends StatelessWidget {
+  final IconData icon;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _ToolbarButton({
+    required this.icon,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(right: 6.0),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: isActive
+                ? cs.primary.withValues(alpha: 0.15)
+                : cs.onSurface.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            icon,
+            color: isActive ? cs.primary : cs.onSurface.withValues(alpha: 0.6),
+            size: 20,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ToolbarTextButton extends StatelessWidget {
+  final String text;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _ToolbarTextButton({
+    required this.text,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(right: 6.0),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: isActive
+                ? cs.primary.withValues(alpha: 0.15)
+                : cs.onSurface.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Center(
+            child: Text(
+               text,
+               style: TextStyle(
+                 color: isActive ? cs.primary : cs.onSurface.withValues(alpha: 0.6),
+                 fontWeight: FontWeight.bold,
+                 fontSize: 16,
+               ),
+            ),
           ),
         ),
       ),

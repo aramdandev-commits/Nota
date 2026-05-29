@@ -58,7 +58,10 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 'QUICK ACTIONS',
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.5),
                   fontSize: 12,
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.bold,
@@ -156,7 +159,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     'RECENT NOTES',
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.5),
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.0,
@@ -200,7 +206,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Center(
                         child: Text(
                           'No recent notes yet.',
-                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 14),
+                          style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.5),
+                              fontSize: 14),
                         ),
                       ),
                     );
@@ -215,26 +226,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemBuilder: (context, index) {
                       final note = recentNotes[index];
 
-                      String previewText = "No content";
-                      try {
-                        if (note.content.isNotEmpty) {
-                          final List<dynamic> ops = jsonDecode(note.content);
-                          previewText = ops
-                              .map((op) => op['insert']?.toString() ?? '')
-                              .join('')
-                              .replaceAll('\n', ' ')
-                              .trim();
-                          if (previewText.length > 50) {
-                            previewText = '${previewText.substring(0, 50)}...';
-                          }
-                        }
-                      } catch (e) {
-                        previewText = note.content;
-                        if (previewText.length > 50) {
-                          previewText = '${previewText.substring(0, 50)}...';
-                        }
-                      }
-
+                      String previewText = getPreviewText(note.content);
                       return GestureDetector(
                         onTap: () {
                           context.push('/new-note', extra: note.id);
@@ -245,7 +237,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: Theme.of(context).cardColor,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06)),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.06)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -255,7 +250,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ? note.title
                                     : 'Untitled Note',
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -266,7 +262,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ? previewText
                                     : 'Empty Note',
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.54),
                                   fontSize: 14,
                                 ),
                                 maxLines: 1,
@@ -276,7 +275,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               Text(
                                 'Updated: ${note.updatedAt.toString().substring(0, 16)}',
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.38),
                                   fontSize: 12,
                                 ),
                               ),
@@ -318,5 +320,16 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       bottomNavigationBar: const BottomNavigation(selectedIndex: 0),
     );
+  }
+}
+
+String getPreviewText(String content) {
+  if (content.isEmpty) return "No content";
+  try {
+    final List<dynamic> ops = jsonDecode(content);
+    String text = ops.map((op) => op['insert']?.toString() ?? '').join('').replaceAll('\n', ' ').trim();
+    return text.length > 50 ? '${text.substring(0, 50)}...' : text;
+  } catch (e) {
+    return "Rich text note (Open to view)";
   }
 }

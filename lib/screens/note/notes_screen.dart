@@ -66,25 +66,7 @@ class NotesScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final note = notes[index];
 
-              String previewText = "No content";
-              try {
-                if (note.content.isNotEmpty) {
-                  final List<dynamic> ops = jsonDecode(note.content);
-                  previewText = ops
-                      .map((op) => op['insert']?.toString() ?? '')
-                      .join('')
-                      .replaceAll('\n', ' ')
-                      .trim();
-                  if (previewText.length > 80) {
-                    previewText = '${previewText.substring(0, 80)}...';
-                  }
-                }
-              } catch (e) {
-                previewText = note.content;
-                if (previewText.length > 80) {
-                  previewText = '${previewText.substring(0, 80)}...';
-                }
-              }
+              String previewText = getPreviewText(note.content);
 
               return GestureDetector(
                 onTap: () => context.push('/new-note', extra: note.id),
@@ -163,5 +145,16 @@ class NotesScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+String getPreviewText(String content) {
+  if (content.isEmpty) return "No content";
+  try {
+    final List<dynamic> ops = jsonDecode(content);
+    String text = ops.map((op) => op['insert']?.toString() ?? '').join('').replaceAll('\n', ' ').trim();
+    return text.length > 50 ? '${text.substring(0, 50)}...' : text;
+  } catch (e) {
+    return "Rich text note (Open to view)";
   }
 }

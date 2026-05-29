@@ -3,9 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:nota/helper/app_theme.dart';
 import '../../controllers/note_provider.dart';
 
-import '../spa/delete_note_sheet.dart';
+import 'delete_note_sheet.dart';
 import 'note_info_sheet.dart';
-import '../spa/move_to_space_sheet.dart';
+import 'move_to_space_sheet.dart';
 import 'share_note_sheet.dart';
 
 class NoteOptionsSheet extends StatelessWidget {

@@ -68,6 +68,8 @@
         import { QuillBinding } from 'https://esm.sh/y-quill';
         import Quill from 'https://esm.sh/quill';
 
+        window.Y = Y;
+
         let quill;
         let provider;
         let binding;
@@ -128,12 +130,19 @@
                     }
                 });
                 window.quill = quill;
+                window.quill.on('text-change', function(delta, oldDelta, source) {
+                    // Only trigger save if the change was made by the user, not the API
+                    if (source === 'user' && window.TextChangeChannel) {
+                        window.TextChangeChannel.postMessage('changed');
+                    }
+                });
             } else {
                 quill.setText(''); // reset editor text if re-initializing
             }
 
             // Create a new Y document
             ydoc = new Y.Doc();
+            window.ydoc = ydoc;
 
             // Connect to Hocuspocus using the provided URL
             provider = new HocuspocusProvider({
@@ -156,6 +165,40 @@
                     window.FormatChannel.postMessage(JSON.stringify(window.quill.getFormat()));
                 }
             });
+        };
+
+        // Function to EXPORT state to Flutter (Saving)
+        window.getEditorState = function() {
+            if (!window.ydoc || !window.Y) return "";
+            try {
+                const update = window.Y.encodeStateAsUpdate(window.ydoc);
+                let binaryString = "";
+                // Convert Uint8Array to binary string safely
+                for (let i = 0; i < update.length; i++) {
+                    binaryString += String.fromCharCode(update[i]);
+                }
+                // Return as Base64 to Flutter
+                return btoa(binaryString);
+            } catch (e) {
+                console.error("Error generating Yjs Base64:", e);
+                return "";
+            }
+        };
+
+        // Function to IMPORT state from Flutter (Fetching)
+        window.loadEditorState = function(base64String) {
+            if (!base64String || !window.ydoc || !window.Y) return;
+            try {
+                const binaryString = atob(base64String);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                // Apply the backend update to the editor
+                window.Y.applyUpdate(window.ydoc, bytes);
+            } catch (e) {
+                console.error("Error applying Yjs update from Base64:", e);
+            }
         };
     </script>
 </body>

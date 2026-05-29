@@ -23,22 +23,22 @@ class NoteModel {
       'id': id,
       'title': title,
       'content': content,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
     };
   }
 
   // Convert Map -> Object
   factory NoteModel.fromMap(Map<String, dynamic> map) {
-    final parsedUpdatedAt = map['updatedAt'] != null
-        ? DateTime.parse(map['updatedAt'])
+    final parsedUpdatedAt = map['updated_at'] != null
+        ? DateTime.parse(map['updated_at'])
         : DateTime.now();
     return NoteModel(
       id: map['id'] ?? '',
       title: map['title'] ?? '',
       content: map['content'] ?? '',
-      createdAt: map['createdAt'] != null
-          ? DateTime.parse(map['createdAt'])
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'])
           : parsedUpdatedAt,
       updatedAt: parsedUpdatedAt,
     );

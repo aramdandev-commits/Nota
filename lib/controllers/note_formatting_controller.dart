@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class NoteFormattingController extends ChangeNotifier {
@@ -11,35 +10,51 @@ class NoteFormattingController extends ChangeNotifier {
   bool isNumberedList = false;
   bool isCheckbox = false;
 
+  // دالة سحرية لتحديث حالة الأزرار تلقائياً بناءً على مكان المؤشر في النص (للـ Web والـ Native)
+  void updateFormats(Map<String, dynamic> activeFormats) {
+    isBold = activeFormats['bold'] == true;
+    isItalic = activeFormats['italic'] == true;
+    isUnderline = activeFormats['underline'] == true;
+
+    // التعامل مع العناوين
+    isH1 = activeFormats['header'] == 1;
+    isH2 = activeFormats['header'] == 2;
+
+    // التعامل مع القوائم والـ Checkbox
+    final listFormat = activeFormats['list'];
+    isBulletedList = listFormat == 'bullet';
+    isNumberedList = listFormat == 'ordered';
+    isCheckbox = listFormat == 'unchecked' ||
+        listFormat == 'checked'; // Quill بيخزن الـ Checkbox كـ list من النوع ده
+
+    notifyListeners();
+  }
+
+  // التبديل اليدوي عند الضغط (تأكيد الحصريات)
   void toggleBold() {
     isBold = !isBold;
-    debugPrint('Action: Toggled Bold -> $isBold');
     notifyListeners();
   }
 
   void toggleItalic() {
     isItalic = !isItalic;
-    debugPrint('Action: Toggled Italic -> $isItalic');
     notifyListeners();
   }
 
   void toggleUnderline() {
     isUnderline = !isUnderline;
-    debugPrint('Action: Toggled Underline -> $isUnderline');
     notifyListeners();
   }
 
   void toggleH1() {
     isH1 = !isH1;
     if (isH1) isH2 = false;
-    debugPrint('Action: Toggled H1 -> $isH1');
     notifyListeners();
   }
 
   void toggleH2() {
     isH2 = !isH2;
     if (isH2) isH1 = false;
-    debugPrint('Action: Toggled H2 -> $isH2');
     notifyListeners();
   }
 
@@ -49,7 +64,6 @@ class NoteFormattingController extends ChangeNotifier {
       isNumberedList = false;
       isCheckbox = false;
     }
-    debugPrint('Action: Toggled Bulleted List -> $isBulletedList');
     notifyListeners();
   }
 
@@ -59,7 +73,6 @@ class NoteFormattingController extends ChangeNotifier {
       isBulletedList = false;
       isCheckbox = false;
     }
-    debugPrint('Action: Toggled Numbered List -> $isNumberedList');
     notifyListeners();
   }
 
@@ -69,15 +82,6 @@ class NoteFormattingController extends ChangeNotifier {
       isBulletedList = false;
       isNumberedList = false;
     }
-    debugPrint('Action: Toggled Checkbox -> $isCheckbox');
     notifyListeners();
-  }
-
-  void handleImageAction() {
-    debugPrint('Action: Pressed Image');
-  }
-
-  void handleLinkAction() {
-    debugPrint('Action: Pressed Link');
   }
 }

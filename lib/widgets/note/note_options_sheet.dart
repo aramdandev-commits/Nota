@@ -15,11 +15,11 @@ class NoteOptionsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs      = Theme.of(context).colorScheme;
+    final cs = Theme.of(context).colorScheme;
     final sheetBg = AppTheme.sheetColor(context);
-    final itemBg  = AppTheme.itemColor(context);
+    final itemBg = AppTheme.itemColor(context);
     const Color destructiveColor = Color(0xFF3A1E24);
-    const Color iconAccentColor  = Color(0xFF3D7AF9);
+    const Color iconAccentColor = Color(0xFF3D7AF9);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -55,14 +55,15 @@ class NoteOptionsSheet extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
                   padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(color: itemBg, shape: BoxShape.circle),
-                  child: Icon(Icons.close, color: cs.onSurface.withValues(alpha: 0.5), size: 20),
+                  decoration:
+                      BoxDecoration(color: itemBg, shape: BoxShape.circle),
+                  child: Icon(Icons.close,
+                      color: cs.onSurface.withValues(alpha: 0.5), size: 20),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 20),
-
           _buildOptionItem(
             context: context,
             icon: Icons.share_outlined,
@@ -80,7 +81,6 @@ class NoteOptionsSheet extends StatelessWidget {
             },
           ),
           const SizedBox(height: 10),
-
           _buildOptionItem(
             context: context,
             icon: Icons.folder_outlined,
@@ -100,7 +100,6 @@ class NoteOptionsSheet extends StatelessWidget {
             },
           ),
           const SizedBox(height: 10),
-
           _buildOptionItem(
             context: context,
             icon: Icons.info_outline_rounded,
@@ -118,14 +117,13 @@ class NoteOptionsSheet extends StatelessWidget {
                 isScrollControlled: true,
                 backgroundColor: Colors.transparent,
                 builder: (context) => NoteInfoSheet(
-                  createdAt: note.updatedAt,
+                  createdAt: note.createdAt,
                   modifiedAt: note.updatedAt,
                 ),
               );
             },
           ),
           const SizedBox(height: 10),
-
           _buildOptionItem(
             context: context,
             icon: Icons.delete_outline_rounded,
@@ -143,7 +141,6 @@ class NoteOptionsSheet extends StatelessWidget {
               );
             },
           ),
-
           SizedBox(height: MediaQuery.of(context).padding.bottom + 10),
         ],
       ),
@@ -203,7 +200,8 @@ class NoteOptionsSheet extends StatelessWidget {
               ),
             ),
             if (showArrow)
-              Icon(Icons.chevron_right_rounded, color: cs.onSurface.withValues(alpha: 0.5)),
+              Icon(Icons.chevron_right_rounded,
+                  color: cs.onSurface.withValues(alpha: 0.5)),
           ],
         ),
       ),

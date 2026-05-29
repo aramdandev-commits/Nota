@@ -9,6 +9,7 @@ import '../../widgets/note/note_app_bar.dart';
 import '../../widgets/note/rich_text_toolbar.dart';
 import '../../controllers/note_provider.dart';
 import '../../model/note_model.dart';
+import '../../controllers/note_formatting_controller.dart';
 
 class NewNoteScreen extends StatefulWidget {
   final DateTime? createdAt;
@@ -23,6 +24,7 @@ class NewNoteScreen extends StatefulWidget {
 class _NewNoteScreenState extends State<NewNoteScreen> {
   late final TextEditingController _titleController;
   late final quill.QuillController _quillController;
+  final NoteFormattingController _formattingController = NoteFormattingController();
 
   late final DateTime _createdAt;
   late final String _noteId;
@@ -50,7 +52,7 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
     _noteId = existingNote?.id ??
         widget.noteId ??
         DateTime.now().millisecondsSinceEpoch.toString();
-    _createdAt = existingNote?.updatedAt ?? widget.createdAt ?? DateTime.now();
+    _createdAt = existingNote?.createdAt ?? widget.createdAt ?? DateTime.now();
 
     _titleController = TextEditingController(text: existingNote?.title ?? '');
 
@@ -72,10 +74,25 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
 
     _titleController.addListener(_onTextChanged);
     _quillController.document.changes.listen((_) => _onTextChanged());
+    _quillController.addListener(_updateFormattingState);
+  }
+
+  void _updateFormattingState() {
+    if (!mounted) return;
+    final style = _quillController.getSelectionStyle();
+    final Map<String, dynamic> nativeFormatsMap = {
+      'bold': style.containsKey('bold'),
+      'italic': style.containsKey('italic'),
+      'underline': style.containsKey('underline'),
+      'header': style.attributes['header']?.value,
+      'list': style.attributes['list']?.value,
+    };
+    _formattingController.updateFormats(nativeFormatsMap);
   }
 
   @override
   void dispose() {
+    _quillController.removeListener(_updateFormattingState);
     _debounceTimer?.cancel();
     _saveStateNotifier.dispose();
     _titleController.dispose();
@@ -106,6 +123,7 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
           id: _noteId,
           title: title,
           content: contentJson,
+          createdAt: _createdAt,
           updatedAt: DateTime.now(),
         );
 
@@ -146,7 +164,10 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
                 decoration: InputDecoration(
                   hintText: 'Untitled Note',
                   hintStyle: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.25),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.25),
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                   ),
@@ -161,14 +182,20 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
                 children: [
                   Icon(
                     Icons.access_time,
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.38),
                     size: 16,
                   ),
                   const SizedBox(width: 6),
                   Text(
                     DateFormat('MMM dd, yyyy  hh:mm a').format(_createdAt),
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.38),
                       fontSize: 14,
                     ),
                   ),
@@ -178,7 +205,10 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
               Expanded(
                 child: DefaultTextStyle(
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.85),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.85),
                     fontSize: 16,
                     height: 1.5,
                   ),
@@ -187,7 +217,10 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
                   ),
                 ),
               ),
-              RichTextToolbar(controller: _quillController),
+              RichTextToolbar(
+                controller: _quillController,
+                formattingController: _formattingController,
+              ),
             ],
           ),
         ),

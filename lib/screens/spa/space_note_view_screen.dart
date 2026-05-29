@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../model/space_note_model.dart';
+import '../../controllers/note_formatting_controller.dart';
 
 class SpaceNoteViewScreen extends StatefulWidget {
   final SpaceNoteModel note;
@@ -18,6 +19,8 @@ class SpaceNoteViewScreen extends StatefulWidget {
 class _SpaceNoteViewScreenState extends State<SpaceNoteViewScreen> {
   late final WebViewController _controller;
   late final TextEditingController _titleController;
+  final NoteFormattingController _formattingController =
+      NoteFormattingController();
   Map<String, dynamic> _activeFormats = {};
 
   @override
@@ -36,6 +39,7 @@ class _SpaceNoteViewScreenState extends State<SpaceNoteViewScreen> {
               setState(() {
                 _activeFormats = formats;
               });
+              _formattingController.updateFormats(formats);
             }
           } catch (e) {
             // ignore parsing errors
@@ -62,7 +66,8 @@ class _SpaceNoteViewScreenState extends State<SpaceNoteViewScreen> {
   }
 
   Future<void> _loadLocalHtml() async {
-    String htmlContent = await rootBundle.loadString('assets/web_editor/index.html');
+    String htmlContent =
+        await rootBundle.loadString('assets/web_editor/index.html');
     _controller.loadHtmlString(htmlContent, baseUrl: 'https://nota.local');
   }
 
@@ -154,7 +159,8 @@ class _SpaceNoteViewScreenState extends State<SpaceNoteViewScreen> {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          DateFormat('MMM dd, yyyy  hh:mm a').format(widget.note.createdAt),
+                          DateFormat('MMM dd, yyyy  hh:mm a')
+                              .format(widget.note.createdAt),
                           style: TextStyle(
                             color: cs.onSurface.withValues(alpha: 0.38),
                             fontSize: 14,
@@ -171,71 +177,87 @@ class _SpaceNoteViewScreenState extends State<SpaceNoteViewScreen> {
                 child: WebViewWidget(controller: _controller),
               ),
               // ── Native Formatting Toolbar ────────────────────────────
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  border: Border(
-                    top: BorderSide(
-                      color: cs.onSurface.withValues(alpha: 0.1),
+              ListenableBuilder(
+                listenable: _formattingController,
+                builder: (context, _) {
+                  return Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF111116)
+                          : const Color(0xFFF0F0F5),
+                      border: Border(
+                        top: BorderSide(
+                          color: cs.onSurface.withValues(alpha: 0.1),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _ToolbarButton(
-                        icon: Icons.format_bold,
-                        isActive: _activeFormats['bold'] == true,
-                        onTap: () => _controller.runJavaScript("window.toggleFormat('bold');"),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _ToolbarButton(
+                            icon: Icons.format_bold,
+                            isActive: _formattingController.isBold,
+                            onTap: () => _controller
+                                .runJavaScript("window.toggleFormat('bold');"),
+                          ),
+                          _ToolbarButton(
+                            icon: Icons.format_italic,
+                            isActive: _formattingController.isItalic,
+                            onTap: () => _controller.runJavaScript(
+                                "window.toggleFormat('italic');"),
+                          ),
+                          _ToolbarButton(
+                            icon: Icons.format_underline,
+                            isActive: _formattingController.isUnderline,
+                            onTap: () => _controller.runJavaScript(
+                                "window.toggleFormat('underline');"),
+                          ),
+                          _ToolbarButton(
+                            icon: Icons.format_strikethrough,
+                            isActive: _activeFormats['strike'] == true,
+                            onTap: () => _controller.runJavaScript(
+                                "window.toggleFormat('strike');"),
+                          ),
+                          _Divider(),
+                          _ToolbarTextButton(
+                            text: 'H1',
+                            isActive: _formattingController.isH1,
+                            onTap: () => _controller.runJavaScript(
+                                "window.toggleFormat('header', 1);"),
+                          ),
+                          _ToolbarTextButton(
+                            text: 'H2',
+                            isActive: _formattingController.isH2,
+                            onTap: () => _controller.runJavaScript(
+                                "window.toggleFormat('header', 2);"),
+                          ),
+                          _Divider(),
+                          _ToolbarButton(
+                            icon: Icons.format_list_bulleted,
+                            isActive: _formattingController.isBulletedList,
+                            onTap: () => _controller.runJavaScript(
+                                "window.toggleFormat('list', 'bullet');"),
+                          ),
+                          _ToolbarButton(
+                            icon: Icons.format_list_numbered,
+                            isActive: _formattingController.isNumberedList,
+                            onTap: () => _controller.runJavaScript(
+                                "window.toggleFormat('list', 'ordered');"),
+                          ),
+                          _ToolbarButton(
+                            icon: Icons.check_box_outlined,
+                            isActive: _formattingController.isCheckbox,
+                            onTap: () => _controller.runJavaScript(
+                                "window.toggleFormat('list', 'unchecked');"),
+                          ),
+                        ],
                       ),
-                      _ToolbarButton(
-                        icon: Icons.format_italic,
-                        isActive: _activeFormats['italic'] == true,
-                        onTap: () => _controller.runJavaScript("window.toggleFormat('italic');"),
-                      ),
-                      _ToolbarButton(
-                        icon: Icons.format_underline,
-                        isActive: _activeFormats['underline'] == true,
-                        onTap: () => _controller.runJavaScript("window.toggleFormat('underline');"),
-                      ),
-                      _ToolbarButton(
-                        icon: Icons.format_strikethrough,
-                        isActive: _activeFormats['strike'] == true,
-                        onTap: () => _controller.runJavaScript("window.toggleFormat('strike');"),
-                      ),
-                      _Divider(),
-                      _ToolbarTextButton(
-                        text: 'H1',
-                        isActive: _activeFormats['header'] == 1,
-                        onTap: () => _controller.runJavaScript("window.toggleFormat('header', 1);"),
-                      ),
-                      _ToolbarTextButton(
-                        text: 'H2',
-                        isActive: _activeFormats['header'] == 2,
-                        onTap: () => _controller.runJavaScript("window.toggleFormat('header', 2);"),
-                      ),
-                      _Divider(),
-                      _ToolbarButton(
-                        icon: Icons.format_list_bulleted,
-                        isActive: _activeFormats['list'] == 'bullet',
-                        onTap: () => _controller.runJavaScript("window.toggleFormat('list', 'bullet');"),
-                      ),
-                      _ToolbarButton(
-                        icon: Icons.format_list_numbered,
-                        isActive: _activeFormats['list'] == 'ordered',
-                        onTap: () => _controller.runJavaScript("window.toggleFormat('list', 'ordered');"),
-                      ),
-                      _Divider(),
-                      _ToolbarButton(
-                        icon: Icons.format_clear,
-                        isActive: false,
-                        onTap: () => _controller.runJavaScript("window.quill.removeFormat(window.quill.getSelection().index, window.quill.getSelection().length);"),
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -262,7 +284,8 @@ class _ToolbarButton extends StatelessWidget {
   final bool isActive;
   final VoidCallback onTap;
 
-  const _ToolbarButton({required this.icon, required this.isActive, required this.onTap});
+  const _ToolbarButton(
+      {required this.icon, required this.isActive, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -275,12 +298,14 @@ class _ToolbarButton extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: isActive ? const Color(0xFF383848) : const Color(0xFF2A2A35),
+            color: isActive
+                ? cs.primary.withValues(alpha: 0.15)
+                : cs.onSurface.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
             icon,
-            color: isActive ? cs.onSurface : cs.onSurface.withValues(alpha: 0.6),
+            color: isActive ? cs.primary : cs.onSurface.withValues(alpha: 0.6),
             size: 20,
           ),
         ),
@@ -294,7 +319,8 @@ class _ToolbarTextButton extends StatelessWidget {
   final bool isActive;
   final VoidCallback onTap;
 
-  const _ToolbarTextButton({required this.text, required this.isActive, required this.onTap});
+  const _ToolbarTextButton(
+      {required this.text, required this.isActive, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -307,14 +333,17 @@ class _ToolbarTextButton extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: isActive ? const Color(0xFF383848) : const Color(0xFF2A2A35),
+            color: isActive
+                ? cs.primary.withValues(alpha: 0.15)
+                : cs.onSurface.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
             child: Text(
               text,
               style: TextStyle(
-                color: isActive ? cs.onSurface : cs.onSurface.withValues(alpha: 0.6),
+                color:
+                    isActive ? cs.primary : cs.onSurface.withValues(alpha: 0.6),
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),

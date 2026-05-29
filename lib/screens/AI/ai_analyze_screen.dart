@@ -53,6 +53,7 @@ class _AIAnalyzeScreenState extends State<AIAnalyzeScreen> {
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: 'AI Analysis',
       content: deltaJson,
+      createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
 

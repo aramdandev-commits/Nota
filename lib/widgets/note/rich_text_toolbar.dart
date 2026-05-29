@@ -1,35 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
+import '../../controllers/note_formatting_controller.dart';
 
 class RichTextToolbar extends StatelessWidget {
   final quill.QuillController controller;
+  final NoteFormattingController formattingController;
 
-  const RichTextToolbar({super.key, required this.controller});
+  const RichTextToolbar({
+    super.key,
+    required this.controller,
+    required this.formattingController,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final toolbarBgColor =
+        isDark ? const Color(0xFF111116) : const Color(0xFFF0F0F5);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: toolbarBgColor,
         border: Border(
           top: BorderSide(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.1),
           ),
         ),
       ),
       child: ListenableBuilder(
-        listenable: controller,
+        listenable: Listenable.merge([controller, formattingController]),
         builder: (context, _) {
           final style = controller.getSelectionStyle();
-          final isBold = style.containsKey('bold');
-          final isItalic = style.containsKey('italic');
-          final isUnderline = style.containsKey('underline');
+          final isBold = formattingController.isBold;
+          final isItalic = formattingController.isItalic;
+          final isUnderline = formattingController.isUnderline;
           final isStrike = style.containsKey('strike');
-          final isH1 = style.attributes['header']?.value == 1;
-          final isH2 = style.attributes['header']?.value == 2;
-          final isBullet = style.attributes['list']?.value == 'bullet';
-          final isOrdered = style.attributes['list']?.value == 'ordered';
+          final isH1 = formattingController.isH1;
+          final isH2 = formattingController.isH2;
+          final isBullet = formattingController.isBulletedList;
+          final isOrdered = formattingController.isNumberedList;
+          final isCheckbox = formattingController.isCheckbox;
 
           return SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -48,12 +60,14 @@ class RichTextToolbar extends StatelessWidget {
                 _ToolbarButton(
                   icon: Icons.format_underline,
                   isActive: isUnderline,
-                  onTap: () => _toggleFormat(quill.Attribute.underline, isUnderline),
+                  onTap: () =>
+                      _toggleFormat(quill.Attribute.underline, isUnderline),
                 ),
                 _ToolbarButton(
                   icon: Icons.format_strikethrough,
                   isActive: isStrike,
-                  onTap: () => _toggleFormat(quill.Attribute.strikeThrough, isStrike),
+                  onTap: () =>
+                      _toggleFormat(quill.Attribute.strikeThrough, isStrike),
                 ),
                 _Divider(),
                 _ToolbarTextButton(
@@ -77,23 +91,11 @@ class RichTextToolbar extends StatelessWidget {
                   isActive: isOrdered,
                   onTap: () => _toggleFormat(quill.Attribute.ol, isOrdered),
                 ),
-                _Divider(),
                 _ToolbarButton(
-                  icon: Icons.format_clear,
-                  isActive: false,
-                  onTap: () {
-                    final selection = controller.selection;
-                    if (!selection.isCollapsed) {
-                      controller.formatSelection(quill.Attribute.clone(quill.Attribute.bold, null));
-                      controller.formatSelection(quill.Attribute.clone(quill.Attribute.italic, null));
-                      controller.formatSelection(quill.Attribute.clone(quill.Attribute.underline, null));
-                      controller.formatSelection(quill.Attribute.clone(quill.Attribute.strikeThrough, null));
-                      controller.formatSelection(quill.Attribute.clone(quill.Attribute.h1, null));
-                      controller.formatSelection(quill.Attribute.clone(quill.Attribute.h2, null));
-                      controller.formatSelection(quill.Attribute.clone(quill.Attribute.ul, null));
-                      controller.formatSelection(quill.Attribute.clone(quill.Attribute.ol, null));
-                    }
-                  },
+                  icon: Icons.check_box_outlined,
+                  isActive: isCheckbox,
+                  onTap: () =>
+                      _toggleFormat(quill.Attribute.unchecked, isCheckbox),
                 ),
               ],
             ),
@@ -104,7 +106,8 @@ class RichTextToolbar extends StatelessWidget {
   }
 
   void _toggleFormat(quill.Attribute attribute, bool isApplied) {
-    controller.formatSelection(isApplied ? quill.Attribute.clone(attribute, null) : attribute);
+    controller.formatSelection(
+        isApplied ? quill.Attribute.clone(attribute, null) : attribute);
   }
 }
 
@@ -125,7 +128,8 @@ class _ToolbarButton extends StatelessWidget {
   final bool isActive;
   final VoidCallback onTap;
 
-  const _ToolbarButton({required this.icon, required this.isActive, required this.onTap});
+  const _ToolbarButton(
+      {required this.icon, required this.isActive, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -138,12 +142,14 @@ class _ToolbarButton extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: isActive ? const Color(0xFF383848) : const Color(0xFF2A2A35),
+            color: isActive
+                ? cs.primary.withValues(alpha: 0.15)
+                : cs.onSurface.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
             icon,
-            color: isActive ? cs.onSurface : cs.onSurface.withValues(alpha: 0.6),
+            color: isActive ? cs.primary : cs.onSurface.withValues(alpha: 0.6),
             size: 20,
           ),
         ),
@@ -157,7 +163,8 @@ class _ToolbarTextButton extends StatelessWidget {
   final bool isActive;
   final VoidCallback onTap;
 
-  const _ToolbarTextButton({required this.text, required this.isActive, required this.onTap});
+  const _ToolbarTextButton(
+      {required this.text, required this.isActive, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -170,14 +177,17 @@ class _ToolbarTextButton extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: isActive ? const Color(0xFF383848) : const Color(0xFF2A2A35),
+            color: isActive
+                ? cs.primary.withValues(alpha: 0.15)
+                : cs.onSurface.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
             child: Text(
               text,
               style: TextStyle(
-                color: isActive ? cs.onSurface : cs.onSurface.withValues(alpha: 0.6),
+                color:
+                    isActive ? cs.primary : cs.onSurface.withValues(alpha: 0.6),
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
@@ -187,4 +197,8 @@ class _ToolbarTextButton extends StatelessWidget {
       ),
     );
   }
+}
+
+extension AttributeUnsetExt on quill.Attribute {
+  quill.Attribute get unset => quill.Attribute.clone(this, null);
 }

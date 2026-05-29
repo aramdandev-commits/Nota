@@ -388,8 +388,16 @@ class _NoteCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
-        onTap: () => Navigator.push(context,
-            MaterialPageRoute(builder: (_) => SpaceNoteViewScreen(noteId: note.id.isNotEmpty ? note.id : '10'))),
+        onTap: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => SpaceNoteViewScreen(note: note)),
+          );
+          if (result is SpaceNoteModel) {
+            context.read<SpaceDetailsProvider>().editNote(
+                result.id, result.title, result.content, result.tags);
+          }
+        },
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(

@@ -187,11 +187,11 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
                   ),
                 ),
               ),
+              RichTextToolbar(controller: _quillController),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: RichTextToolbar(controller: _quillController),
     );
   }
 }

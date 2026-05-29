@@ -7,6 +7,8 @@ import 'package:nota/controllers/spaces_provider.dart';
 import 'package:nota/controllers/space_details_provider.dart';
 import 'package:nota/controllers/theme_provider.dart';
 import 'package:nota/helper/app_theme.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 
 late final GoRouter router;
 
@@ -41,6 +43,16 @@ class MainApp extends StatelessWidget {
       themeMode: themeProvider.themeMode,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
+      localizationsDelegates: const [
+        FlutterQuillLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', 'US'),
+        Locale('ar', 'AE'),
+      ],
     );
   }
 }

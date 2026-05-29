@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   flutter_native_splash: ^2.4.7
   flutter_quill: ^11.5.0
   flutter_svg: ^2.0.10
@@ -23,8 +25,7 @@ dependencies:
   file_picker: ^8.1.7
   webview_flutter: ^4.8.0
   webview_flutter_android: ^4.12.0
-  flutter_localizations:
-    sdk: flutter
+  flutter_gen: ^5.14.1
 
 dev_dependencies:
   flutter_test:
@@ -33,6 +34,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true
 
   assets:
     - assets/images/frame_10.svg
@@ -42,10 +44,15 @@ flutter:
     - assets/images/board3.png
     - assets/images/nota.png
     - assets/images/nota.svg
+    - assets/images/nota_light.svg
     - assets/images/google.svg
     - assets/web_editor/
 
   fonts:
+    - family: Cairo
+      fonts:
+        - asset: assets/fonts/Cairo-Regular.ttf
+  
     - family: Inter
       fonts:
         - asset: assets/fonts/static/Inter_18pt-Regular.ttf

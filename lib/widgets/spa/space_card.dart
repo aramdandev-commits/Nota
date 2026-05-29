@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nota/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../model/space_model.dart';
 import '../../controllers/space_details_provider.dart';
@@ -7,7 +8,7 @@ import '../../screens/spa/space_details_screen.dart';
 class SpaceCard extends StatelessWidget {
   final SpaceModel space;
 
-  const SpaceCard({Key? key, required this.space}) : super(key: key);
+  const SpaceCard({super.key, required this.space});
 
   @override
   Widget build(BuildContext context) {
@@ -98,11 +99,11 @@ class SpaceCard extends StatelessWidget {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      _buildRoleBadge(space.role),
+                      _buildRoleBadge(context, space.role),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          '${space.memberCount} members  ·  ${space.noteCount} notes',
+                          '${space.memberCount} ${AppLocalizations.of(context)!.members} ·  ${space.noteCount} ${AppLocalizations.of(context)!.myNotes} ',
                           style: TextStyle(
                             color: cs.onSurface.withValues(alpha: 0.4),
                             fontSize: 12,
@@ -122,7 +123,7 @@ class SpaceCard extends StatelessWidget {
     );
   }
 
-  Widget _buildRoleBadge(SpaceRole role) {
+  Widget _buildRoleBadge(BuildContext context, SpaceRole role) {
     Color textColor;
     Color bgColor;
     String text;
@@ -132,19 +133,19 @@ class SpaceCard extends StatelessWidget {
       case SpaceRole.admin:
         textColor = const Color(0xFFFBBF24); // Yellow
         bgColor = const Color(0xFF332B13);
-        text = 'Admin';
+        text = AppLocalizations.of(context)!.admin;
         icon = Icons.star_border;
         break;
       case SpaceRole.contributor:
-        textColor = const Color(0xFF60A5FA); // Blue
+        textColor = const Color(0xFF60A5FA);
         bgColor = const Color(0xFF14243B);
-        text = 'Contributor';
+        text = AppLocalizations.of(context)!.contributor;
         icon = Icons.edit_outlined;
         break;
       case SpaceRole.viewer:
-        textColor = const Color(0xFF9CA3AF); // Grey
+        textColor = const Color(0xFF9CA3AF);
         bgColor = const Color(0xFF202430);
-        text = 'Viewer';
+        text = AppLocalizations.of(context)!.viewer;
         icon = Icons.visibility_outlined;
         break;
     }
@@ -158,7 +159,7 @@ class SpaceCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) ...[
+          ...[
             Icon(icon, color: textColor, size: 12),
             const SizedBox(width: 4),
           ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nota/l10n/app_localizations.dart';
 
 /// Gradient "Generate Analysis" button with loading state.
 class AiGenerateButton extends StatelessWidget {
@@ -46,11 +47,11 @@ class AiGenerateButton extends StatelessWidget {
               )
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children: [
                   Icon(Icons.auto_awesome, color: Colors.white, size: 18),
                   SizedBox(width: 8),
                   Text(
-                    'Generate Analysis',
+                    AppLocalizations.of(context)!.generateAnalysis,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 15,

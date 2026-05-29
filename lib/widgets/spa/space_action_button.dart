@@ -10,12 +10,12 @@ class SpaceActionButton extends StatelessWidget {
   final bool isLoading;
 
   const SpaceActionButton({
-    Key? key,
+    super.key,
     required this.label,
     required this.onPressed,
     this.variant = SpaceButtonVariant.primary,
     this.isLoading = false,
-  }) : super(key: key);
+  });
 
   Color get _bg {
     switch (variant) {

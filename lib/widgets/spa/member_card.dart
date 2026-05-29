@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nota/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../model/space_member_model.dart';
 import '../../model/space_model.dart';
@@ -8,8 +9,7 @@ class MemberCard extends StatelessWidget {
   final SpaceMemberModel member;
   final SpaceRole myRole;
 
-  const MemberCard({Key? key, required this.member, required this.myRole})
-      : super(key: key);
+  const MemberCard({super.key, required this.member, required this.myRole});
 
   void _showMemberOptions(BuildContext context) {
     if (myRole != SpaceRole.admin) return;
@@ -51,7 +51,9 @@ class MemberCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF151821) : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
+        border: isDark
+            ? null
+            : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
@@ -77,8 +79,11 @@ class MemberCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: const Color(0xFF07C168),
                       shape: BoxShape.circle,
-                      border:
-                          Border.all(color: isDark ? const Color(0xFF151821) : Theme.of(context).cardColor, width: 2),
+                      border: Border.all(
+                          color: isDark
+                              ? const Color(0xFF151821)
+                              : Theme.of(context).cardColor,
+                          width: 2),
                     ),
                   ),
                 ),
@@ -108,7 +113,8 @@ class MemberCard extends StatelessWidget {
                         ),
                         child: Text('You',
                             style: TextStyle(
-                                color: cs.onSurface.withValues(alpha: 0.5), fontSize: 10)),
+                                color: cs.onSurface.withValues(alpha: 0.5),
+                                fontSize: 10)),
                       ),
                     ],
                   ],
@@ -116,11 +122,13 @@ class MemberCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(member.email,
                     style: TextStyle(
-                        color: cs.onSurface.withValues(alpha: 0.5), fontSize: 12)),
+                        color: cs.onSurface.withValues(alpha: 0.5),
+                        fontSize: 12)),
                 const SizedBox(height: 2),
                 Text(_joinedLabel(member.joinedAt),
                     style: TextStyle(
-                        color: cs.onSurface.withValues(alpha: 0.4), fontSize: 11)),
+                        color: cs.onSurface.withValues(alpha: 0.4),
+                        fontSize: 11)),
               ],
             ),
           ),
@@ -156,19 +164,19 @@ class _RoleBadge extends StatelessWidget {
       case SpaceRole.admin:
         text = const Color(0xFFFBBF24);
         bg = const Color(0xFF332B13);
-        label = 'Admin';
+        label = AppLocalizations.of(context)!.admin;
         icon = Icons.star_border;
         break;
       case SpaceRole.contributor:
         text = const Color(0xFF60A5FA);
         bg = const Color(0xFF14243B);
-        label = 'Contributor';
+        label = AppLocalizations.of(context)!.contributor;
         icon = Icons.edit_outlined;
         break;
       case SpaceRole.viewer:
         text = const Color(0xFF9CA3AF);
         bg = const Color(0xFF202430);
-        label = 'Viewer';
+        label = AppLocalizations.of(context)!.viewer;
         icon = Icons.visibility_outlined;
         break;
     }
@@ -214,7 +222,9 @@ class _MemberOptionsSheet extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1C2030) : Theme.of(context).scaffoldBackgroundColor,
+        color: isDark
+            ? const Color(0xFF1C2030)
+            : Theme.of(context).scaffoldBackgroundColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
@@ -269,7 +279,9 @@ class _ChangeRoleSheet extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1C2030) : Theme.of(context).scaffoldBackgroundColor,
+        color: isDark
+            ? const Color(0xFF1C2030)
+            : Theme.of(context).scaffoldBackgroundColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
@@ -335,27 +347,33 @@ class _RoleOption extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isSelected 
-              ? (isDark ? const Color(0xFF1A1F36) : cs.primary.withValues(alpha: 0.1)) 
-              : (isDark ? const Color(0xFF202430) : Theme.of(context).cardColor),
+          color: isSelected
+              ? (isDark
+                  ? const Color(0xFF1A1F36)
+                  : cs.primary.withValues(alpha: 0.1))
+              : (isDark
+                  ? const Color(0xFF202430)
+                  : Theme.of(context).cardColor),
           borderRadius: BorderRadius.circular(12),
           border: isSelected
               ? Border.all(color: cs.primary)
-              : (isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.1))),
+              : (isDark
+                  ? null
+                  : Border.all(color: cs.onSurface.withValues(alpha: 0.1))),
         ),
         child: Row(
           children: [
             Expanded(
               child: Text(_label,
                   style: TextStyle(
-                    color: isSelected ? cs.primary : cs.onSurface, 
+                    color: isSelected ? cs.primary : cs.onSurface,
                     fontSize: 14,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
                   )),
             ),
             if (isSelected)
-              Icon(Icons.check_circle,
-                  color: cs.primary, size: 18),
+              Icon(Icons.check_circle, color: cs.primary, size: 18),
           ],
         ),
       ),

@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:nota/l10n/app_localizations.dart';
+import 'package:nota/l10n/app_localizations_ar.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -25,7 +27,8 @@ class NewNoteScreen extends StatefulWidget {
 class _NewNoteScreenState extends State<NewNoteScreen> {
   late final TextEditingController _titleController;
   late final WebViewController _webViewController;
-  final NoteFormattingController _formattingController = NoteFormattingController();
+  final NoteFormattingController _formattingController =
+      NoteFormattingController();
   Map<String, dynamic> _activeFormats = {};
 
   late final DateTime _createdAt;
@@ -84,7 +87,7 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
         onMessageReceived: (JavaScriptMessage message) {
           if (message.message == 'changed') {
             _saveStateNotifier.value = 'Saving...';
-            _onTextChanged(); 
+            _onTextChanged();
           }
         },
       )
@@ -92,17 +95,18 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
         NavigationDelegate(
           onPageFinished: (String url) {
             _injectThemeAndInitialize(existingNote?.content ?? '');
-            
-            final noteContent = existingNote?.content ?? ''; 
+
+            final noteContent = existingNote?.content ?? '';
             if (noteContent.isNotEmpty && noteContent != 'No content') {
-              _webViewController.runJavaScript("window.loadEditorState('$noteContent');");
+              _webViewController
+                  .runJavaScript("window.loadEditorState('$noteContent');");
             }
           },
         ),
       );
 
     _loadLocalHtml();
-    
+
     if (_webViewController.platform is AndroidWebViewController) {
       AndroidWebViewController.enableDebugging(true);
     }
@@ -113,7 +117,8 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
   Future<void> _loadLocalHtml() async {
     String htmlContent =
         await rootBundle.loadString('assets/web_editor/index.html');
-    _webViewController.loadHtmlString(htmlContent, baseUrl: 'https://nota.local');
+    _webViewController.loadHtmlString(htmlContent,
+        baseUrl: 'https://nota.local');
   }
 
   void _injectThemeAndInitialize(String initialContent) {
@@ -125,7 +130,8 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
         '#${(Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface).value.toRadixString(16).padLeft(8, '0').substring(2)}';
 
     // Escape initial content securely if needed
-    final safeContent = initialContent.replaceAll("'", "\\'").replaceAll('\n', '\\n');
+    final safeContent =
+        initialContent.replaceAll("'", "\\'").replaceAll('\n', '\\n');
 
     _webViewController.runJavaScript('''
       document.body.style.setProperty('--bg-color', '$bgHex');
@@ -159,15 +165,16 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
 
     _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
       if (!mounted) return;
-      
+
       final title = _titleController.text.isEmpty
           ? 'Untitled Note'
           : _titleController.text;
-          
+
       // Yjs base64 encoding/decoding logic hook
       String contentString = '';
       try {
-        final contentResult = await _webViewController.runJavaScriptReturningResult('window.getEditorState()');
+        final contentResult = await _webViewController
+            .runJavaScriptReturningResult('window.getEditorState()');
         contentString = contentResult.toString().replaceAll('"', '');
         if (contentString == 'null') contentString = '';
       } catch (e) {
@@ -183,7 +190,9 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
       );
 
       try {
-        final newId = await context.read<NoteProvider>().saveNote(updatedNote, isNew: _isNewNote);
+        final newId = await context
+            .read<NoteProvider>()
+            .saveNote(updatedNote, isNew: _isNewNote);
         if (mounted) {
           if (_isNewNote) {
             _noteId = newId;
@@ -229,7 +238,7 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
                   fontWeight: FontWeight.bold,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Untitled Note',
+                  hintText: AppLocalizations.of(context)!.untitledNote,
                   hintStyle: TextStyle(
                     color: cs.onSurface.withValues(alpha: 0.25),
                     fontSize: 28,
@@ -267,7 +276,8 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
                 listenable: _formattingController,
                 builder: (context, _) {
                   return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                     decoration: BoxDecoration(
                       color: Theme.of(context).brightness == Brightness.dark
                           ? const Color(0xFF111116)
@@ -291,52 +301,52 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
                           _ToolbarButton(
                             icon: Icons.format_italic,
                             isActive: _formattingController.isItalic,
-                            onTap: () => _webViewController
-                                .runJavaScript("window.toggleFormat('italic');"),
+                            onTap: () => _webViewController.runJavaScript(
+                                "window.toggleFormat('italic');"),
                           ),
                           _ToolbarButton(
                             icon: Icons.format_underline,
                             isActive: _formattingController.isUnderline,
-                            onTap: () => _webViewController
-                                .runJavaScript("window.toggleFormat('underline');"),
+                            onTap: () => _webViewController.runJavaScript(
+                                "window.toggleFormat('underline');"),
                           ),
                           _ToolbarButton(
                             icon: Icons.format_strikethrough,
                             isActive: _activeFormats['strike'] == true,
-                            onTap: () => _webViewController
-                                .runJavaScript("window.toggleFormat('strike');"),
+                            onTap: () => _webViewController.runJavaScript(
+                                "window.toggleFormat('strike');"),
                           ),
                           _Divider(),
                           _ToolbarTextButton(
                             text: 'H1',
                             isActive: _formattingController.isH1,
-                            onTap: () => _webViewController
-                                .runJavaScript("window.toggleFormat('header', 1);"),
+                            onTap: () => _webViewController.runJavaScript(
+                                "window.toggleFormat('header', 1);"),
                           ),
                           _ToolbarTextButton(
                             text: 'H2',
                             isActive: _formattingController.isH2,
-                            onTap: () => _webViewController
-                                .runJavaScript("window.toggleFormat('header', 2);"),
+                            onTap: () => _webViewController.runJavaScript(
+                                "window.toggleFormat('header', 2);"),
                           ),
                           _Divider(),
                           _ToolbarButton(
                             icon: Icons.format_list_bulleted,
                             isActive: _formattingController.isBulletedList,
-                            onTap: () => _webViewController
-                                .runJavaScript("window.toggleFormat('list', 'bullet');"),
+                            onTap: () => _webViewController.runJavaScript(
+                                "window.toggleFormat('list', 'bullet');"),
                           ),
                           _ToolbarButton(
                             icon: Icons.format_list_numbered,
                             isActive: _formattingController.isNumberedList,
-                            onTap: () => _webViewController
-                                .runJavaScript("window.toggleFormat('list', 'ordered');"),
+                            onTap: () => _webViewController.runJavaScript(
+                                "window.toggleFormat('list', 'ordered');"),
                           ),
                           _ToolbarButton(
                             icon: Icons.check_box_outlined,
                             isActive: _formattingController.isCheckbox,
-                            onTap: () => _webViewController
-                                .runJavaScript("window.toggleFormat('list', 'unchecked');"),
+                            onTap: () => _webViewController.runJavaScript(
+                                "window.toggleFormat('list', 'unchecked');"),
                           ),
                         ],
                       ),
@@ -431,12 +441,13 @@ class _ToolbarTextButton extends StatelessWidget {
           ),
           child: Center(
             child: Text(
-               text,
-               style: TextStyle(
-                 color: isActive ? cs.primary : cs.onSurface.withValues(alpha: 0.6),
-                 fontWeight: FontWeight.bold,
-                 fontSize: 16,
-               ),
+              text,
+              style: TextStyle(
+                color:
+                    isActive ? cs.primary : cs.onSurface.withValues(alpha: 0.6),
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
             ),
           ),
         ),

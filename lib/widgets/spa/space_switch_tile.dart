@@ -8,12 +8,12 @@ class SpaceSwitchTile extends StatelessWidget {
   final ValueChanged<bool> onChanged;
 
   const SpaceSwitchTile({
-    Key? key,
+    super.key,
     required this.title,
     required this.subtitle,
     required this.value,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,9 @@ class SpaceSwitchTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF151821) : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
+        border: isDark
+            ? null
+            : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
@@ -55,10 +57,12 @@ class SpaceSwitchTile extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: cs.primary,
+            activeThumbColor: cs.primary,
             activeTrackColor: cs.primary.withValues(alpha: 0.3),
             inactiveThumbColor: cs.onSurface.withValues(alpha: 0.4),
-            inactiveTrackColor: isDark ? const Color(0xFF202430) : Theme.of(context).scaffoldBackgroundColor,
+            inactiveTrackColor: isDark
+                ? const Color(0xFF202430)
+                : Theme.of(context).scaffoldBackgroundColor,
           ),
         ],
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nota/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:nota/helper/app_theme.dart';
 import '../../controllers/note_provider.dart';
@@ -43,7 +44,7 @@ class NoteOptionsSheet extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Options',
+                AppLocalizations.of(context)!.options,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -68,7 +69,7 @@ class NoteOptionsSheet extends StatelessWidget {
             context: context,
             icon: Icons.share_outlined,
             iconColor: iconAccentColor,
-            title: 'Share',
+            title: AppLocalizations.of(context)!.share,
             bgColor: itemBg,
             onTap: () {
               Navigator.pop(context);
@@ -85,8 +86,8 @@ class NoteOptionsSheet extends StatelessWidget {
             context: context,
             icon: Icons.folder_outlined,
             iconColor: Colors.tealAccent,
-            title: 'Move to Space',
-            subtitle: 'Research Space',
+            title: AppLocalizations.of(context)!.moveToSpaces,
+            subtitle: AppLocalizations.of(context)!.researchSpace,
             showArrow: true,
             bgColor: itemBg,
             onTap: () {
@@ -104,7 +105,7 @@ class NoteOptionsSheet extends StatelessWidget {
             context: context,
             icon: Icons.info_outline_rounded,
             iconColor: Colors.cyanAccent,
-            title: 'Note Info',
+            title: AppLocalizations.of(context)!.noteInfo,
             showArrow: true,
             bgColor: itemBg,
             onTap: () {
@@ -128,7 +129,7 @@ class NoteOptionsSheet extends StatelessWidget {
             context: context,
             icon: Icons.delete_outline_rounded,
             iconColor: Colors.redAccent,
-            title: 'Delete Note',
+            title: AppLocalizations.of(context)!.deleteNote,
             titleColor: Colors.redAccent,
             bgColor: destructiveColor,
             onTap: () {

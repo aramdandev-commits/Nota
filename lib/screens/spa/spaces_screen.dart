@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nota/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../controllers/spaces_provider.dart';
@@ -7,7 +8,7 @@ import '../../widgets/spa/space_card.dart';
 import '../../widgets/spa/create_space_bottom_sheet.dart';
 
 class SpacesScreen extends StatefulWidget {
-  const SpacesScreen({Key? key}) : super(key: key);
+  const SpacesScreen({super.key});
 
   @override
   State<SpacesScreen> createState() => _SpacesScreenState();
@@ -47,7 +48,7 @@ class _SpacesScreenState extends State<SpacesScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Spaces',
+                          AppLocalizations.of(context)!.spaces,
                           style: TextStyle(
                             color: cs.onSurface,
                             fontSize: 28,
@@ -56,7 +57,7 @@ class _SpacesScreenState extends State<SpacesScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Organize & collaborate\nwith workspaces',
+                          AppLocalizations.of(context)!.spacesDescription,
                           style: TextStyle(
                             color: cs.onSurface.withValues(alpha: 0.5),
                             fontSize: 14,
@@ -69,8 +70,8 @@ class _SpacesScreenState extends State<SpacesScreen> {
                   ElevatedButton.icon(
                     onPressed: () => _showCreateSpaceBottomSheet(context),
                     icon: const Icon(Icons.add, size: 18),
-                    label: const Text(
-                      'Create Space',
+                    label: Text(
+                      AppLocalizations.of(context)!.createSpace,
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
@@ -96,9 +97,13 @@ class _SpacesScreenState extends State<SpacesScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Container(
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF151821) : Theme.of(context).cardColor,
+                  color: isDark
+                      ? const Color(0xFF151821)
+                      : Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(16),
-                  border: isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
+                  border: isDark
+                      ? null
+                      : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
                 ),
                 child: TextField(
                   onChanged: (value) =>
@@ -106,9 +111,11 @@ class _SpacesScreenState extends State<SpacesScreen> {
                           .searchSpaces(value),
                   style: TextStyle(color: cs.onSurface),
                   decoration: InputDecoration(
-                    hintText: 'Search spaces...',
-                    hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.5)),
-                    prefixIcon: Icon(Icons.search, color: cs.onSurface.withValues(alpha: 0.5)),
+                    hintText: AppLocalizations.of(context)!.searchSpaces,
+                    hintStyle:
+                        TextStyle(color: cs.onSurface.withValues(alpha: 0.5)),
+                    prefixIcon: Icon(Icons.search,
+                        color: cs.onSurface.withValues(alpha: 0.5)),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(vertical: 16),
                   ),
@@ -155,7 +162,7 @@ class _SpacesScreenState extends State<SpacesScreen> {
                       children: [
                         // MY SPACES Title
                         Text(
-                          'MY SPACES',
+                          AppLocalizations.of(context)!.mySpaces,
                           style: TextStyle(
                             color: cs.onSurface.withValues(alpha: 0.5),
                             fontSize: 12,
@@ -170,7 +177,7 @@ class _SpacesScreenState extends State<SpacesScreen> {
                             child: Padding(
                               padding: const EdgeInsets.all(32.0),
                               child: Text(
-                                'No spaces found.',
+                                AppLocalizations.of(context)!.noSpacesFound,
                                 style: TextStyle(color: cs.onSurface),
                               ),
                             ),
@@ -191,7 +198,7 @@ class _SpacesScreenState extends State<SpacesScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'RECENT ACTIVITY',
+                                AppLocalizations.of(context)!.recentActivity,
                                 style: TextStyle(
                                   color: cs.onSurface.withValues(alpha: 0.5),
                                   fontSize: 12,
@@ -201,8 +208,8 @@ class _SpacesScreenState extends State<SpacesScreen> {
                               ),
                               TextButton(
                                 onPressed: () {},
-                                child: const Text(
-                                  'View all',
+                                child: Text(
+                                  AppLocalizations.of(context)!.viewAll,
                                   style: TextStyle(
                                     color: Color(0xFF60A5FA),
                                     fontSize: 13,
@@ -216,9 +223,15 @@ class _SpacesScreenState extends State<SpacesScreen> {
                             margin: const EdgeInsets.only(bottom: 24),
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF151821) : Theme.of(context).cardColor,
+                              color: isDark
+                                  ? const Color(0xFF151821)
+                                  : Theme.of(context).cardColor,
                               borderRadius: BorderRadius.circular(16),
-                              border: isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
+                              border: isDark
+                                  ? null
+                                  : Border.all(
+                                      color:
+                                          cs.onSurface.withValues(alpha: 0.1)),
                             ),
                             child: Row(
                               children: [
@@ -240,7 +253,8 @@ class _SpacesScreenState extends State<SpacesScreen> {
                                   child: RichText(
                                     text: TextSpan(
                                       style: TextStyle(
-                                        color: cs.onSurface.withValues(alpha: 0.5),
+                                        color:
+                                            cs.onSurface.withValues(alpha: 0.5),
                                         fontSize: 13,
                                       ),
                                       children: [
@@ -261,7 +275,8 @@ class _SpacesScreenState extends State<SpacesScreen> {
                                             text:
                                                 '· ${_timeAgo(spaceWithActivity.lastEditedAt!)}',
                                             style: TextStyle(
-                                              color: cs.onSurface.withValues(alpha: 0.5),
+                                              color: cs.onSurface
+                                                  .withValues(alpha: 0.5),
                                             ),
                                           ),
                                       ],

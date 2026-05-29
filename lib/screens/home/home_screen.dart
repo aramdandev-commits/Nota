@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nota/l10n/app_localizations.dart';
 import 'package:nota/widgets/home/bottom_navigation.dart';
 import 'package:nota/widgets/pdf/import_pdf.dart';
 import 'package:provider/provider.dart';
@@ -26,10 +27,10 @@ class _HomeScreenState extends State<HomeScreen> {
     NotaModalSheet.show(
       context: context,
       icon: Icons.picture_as_pdf_rounded,
-      title: 'Import PDF',
-      subtitle: 'Upload a PDF file to convert into a note',
+      title: AppLocalizations.of(context)!.importPDF,
+      subtitle: AppLocalizations.of(context)!.importPdfDescriptionFile,
       body: const ImportPdfBody(),
-      cancelLabel: 'Cancel',
+      cancelLabel: AppLocalizations.of(context)!.cancel,
     );
   }
 
@@ -56,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const AICard(),
               const SizedBox(height: 24),
               Text(
-                'QUICK ACTIONS',
+                AppLocalizations.of(context)!.quickActions,
                 style: TextStyle(
                   color: Theme.of(context)
                       .colorScheme
@@ -76,8 +77,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icons.add,
                       iconColor: Colors.white,
                       iconBackgroundColor: const Color(0xFFE520A4),
-                      title: 'New Note',
-                      subtitle: 'Start writing',
+                      title: AppLocalizations.of(context)!.createNote,
+                      subtitle:
+                          AppLocalizations.of(context)!.createNoteDescription,
                       onTap: () => context.push('/new-note'),
                     ),
                   ),
@@ -87,8 +89,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icons.auto_awesome,
                       iconColor: Colors.white,
                       iconBackgroundColor: const Color(0xFF1D84FF),
-                      title: 'AI Analyze',
-                      subtitle: 'Summarize',
+                      title: AppLocalizations.of(context)!.aiAnalyze,
+                      subtitle: AppLocalizations.of(context)!.summarize,
                       onTap: () => context.push('/ai-analyze'),
                     ),
                   ),
@@ -102,8 +104,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icons.upload_file,
                       iconColor: Colors.white,
                       iconBackgroundColor: const Color(0xFFFF8A00),
-                      title: 'Import PDF',
-                      subtitle: 'PDF → Note',
+                      title: AppLocalizations.of(context)!.importPDF,
+                      subtitle:
+                          AppLocalizations.of(context)!.importPdfDescription,
                       onTap: () => _showImportPdfSheet(context),
                     ),
                   ),
@@ -113,16 +116,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icons.group_add,
                       iconColor: Colors.white,
                       iconBackgroundColor: const Color(0xFF00C48C),
-                      title: 'Collaborate',
-                      subtitle: 'Team notes',
+                      title: AppLocalizations.of(context)!.collaborate,
+                      subtitle:
+                          AppLocalizations.of(context)!.collaborateDescription,
                       onTap: () => context.push('/spaces'),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 32),
-              const Text(
-                'FAVORITES',
+              Text(
+                AppLocalizations.of(context)!.favorites,
                 style: TextStyle(
                   color: Color(0xFF8E9099),
                   fontSize: 12,
@@ -157,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'RECENT NOTES',
+                    AppLocalizations.of(context)!.recentNotes,
                     style: TextStyle(
                       color: Theme.of(context)
                           .colorScheme
@@ -173,9 +177,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       context.push('/notes');
                     },
                     child: Row(
-                      children: const [
+                      children: [
                         Text(
-                          'View All',
+                          AppLocalizations.of(context)!.viewAll,
                           style: TextStyle(
                             color: Color(0xFF3377FF),
                             fontSize: 12,
@@ -226,7 +230,26 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemBuilder: (context, index) {
                       final note = recentNotes[index];
 
-                      String previewText = getPreviewText(note.content);
+                      String previewText = "No content";
+                      try {
+                        if (note.content.isNotEmpty) {
+                          final List<dynamic> ops = jsonDecode(note.content);
+                          previewText = ops
+                              .map((op) => op['insert']?.toString() ?? '')
+                              .join('')
+                              .replaceAll('\n', ' ')
+                              .trim();
+                          if (previewText.length > 50) {
+                            previewText = '${previewText.substring(0, 50)}...';
+                          }
+                        }
+                      } catch (e) {
+                        previewText = note.content;
+                        if (previewText.length > 50) {
+                          previewText = '${previewText.substring(0, 50)}...';
+                        }
+                      }
+
                       return GestureDetector(
                         onTap: () {
                           context.push('/new-note', extra: note.id);
@@ -248,7 +271,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               Text(
                                 note.title.isNotEmpty
                                     ? note.title
-                                    : 'Untitled Note',
+                                    : AppLocalizations.of(context)!
+                                        .untitledNote,
                                 style: TextStyle(
                                   color:
                                       Theme.of(context).colorScheme.onSurface,
@@ -260,7 +284,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Text(
                                 previewText.isNotEmpty
                                     ? previewText
-                                    : 'Empty Note',
+                                    : AppLocalizations.of(context)!.emptyNote,
                                 style: TextStyle(
                                   color: Theme.of(context)
                                       .colorScheme
@@ -327,7 +351,11 @@ String getPreviewText(String content) {
   if (content.isEmpty) return "No content";
   try {
     final List<dynamic> ops = jsonDecode(content);
-    String text = ops.map((op) => op['insert']?.toString() ?? '').join('').replaceAll('\n', ' ').trim();
+    String text = ops
+        .map((op) => op['insert']?.toString() ?? '')
+        .join('')
+        .replaceAll('\n', ' ')
+        .trim();
     return text.length > 50 ? '${text.substring(0, 50)}...' : text;
   } catch (e) {
     return "Rich text note (Open to view)";

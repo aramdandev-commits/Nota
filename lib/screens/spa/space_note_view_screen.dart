@@ -10,8 +10,7 @@ import '../../controllers/note_formatting_controller.dart';
 class SpaceNoteViewScreen extends StatefulWidget {
   final SpaceNoteModel note;
 
-  const SpaceNoteViewScreen({Key? key, required this.note}) : super(key: key);
-
+  const SpaceNoteViewScreen({super.key, required this.note});
   @override
   State<SpaceNoteViewScreen> createState() => _SpaceNoteViewScreenState();
 }

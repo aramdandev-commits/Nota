@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nota/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/note_provider.dart';
 
@@ -12,10 +13,14 @@ class DeleteNoteSheet extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final Color sheetColor = isDark ? const Color(0xFF1E1E2A) : Theme.of(context).scaffoldBackgroundColor;
-    final Color itemColor = isDark ? const Color(0xFF2A2A38) : Theme.of(context).cardColor;
+    final Color sheetColor = isDark
+        ? const Color(0xFF1E1E2A)
+        : Theme.of(context).scaffoldBackgroundColor;
+    final Color itemColor =
+        isDark ? const Color(0xFF2A2A38) : Theme.of(context).cardColor;
     const Color deleteRed = Color(0xFFD32F2F);
-    final Color iconBgRed = isDark ? const Color(0xFF3A1E24) : const Color(0xFFFEF2F2);
+    final Color iconBgRed =
+        isDark ? const Color(0xFF3A1E24) : const Color(0xFFFEF2F2);
     final Color textColor = cs.onSurface;
     final Color subtitleColor = cs.onSurface.withValues(alpha: 0.6);
 
@@ -53,7 +58,7 @@ class DeleteNoteSheet extends StatelessWidget {
 
           // Titles
           Text(
-            'Delete this note?',
+            AppLocalizations.of(context)!.deleteThisNote,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -62,7 +67,7 @@ class DeleteNoteSheet extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'This note will be moved to trash.',
+            AppLocalizations.of(context)!.moveToTrash,
             style: TextStyle(
               fontSize: 14,
               color: subtitleColor,
@@ -89,8 +94,8 @@ class DeleteNoteSheet extends StatelessWidget {
                 Navigator.pop(context);
                 Navigator.pop(context);
               },
-              child: const Text(
-                'Delete',
+              child: Text(
+                AppLocalizations.of(context)!.delete,
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -114,7 +119,7 @@ class DeleteNoteSheet extends StatelessWidget {
               ),
               onPressed: () => Navigator.pop(context),
               child: Text(
-                'Cancel',
+                AppLocalizations.of(context)!.cancel,
                 style: TextStyle(
                     color: subtitleColor,
                     fontSize: 16,

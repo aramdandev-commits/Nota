@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nota/helper/app_theme.dart';
-import 'package:nota/helper/auth_validators.dart';
+import 'package:nota/l10n/app_localizations.dart';
 
 class ShareNoteSheet extends StatefulWidget {
   const ShareNoteSheet({super.key});
@@ -12,8 +12,17 @@ class ShareNoteSheet extends StatefulWidget {
 
 class _ShareNoteSheetState extends State<ShareNoteSheet> {
   final TextEditingController _emailController = TextEditingController();
-  String _permissionLevel = 'Can Edit';
   String? _emailError;
+
+  // Use a stable key, never the translated string
+  static const _canEditKey = 'can_edit';
+  static const _viewerKey = 'viewer';
+  String _permissionLevel = _canEditKey;
+
+  String _permissionLabel(BuildContext context, String key) {
+    final l10n = AppLocalizations.of(context)!;
+    return key == _canEditKey ? l10n.canEdit : l10n.viewer;
+  }
 
   @override
   void dispose() {
@@ -23,13 +32,14 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
 
   void _sendInvite() {
     final email = _emailController.text.trim();
-    final validationError = AuthValidators.validateEmail(email);
-
-    if (validationError != null) {
-      setState(() {
-        _emailError = validationError;
-      });
-      return;
+    if (email.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Invite sent to $email as ${_permissionLabel(context, _permissionLevel)}'),
+          backgroundColor: const Color(0xFF3D7AF9),
+        ),
+      );
     }
 
     // Clear error if valid
@@ -94,7 +104,7 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Share Note',
+                  AppLocalizations.of(context)!.shareNote,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -116,7 +126,7 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Share this note with your team',
+              AppLocalizations.of(context)!.shareThisNote,
               style: TextStyle(
                   color: cs.onSurface.withValues(alpha: 0.5), fontSize: 14),
             ),
@@ -142,13 +152,13 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
                         }
                       },
                       decoration: InputDecoration(
-                        hintText: 'Enter email address',
+                        hintText: AppLocalizations.of(context)!.enterEmail,
                         hintStyle: TextStyle(
                             color: cs.onSurface.withValues(alpha: 0.4),
                             fontSize: 14),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 15),
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 16),
                       ),
                     ),
                   ),
@@ -168,11 +178,10 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
                       icon: Icon(Icons.keyboard_arrow_down,
                           color: cs.onSurface.withValues(alpha: 0.5), size: 18),
                       style: TextStyle(color: cs.onSurface, fontSize: 14),
-                      items:
-                          <String>['Can Edit', 'Can View'].map((String value) {
+                      items: [_canEditKey, _viewerKey].map((String key) {
                         return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
+                          value: key,
+                          child: Text(_permissionLabel(context, key)),
                         );
                       }).toList(),
                       onChanged: (String? newValue) {
@@ -219,8 +228,8 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
                       borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: _sendInvite,
-                child: const Text(
-                  'Send Invite',
+                child: Text(
+                  AppLocalizations.of(context)!.sendInvite,
                   style: TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -242,8 +251,8 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
                 onPressed: _copyLink,
                 icon:
                     const Icon(Icons.copy, color: Color(0xFF3D7AF9), size: 18),
-                label: const Text(
-                  'Copy Link',
+                label: Text(
+                  AppLocalizations.of(context)!.copyLink,
                   style: TextStyle(
                       color: Color(0xFF3D7AF9),
                       fontSize: 16,

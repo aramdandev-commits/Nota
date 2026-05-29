@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nota/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/note_provider.dart';
 
@@ -17,11 +18,12 @@ class NotesScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF3377FF), size: 20),
+          icon: const Icon(Icons.arrow_back_ios_new,
+              color: Color(0xFF3377FF), size: 20),
           onPressed: () => context.pop(),
         ),
         title: Text(
-          'All Notes',
+          AppLocalizations.of(context)!.allNotes,
           style: TextStyle(
             color: cs.onSurface,
             fontSize: 18,
@@ -39,10 +41,11 @@ class NotesScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.description_outlined, size: 80, color: cs.onSurface.withValues(alpha: 0.15)),
+                  Icon(Icons.description_outlined,
+                      size: 80, color: cs.onSurface.withValues(alpha: 0.15)),
                   const SizedBox(height: 16),
                   Text(
-                    'No notes yet',
+                    AppLocalizations.of(context)!.noNotesFoundYet,
                     style: TextStyle(
                       color: cs.onSurface.withValues(alpha: 0.54),
                       fontSize: 18,
@@ -51,8 +54,10 @@ class NotesScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Tap the + button to create your first note',
-                    style: TextStyle(color: cs.onSurface.withValues(alpha: 0.38), fontSize: 14),
+                    AppLocalizations.of(context)!.noteCreationGuide,
+                    style: TextStyle(
+                        color: cs.onSurface.withValues(alpha: 0.38),
+                        fontSize: 14),
                   ),
                 ],
               ),
@@ -75,13 +80,16 @@ class NotesScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: cs.onSurface.withValues(alpha: 0.06)),
+                    border:
+                        Border.all(color: cs.onSurface.withValues(alpha: 0.06)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        note.title.isNotEmpty ? note.title : 'Untitled Note',
+                        note.title.isNotEmpty
+                            ? note.title
+                            : AppLocalizations.of(context)!.untitledNote,
                         style: TextStyle(
                           color: cs.onSurface,
                           fontSize: 18,
@@ -90,7 +98,9 @@ class NotesScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        previewText.isNotEmpty ? previewText : 'Empty Note',
+                        previewText.isNotEmpty
+                            ? previewText
+                            : AppLocalizations.of(context)!.emptyNote,
                         style: TextStyle(
                           color: cs.onSurface.withValues(alpha: 0.54),
                           fontSize: 14,
@@ -110,7 +120,9 @@ class NotesScreen extends StatelessWidget {
                               fontSize: 12,
                             ),
                           ),
-                          Icon(Icons.chevron_right, color: cs.onSurface.withValues(alpha: 0.25), size: 18),
+                          Icon(Icons.chevron_right,
+                              color: cs.onSurface.withValues(alpha: 0.25),
+                              size: 18),
                         ],
                       ),
                     ],
@@ -152,7 +164,11 @@ String getPreviewText(String content) {
   if (content.isEmpty) return "No content";
   try {
     final List<dynamic> ops = jsonDecode(content);
-    String text = ops.map((op) => op['insert']?.toString() ?? '').join('').replaceAll('\n', ' ').trim();
+    String text = ops
+        .map((op) => op['insert']?.toString() ?? '')
+        .join('')
+        .replaceAll('\n', ' ')
+        .trim();
     return text.length > 50 ? '${text.substring(0, 50)}...' : text;
   } catch (e) {
     return "Rich text note (Open to view)";

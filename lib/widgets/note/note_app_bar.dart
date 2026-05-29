@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nota/l10n/app_localizations.dart';
 import 'package:nota/widgets/note/ai_summary_generated_sheet.dart';
 import 'package:nota/widgets/note/note_options_sheet.dart';
 import 'package:nota/widgets/note/share_note_sheet.dart';
@@ -29,10 +30,11 @@ class NoteAppBar extends StatelessWidget implements PreferredSizeWidget {
               onTap: () => Navigator.pop(context),
               child: Row(
                 children: [
-                  const Icon(Icons.arrow_back_ios_new, color: Colors.blueAccent, size: 18),
+                  const Icon(Icons.arrow_back_ios_new,
+                      color: Colors.blueAccent, size: 18),
                   const SizedBox(width: 4),
-                  const Text(
-                    'Notes',
+                  Text(
+                    AppLocalizations.of(context)!.myNotes,
                     style: TextStyle(
                       color: Colors.blueAccent,
                       fontSize: 16,
@@ -72,7 +74,10 @@ class NoteAppBar extends StatelessWidget implements PreferredSizeWidget {
                           backgroundColor: Colors.pinkAccent,
                           child: const Text(
                             'ME',
-                            style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
@@ -83,7 +88,10 @@ class NoteAppBar extends StatelessWidget implements PreferredSizeWidget {
                           backgroundColor: Colors.lightBlue,
                           child: const Text(
                             'SK',
-                            style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
@@ -109,7 +117,8 @@ class NoteAppBar extends StatelessWidget implements PreferredSizeWidget {
                       color: Colors.purple.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.auto_awesome, color: Colors.purpleAccent, size: 20),
+                    child: const Icon(Icons.auto_awesome,
+                        color: Colors.purpleAccent, size: 20),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -131,7 +140,8 @@ class NoteAppBar extends StatelessWidget implements PreferredSizeWidget {
                       color: Colors.blue.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.share, color: Colors.blueAccent, size: 18),
+                    child: const Icon(Icons.share,
+                        color: Colors.blueAccent, size: 18),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -153,7 +163,8 @@ class NoteAppBar extends StatelessWidget implements PreferredSizeWidget {
                       color: cs.onSurface.withValues(alpha: 0.07),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.more_horiz, color: cs.onSurface.withValues(alpha: 0.7), size: 20),
+                    child: Icon(Icons.more_horiz,
+                        color: cs.onSurface.withValues(alpha: 0.7), size: 20),
                   ),
                 ),
               ],

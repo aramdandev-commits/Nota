@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nota/l10n/app_localizations.dart';
 
 class AuthTabToggle extends StatelessWidget {
   final bool isLogin;
@@ -25,8 +26,14 @@ class AuthTabToggle extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _AuthTab(label: 'Log In', isActive: isLogin, onTap: onLoginTap),
-          _AuthTab(label: 'Sign Up', isActive: !isLogin, onTap: onSignUpTap),
+          _AuthTab(
+              label: AppLocalizations.of(context)!.logIn,
+              isActive: isLogin,
+              onTap: onLoginTap),
+          _AuthTab(
+              label: AppLocalizations.of(context)!.signUp,
+              isActive: !isLogin,
+              onTap: onSignUpTap),
         ],
       ),
     );
@@ -79,7 +86,8 @@ class _AuthTab extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              color: isActive ? Colors.white : cs.onSurface.withValues(alpha: 0.5),
+              color:
+                  isActive ? Colors.white : cs.onSurface.withValues(alpha: 0.5),
               fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
               fontSize: 14,
             ),

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:nota/l10n/app_localizations.dart';
 
 class ImportPdfBody extends StatefulWidget {
   const ImportPdfBody({super.key});
@@ -167,8 +168,8 @@ class _PickerView extends StatelessWidget {
                     ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Tap to select a PDF file',
+            Text(
+              AppLocalizations.of(context)!.tapToSelectPdf,
               style: TextStyle(
                 color: Color(0xFFF0F0F8),
                 fontSize: 15,
@@ -177,8 +178,8 @@ class _PickerView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 6),
-            const Text(
-              'PDF files only · Max 50MB',
+            Text(
+              AppLocalizations.of(context)!.pdfFileDescription,
               style: TextStyle(
                 color: Color(0xFF6A7282),
                 fontSize: 13,
@@ -200,14 +201,14 @@ class _PickerView extends StatelessWidget {
                   ),
                   borderRadius: BorderRadius.circular(30),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.folder_open_rounded,
                         color: Colors.white, size: 18),
                     SizedBox(width: 8),
                     Text(
-                      'Browse Files',
+                      AppLocalizations.of(context)!.browseFiles,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 14,
@@ -327,8 +328,8 @@ class _ProcessingView extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Processing PDF',
+            Text(
+              AppLocalizations.of(context)!.processingPdf,
               style: TextStyle(
                 color: Color(0xFFF0F0F8),
                 fontSize: 13,
@@ -356,17 +357,17 @@ class _ProcessingView extends StatelessWidget {
 
         // ── Step list ──────────────────────────────────────────────────────
         _StepRow(
-          label: 'Analyzing pages...',
+          label: AppLocalizations.of(context)!.analyzingPages,
           state: _stateFor(_StepSlot.analyzing),
         ),
         const SizedBox(height: 8),
         _StepRow(
-          label: 'Recognizing text...',
+          label: AppLocalizations.of(context)!.recognizingText,
           state: _stateFor(_StepSlot.recognizing),
         ),
         const SizedBox(height: 8),
         _StepRow(
-          label: 'Formatting content...',
+          label: AppLocalizations.of(context)!.formattingContent,
           state: _stateFor(_StepSlot.formatting),
         ),
 
@@ -374,8 +375,8 @@ class _ProcessingView extends StatelessWidget {
         if (isDone) ...[
           const SizedBox(height: 8),
           _StepRow(
-            label: 'Conversion Complete',
-            sublabel: '6 pages processed',
+            label: AppLocalizations.of(context)!.conversionComplete,
+            sublabel: AppLocalizations.of(context)!.processedPages,
             state: _StepState.done,
             highlight: true,
           ),

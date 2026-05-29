@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nota/l10n/app_localizations.dart';
 import '../../model/note_model.dart';
 
 /// Dropdown for selecting a saved note to analyze.
@@ -16,9 +17,10 @@ class AiNoteSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs     = Theme.of(context).colorScheme;
+    final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF1A1A2E) : Theme.of(context).cardColor;
+    final bgColor =
+        isDark ? const Color(0xFF1A1A2E) : Theme.of(context).cardColor;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -32,13 +34,15 @@ class AiNoteSelector extends StatelessWidget {
           value: selected,
           isExpanded: true,
           dropdownColor: bgColor,
-          icon: Icon(Icons.keyboard_arrow_down_rounded, color: cs.onSurface.withValues(alpha: 0.5)),
+          icon: Icon(Icons.keyboard_arrow_down_rounded,
+              color: cs.onSurface.withValues(alpha: 0.5)),
           hint: Row(
             children: [
-              Icon(Icons.description_outlined, color: cs.onSurface.withValues(alpha: 0.3), size: 18),
+              Icon(Icons.description_outlined,
+                  color: cs.onSurface.withValues(alpha: 0.3), size: 18),
               const SizedBox(width: 10),
               Text(
-                'Select a note to analyze',
+                AppLocalizations.of(context)!.selectNote,
                 style: TextStyle(
                   color: cs.onSurface.withValues(alpha: 0.3),
                   fontSize: 14,

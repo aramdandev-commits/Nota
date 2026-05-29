@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nota/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/ai_analyze_provider.dart';
 import '../../controllers/note_provider.dart';
@@ -161,7 +162,7 @@ class _AiHeader extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'AI Analyzer',
+              AppLocalizations.of(context)!.aiAnalyzer,
               style: TextStyle(
                 color: cs.onSurface,
                 fontSize: 18,
@@ -170,7 +171,7 @@ class _AiHeader extends StatelessWidget {
               ),
             ),
             Text(
-              'Summarize & extract insights',
+              AppLocalizations.of(context)!.aiAnalyzerDescription,
               style: TextStyle(
                 color: cs.onSurface.withValues(alpha: 0.5),
                 fontSize: 12,

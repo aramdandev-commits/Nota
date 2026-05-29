@@ -129,7 +129,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.setBool("onboardingSeen", true);
                 if (!context.mounted) return;
-                context.go("/auth");
+                context.go("/home");
               },
             ),
             SizedBox(height: 10),

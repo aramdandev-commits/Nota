@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nota/helper/app_theme.dart';
+import 'package:nota/l10n/app_localizations.dart';
 
 class ShareNoteSheet extends StatefulWidget {
   const ShareNoteSheet({super.key});
@@ -11,7 +12,16 @@ class ShareNoteSheet extends StatefulWidget {
 
 class _ShareNoteSheetState extends State<ShareNoteSheet> {
   final TextEditingController _emailController = TextEditingController();
-  String _permissionLevel = 'Can Edit';
+
+  // Use a stable key, never the translated string
+  static const _canEditKey = 'can_edit';
+  static const _viewerKey = 'viewer';
+  String _permissionLevel = _canEditKey;
+
+  String _permissionLabel(BuildContext context, String key) {
+    final l10n = AppLocalizations.of(context)!;
+    return key == _canEditKey ? l10n.canEdit : l10n.viewer;
+  }
 
   @override
   void dispose() {
@@ -24,7 +34,8 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
     if (email.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Invite sent to $email as $_permissionLevel'),
+          content: Text(
+              'Invite sent to $email as ${_permissionLabel(context, _permissionLevel)}'),
           backgroundColor: const Color(0xFF3D7AF9),
         ),
       );
@@ -33,7 +44,8 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
   }
 
   void _copyLink() async {
-    await Clipboard.setData(const ClipboardData(text: "https://nota.app/share/dummy-link-123"));
+    await Clipboard.setData(
+        const ClipboardData(text: "https://nota.app/share/dummy-link-123"));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -47,12 +59,13 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final cs      = Theme.of(context).colorScheme;
+    final cs = Theme.of(context).colorScheme;
     final sheetBg = AppTheme.sheetColor(context);
-    final itemBg  = AppTheme.itemColor(context);
+    final itemBg = AppTheme.itemColor(context);
 
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         padding: const EdgeInsets.all(20.0),
         decoration: BoxDecoration(
@@ -78,7 +91,7 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Share Note',
+                  AppLocalizations.of(context)!.shareNote,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -90,16 +103,19 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
                     padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(color: itemBg, shape: BoxShape.circle),
-                    child: Icon(Icons.close, color: cs.onSurface.withValues(alpha: 0.5), size: 18),
+                    decoration:
+                        BoxDecoration(color: itemBg, shape: BoxShape.circle),
+                    child: Icon(Icons.close,
+                        color: cs.onSurface.withValues(alpha: 0.5), size: 18),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
             Text(
-              'Share this note with your team',
-              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5), fontSize: 14),
+              AppLocalizations.of(context)!.shareThisNote,
+              style: TextStyle(
+                  color: cs.onSurface.withValues(alpha: 0.5), fontSize: 14),
             ),
             const SizedBox(height: 20),
             Row(
@@ -115,10 +131,13 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
                       controller: _emailController,
                       style: TextStyle(color: cs.onSurface),
                       decoration: InputDecoration(
-                        hintText: 'Enter email address',
-                        hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.4), fontSize: 14),
+                        hintText: AppLocalizations.of(context)!.enterEmail,
+                        hintStyle: TextStyle(
+                            color: cs.onSurface.withValues(alpha: 0.4),
+                            fontSize: 14),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 16),
                       ),
                     ),
                   ),
@@ -135,12 +154,13 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
                     child: DropdownButton<String>(
                       value: _permissionLevel,
                       dropdownColor: itemBg,
-                      icon: Icon(Icons.keyboard_arrow_down, color: cs.onSurface.withValues(alpha: 0.5), size: 18),
+                      icon: Icon(Icons.keyboard_arrow_down,
+                          color: cs.onSurface.withValues(alpha: 0.5), size: 18),
                       style: TextStyle(color: cs.onSurface, fontSize: 14),
-                      items: <String>['Can Edit', 'Can View'].map((String value) {
+                      items: [_canEditKey, _viewerKey].map((String key) {
                         return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
+                          value: key,
+                          child: Text(_permissionLabel(context, key)),
                         );
                       }).toList(),
                       onChanged: (String? newValue) {
@@ -169,12 +189,16 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: _sendInvite,
-                child: const Text(
-                  'Send Invite',
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                child: Text(
+                  AppLocalizations.of(context)!.sendInvite,
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -185,14 +209,19 @@ class _ShareNoteSheetState extends State<ShareNoteSheet> {
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: itemBg,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                   elevation: 0,
                 ),
                 onPressed: _copyLink,
-                icon: const Icon(Icons.copy, color: Color(0xFF3D7AF9), size: 18),
-                label: const Text(
-                  'Copy Link',
-                  style: TextStyle(color: Color(0xFF3D7AF9), fontSize: 16, fontWeight: FontWeight.bold),
+                icon:
+                    const Icon(Icons.copy, color: Color(0xFF3D7AF9), size: 18),
+                label: Text(
+                  AppLocalizations.of(context)!.copyLink,
+                  style: TextStyle(
+                      color: Color(0xFF3D7AF9),
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
             ),

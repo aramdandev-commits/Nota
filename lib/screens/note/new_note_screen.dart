@@ -3,8 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 import 'package:intl/intl.dart';
+import 'package:nota/l10n/app_localizations.dart';
+import 'package:nota/l10n/app_localizations_ar.dart';
 import 'package:provider/provider.dart';
-
 import '../../widgets/note/note_app_bar.dart';
 import '../../widgets/note/rich_text_toolbar.dart';
 import '../../controllers/note_provider.dart';
@@ -97,7 +98,7 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
       if (mounted) {
         final title = _titleController.text.isEmpty
-            ? 'Untitled Note'
+            ? AppLocalizations.of(context)!.untitledNote
             : _titleController.text;
         final contentJson =
             jsonEncode(_quillController.document.toDelta().toJson());
@@ -111,7 +112,7 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
 
         context.read<NoteProvider>().saveNote(updatedNote);
 
-        _saveStateNotifier.value = 'Saved';
+        _saveStateNotifier.value = AppLocalizations.of(context)!.saved;
       }
     });
   }
@@ -144,9 +145,12 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
                   fontWeight: FontWeight.bold,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Untitled Note',
+                  hintText: AppLocalizations.of(context)!.untitledNote,
                   hintStyle: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.25),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.25),
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                   ),
@@ -161,14 +165,20 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
                 children: [
                   Icon(
                     Icons.access_time,
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.38),
                     size: 16,
                   ),
                   const SizedBox(width: 6),
                   Text(
                     DateFormat('MMM dd, yyyy  hh:mm a').format(_createdAt),
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.38),
                       fontSize: 14,
                     ),
                   ),
@@ -178,7 +188,10 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
               Expanded(
                 child: DefaultTextStyle(
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.85),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.85),
                     fontSize: 16,
                     height: 1.5,
                   ),

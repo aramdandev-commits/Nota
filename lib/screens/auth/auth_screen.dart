@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nota/l10n/app_localizations.dart';
 import 'resetpassword_screen.dart';
 import '../../widgets/auth/auth_button.dart';
 import '../../widgets/auth/auth_divider.dart';
@@ -85,7 +86,7 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
@@ -105,31 +106,34 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
                 const SizedBox(height: 28),
                 if (!_isLogin) ...[
-                  _sectionLabel('Full Name', cs),
+                  _sectionLabel(AppLocalizations.of(context)!.name, cs),
                   const SizedBox(height: 8),
                   AuthTextField(
                     controller: _nameController,
                     hintText: 'John Doe',
-                    validator: AuthValidators.validateName,
+                    validator: (value) =>
+                        AuthValidators.validateName(context, value),
                   ),
                   const SizedBox(height: 18),
                 ],
-                _sectionLabel('Email', cs),
+                _sectionLabel(AppLocalizations.of(context)!.email, cs),
                 const SizedBox(height: 8),
                 AuthTextField(
                   controller: _emailController,
                   hintText: 'your@email.com',
                   keyboardType: TextInputType.emailAddress,
-                  validator: AuthValidators.validateEmail,
+                  validator: (value) =>
+                      AuthValidators.validateEmail(context, value),
                 ),
                 const SizedBox(height: 18),
-                _sectionLabel('Password', cs),
+                _sectionLabel(AppLocalizations.of(context)!.password, cs),
                 const SizedBox(height: 8),
                 AuthTextField(
                   controller: _passwordController,
                   hintText: '••••••••',
                   obscureText: _obscurePassword,
-                  validator: AuthValidators.validatePassword,
+                  validator: (value) =>
+                      AuthValidators.validatePassword(context, value),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword
@@ -162,9 +166,9 @@ class _AuthScreenState extends State<AuthScreen> {
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      child: const Text(
-                        'Forgot Password?',
-                        style: TextStyle(
+                      child: Text(
+                        AppLocalizations.of(context)!.forgotPassword,
+                        style: const TextStyle(
                           color: Color(0xFF9810FA),
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -175,7 +179,8 @@ class _AuthScreenState extends State<AuthScreen> {
                 ],
                 if (!_isLogin) ...[
                   const SizedBox(height: 18),
-                  _sectionLabel('Confirm Password', cs),
+                  _sectionLabel(
+                      AppLocalizations.of(context)!.confirmNewPassword, cs),
                   const SizedBox(height: 8),
                   AuthTextField(
                     controller: _confirmPasswordController,
@@ -183,6 +188,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     obscureText: _obscureConfirmPassword,
                     validator: (value) =>
                         AuthValidators.validateConfirmPassword(
+                      context,
                       value,
                       _passwordController.text,
                     ),
@@ -204,15 +210,18 @@ class _AuthScreenState extends State<AuthScreen> {
                 ],
                 const SizedBox(height: 28),
                 AuthButton(
-                  label: _isLogin ? 'Log In' : 'Create Account',
+                  label: _isLogin
+                      ? AppLocalizations.of(context)!.logIn
+                      : AppLocalizations.of(context)!.createAccount,
                   onTap: _submit,
                 ),
                 const SizedBox(height: 22),
                 AuthFooter(isLogin: _isLogin, onActionTap: _toggleMode),
                 const SizedBox(height: 24),
                 AuthDivider(
-                  text: _isLogin ? 'OR LOGIN WITH' : 'OR SIGN UP WITH',
-                ),
+                    text: _isLogin
+                        ? AppLocalizations.of(context)!.orContinueWith
+                        : AppLocalizations.of(context)!.orContinueWith),
                 const SizedBox(height: 20),
                 const SocialButtonsRow(),
               ],

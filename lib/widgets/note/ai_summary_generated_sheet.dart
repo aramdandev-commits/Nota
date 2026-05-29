@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+import 'package:nota/l10n/app_localizations.dart';
 
 enum SummaryState { initial, loading, generated, editing }
 
 class AiSummaryGeneratedSheet extends StatefulWidget {
-
   final Function(String)? onInsert;
 
   const AiSummaryGeneratedSheet({super.key, this.onInsert});
 
   @override
-  State<AiSummaryGeneratedSheet> createState() => _AiSummaryGeneratedSheetState();
+  State<AiSummaryGeneratedSheet> createState() =>
+      _AiSummaryGeneratedSheetState();
 }
 
 class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
@@ -23,7 +23,6 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
     _summaryController.dispose();
     super.dispose();
   }
-
 
   Future<void> _generateSummaryFromAI() async {
     setState(() {
@@ -39,7 +38,8 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
       await Future.delayed(const Duration(seconds: 2));
 
       // النتيجة الوهمية (استبدلها بـ response الموديل)
-      final generatedText = "This note discusses the key aspects of the NOTA project — an AI-powered note-taking platform designed for bilingual users.\n\n**Main Points:**\n• AI summarization and real-time collaboration\n• Full RTL support for Arabic language\n• Modern dark theme with clean mobile UX\n• Cross-platform: MacBook, iOS, and Android";
+      final generatedText =
+          "This note discusses the key aspects of the NOTA project — an AI-powered note-taking platform designed for bilingual users.\n\n**Main Points:**\n• AI summarization and real-time collaboration\n• Full RTL support for Arabic language\n• Modern dark theme with clean mobile UX\n• Cross-platform: MacBook, iOS, and Android";
 
       if (mounted) {
         setState(() {
@@ -82,14 +82,17 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final Color sheetColor = isDark ? const Color(0xFF1E1E2A) : Theme.of(context).scaffoldBackgroundColor;
+    final Color sheetColor = isDark
+        ? const Color(0xFF1E1E2A)
+        : Theme.of(context).scaffoldBackgroundColor;
     final Color textColor = cs.onSurface;
     final Color subtitleColor = cs.onSurface.withValues(alpha: 0.6);
     const Color buttonColorStart = Color(0xFFE520A4);
     const Color buttonColorEnd = Color(0xFF7A36DC);
-    final Color closeButtonColor = isDark ? const Color(0xFF2A2A38) : Theme.of(context).cardColor;
-    final Color summaryBoxColor = isDark ? const Color(0xFF242038) : cs.primary.withValues(alpha: 0.05);
-
+    final Color closeButtonColor =
+        isDark ? const Color(0xFF2A2A38) : Theme.of(context).cardColor;
+    final Color summaryBoxColor =
+        isDark ? const Color(0xFF242038) : cs.primary.withValues(alpha: 0.05);
 
     return Padding(
       padding: EdgeInsets.only(
@@ -137,19 +140,23 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
                           end: Alignment.bottomRight,
                         ),
                       ),
-                      child: const Icon(Icons.auto_awesome, color: Colors.white, size: 20),
+                      child: const Icon(Icons.auto_awesome,
+                          color: Colors.white, size: 20),
                     ),
                     const SizedBox(width: 12),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'AI Summary',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
+                          AppLocalizations.of(context)!.aiSummary,
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: textColor),
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'AI-generated summary of your note',
+                          AppLocalizations.of(context)!.aiCard,
                           style: TextStyle(fontSize: 13, color: subtitleColor),
                         ),
                       ],
@@ -161,14 +168,14 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
                     padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(color: closeButtonColor, shape: BoxShape.circle),
+                    decoration: BoxDecoration(
+                        color: closeButtonColor, shape: BoxShape.circle),
                     child: Icon(Icons.close, color: subtitleColor, size: 20),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 24),
-
 
             Expanded(
               child: _buildBody(context, summaryBoxColor, closeButtonColor),
@@ -179,10 +186,11 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
     );
   }
 
-  Widget _buildBody(BuildContext context, Color summaryBoxColor, Color secondaryBtnColor) {
+  Widget _buildBody(
+      BuildContext context, Color summaryBoxColor, Color secondaryBtnColor) {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     switch (_currentState) {
       case SummaryState.loading:
         return const Center(
@@ -202,26 +210,30 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
                 decoration: BoxDecoration(
                   color: summaryBoxColor,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFF7A36DC).withValues(alpha: 0.3)),
+                  border: Border.all(
+                      color: const Color(0xFF7A36DC).withValues(alpha: 0.3)),
                 ),
                 child: isEditing
                     ? TextField(
-                  controller: _summaryController,
-                  style: TextStyle(color: cs.onSurface, fontSize: 14, height: 1.5),
-                  maxLines: null,
-                  expands: true,
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'Edit your summary...',
-                    hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.5)),
-                  ),
-                )
+                        controller: _summaryController,
+                        style: TextStyle(
+                            color: cs.onSurface, fontSize: 14, height: 1.5),
+                        maxLines: null,
+                        expands: true,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Edit your summary...',
+                          hintStyle: TextStyle(
+                              color: cs.onSurface.withValues(alpha: 0.5)),
+                        ),
+                      )
                     : SingleChildScrollView(
-                  child: Text(
-                    _summaryController.text,
-                    style: TextStyle(color: cs.onSurface, fontSize: 14, height: 1.5),
-                  ),
-                ),
+                        child: Text(
+                          _summaryController.text,
+                          style: TextStyle(
+                              color: cs.onSurface, fontSize: 14, height: 1.5),
+                        ),
+                      ),
               ),
             ),
             const SizedBox(height: 16),
@@ -244,11 +256,16 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
                         shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
                       onPressed: _insertSummary,
-                      icon: const Icon(Icons.add, color: Colors.white, size: 18),
-                      label: const Text('Insert', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      icon:
+                          const Icon(Icons.add, color: Colors.white, size: 18),
+                      label: const Text('Insert',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ),
@@ -262,16 +279,23 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: secondaryBtnColor,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                         elevation: 0,
                       ),
                       onPressed: () {
                         setState(() {
-                          _currentState = isEditing ? SummaryState.generated : SummaryState.editing;
+                          _currentState = isEditing
+                              ? SummaryState.generated
+                              : SummaryState.editing;
                         });
                       },
-                      icon: Icon(isEditing ? Icons.check : Icons.edit_outlined, color: cs.onSurface, size: 18),
-                      label: Text(isEditing ? 'Save' : 'Edit', style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold)),
+                      icon: Icon(isEditing ? Icons.check : Icons.edit_outlined,
+                          color: cs.onSurface, size: 18),
+                      label: Text(isEditing ? 'Save' : 'Edit',
+                          style: TextStyle(
+                              color: cs.onSurface,
+                              fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ),
@@ -287,7 +311,8 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
                   ),
                   child: IconButton(
                     onPressed: _copyToClipboard,
-                    icon: Icon(Icons.copy_rounded, color: cs.onSurface.withValues(alpha: 0.5), size: 20),
+                    icon: Icon(Icons.copy_rounded,
+                        color: cs.onSurface.withValues(alpha: 0.5), size: 20),
                   ),
                 ),
               ],
@@ -297,7 +322,7 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
         );
 
       case SummaryState.initial:
-      return Column(
+        return Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             Container(
@@ -315,13 +340,18 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: _generateSummaryFromAI,
-                icon: const Icon(Icons.auto_awesome, color: Colors.white, size: 20),
-                label: const Text(
-                  'Generate Summary',
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                icon: const Icon(Icons.auto_awesome,
+                    color: Colors.white, size: 20),
+                label: Text(
+                  AppLocalizations.of(context)!.generateSummary,
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
             ),

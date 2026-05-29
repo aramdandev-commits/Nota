@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:nota/l10n/app_localizations.dart';
 
 class HomeHeader extends StatelessWidget {
   const HomeHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final cs      = Theme.of(context).colorScheme;
-    final isDark  = Theme.of(context).brightness == Brightness.dark;
-    final syncBg  = isDark ? const Color(0xFF0F2922) : const Color(0xFFE8F8F1);
+    final cs = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final syncBg = isDark ? const Color(0xFF0F2922) : const Color(0xFFE8F8F1);
     final syncColor = const Color(0xFF00B074);
-    final notifBg  = isDark ? const Color(0xFF1E2029) : const Color(0xFFEEEEF5);
+    final notifBg = isDark ? const Color(0xFF1E2029) : const Color(0xFFEEEEF5);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -19,7 +20,7 @@ class HomeHeader extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Good afternoon',
+              AppLocalizations.of(context)!.goodAfternoon,
               style: TextStyle(
                 color: cs.onSurface.withValues(alpha: 0.5),
                 fontSize: 14,
@@ -28,10 +29,10 @@ class HomeHeader extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Welcome\nback 👋',
+              AppLocalizations.of(context)!.welecomeBack,
               style: TextStyle(
                 color: cs.onSurface,
-                fontSize: 28,
+                fontSize: 23,
                 fontWeight: FontWeight.bold,
                 height: 1.2,
               ),
@@ -51,10 +52,10 @@ class HomeHeader extends StatelessWidget {
                   Icon(Icons.cloud_done_outlined, color: syncColor, size: 16),
                   const SizedBox(width: 8),
                   Text(
-                    'All changes\nsynced',
+                    AppLocalizations.of(context)!.allChangesSynced,
                     style: TextStyle(
                       color: syncColor,
-                      fontSize: 10,
+                      fontSize: 8,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -68,13 +69,15 @@ class HomeHeader extends StatelessWidget {
                   context: context,
                   builder: (context) => AlertDialog(
                     backgroundColor: Theme.of(context).cardColor,
-                    title: Text('Notifications', style: TextStyle(color: cs.onSurface)),
+                    title: Text(AppLocalizations.of(context)!.notifications,
+                        style: TextStyle(color: cs.onSurface)),
                     content: Row(
                       children: [
-                        Icon(Icons.cloud_done_outlined, color: syncColor, size: 24),
+                        Icon(Icons.cloud_done_outlined,
+                            color: syncColor, size: 24),
                         const SizedBox(width: 12),
                         Text(
-                          'All changes synced',
+                          AppLocalizations.of(context)!.allChangesSyncedPop,
                           style: TextStyle(color: cs.onSurface),
                         ),
                       ],
@@ -82,7 +85,7 @@ class HomeHeader extends StatelessWidget {
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: const Text('Close'),
+                        child: Text(AppLocalizations.of(context)!.close),
                       ),
                     ],
                   ),
@@ -96,7 +99,8 @@ class HomeHeader extends StatelessWidget {
                 ),
                 child: Stack(
                   children: [
-                    Icon(Icons.notifications_none, color: cs.onSurface.withValues(alpha: 0.5), size: 24),
+                    Icon(Icons.notifications_none,
+                        color: cs.onSurface.withValues(alpha: 0.5), size: 24),
                     Positioned(
                       right: 0,
                       top: 0,

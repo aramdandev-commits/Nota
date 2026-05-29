@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nota/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/space_details_provider.dart';
 import '../../controllers/spaces_provider.dart';
@@ -13,7 +14,7 @@ import '../../widgets/spa/space_action_button.dart';
 
 class SpaceDetailsScreen extends StatefulWidget {
   final SpaceModel space;
-  const SpaceDetailsScreen({Key? key, required this.space}) : super(key: key);
+  const SpaceDetailsScreen({super.key, required this.space});
 
   @override
   State<SpaceDetailsScreen> createState() => _SpaceDetailsScreenState();
@@ -97,7 +98,8 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
                                 fontWeight: FontWeight.bold)),
                         Text(space.description,
                             style: TextStyle(
-                                color: cs.onSurface.withValues(alpha: 0.5), fontSize: 12),
+                                color: cs.onSurface.withValues(alpha: 0.5),
+                                fontSize: 12),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis),
                       ],
@@ -129,7 +131,8 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
                       Consumer<SpaceDetailsProvider>(
                         builder: (_, p, __) => Text('${p.notes.length} notes',
                             style: TextStyle(
-                                color: cs.onSurface.withValues(alpha: 0.4), fontSize: 12)),
+                                color: cs.onSurface.withValues(alpha: 0.4),
+                                fontSize: 12)),
                       ),
                     ],
                   ),
@@ -140,9 +143,11 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
                           color: cs.onSurface.withValues(alpha: 0.4), size: 14),
                       const SizedBox(width: 4),
                       Consumer<SpaceDetailsProvider>(
-                        builder: (_, p, __) => Text('${p.members.length} members',
+                        builder: (_, p, __) => Text(
+                            '${p.members.length} members',
                             style: TextStyle(
-                                color: cs.onSurface.withValues(alpha: 0.4), fontSize: 12)),
+                                color: cs.onSurface.withValues(alpha: 0.4),
+                                fontSize: 12)),
                       ),
                     ],
                   ),
@@ -159,10 +164,11 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
                       const SizedBox(width: 4),
                       Text(
                           space.privacy == SpacePrivacy.private
-                              ? 'Private'
-                              : 'Public',
+                              ? AppLocalizations.of(context)!.private
+                              : AppLocalizations.of(context)!.public,
                           style: TextStyle(
-                              color: cs.onSurface.withValues(alpha: 0.4), fontSize: 12)),
+                              color: cs.onSurface.withValues(alpha: 0.4),
+                              fontSize: 12)),
                     ],
                   ),
                 ],
@@ -176,13 +182,15 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
                 child: Row(
                   children: [
                     _TabButton(
-                        label: 'Notes (${provider.notes.length})',
+                        label:
+                            '${AppLocalizations.of(context)!.myNotes} (${provider.notes.length})',
                         icon: Icons.description_outlined,
                         isSelected: provider.activeTab == 'notes',
                         onTap: () => provider.setActiveTab('notes')),
                     const SizedBox(width: 12),
                     _TabButton(
-                        label: 'Members (${provider.members.length})',
+                        label:
+                            '${AppLocalizations.of(context)!.members} (${provider.members.length})',
                         icon: Icons.people_outline,
                         isSelected: provider.activeTab == 'members',
                         onTap: () => provider.setActiveTab('members')),
@@ -204,23 +212,29 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
                         child: Container(
                           height: 40,
                           decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF151821) : Theme.of(context).cardColor,
+                              color: isDark
+                                  ? const Color(0xFF151821)
+                                  : Theme.of(context).cardColor,
                               borderRadius: BorderRadius.circular(12),
-                              border: isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.1))),
+                              border: isDark
+                                  ? null
+                                  : Border.all(
+                                      color:
+                                          cs.onSurface.withValues(alpha: 0.1))),
                           child: TextField(
                             onChanged: isMembersTab
                                 ? provider.searchMembers
                                 : provider.searchNotes,
-                            style: TextStyle(
-                                color: cs.onSurface, fontSize: 14),
+                            style: TextStyle(color: cs.onSurface, fontSize: 14),
                             decoration: InputDecoration(
                               hintText: isMembersTab
-                                  ? 'Search members...'
-                                  : 'Search notes...',
-                              hintStyle:
-                                  TextStyle(color: cs.onSurface.withValues(alpha: 0.4)),
+                                  ? AppLocalizations.of(context)!.searchMembers
+                                  : AppLocalizations.of(context)!.searchNotes,
+                              hintStyle: TextStyle(
+                                  color: cs.onSurface.withValues(alpha: 0.4)),
                               prefixIcon: Icon(Icons.search,
-                                  color: cs.onSurface.withValues(alpha: 0.4), size: 18),
+                                  color: cs.onSurface.withValues(alpha: 0.4),
+                                  size: 18),
                               border: InputBorder.none,
                               contentPadding:
                                   const EdgeInsets.symmetric(vertical: 10),
@@ -248,7 +262,10 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
                                   color: Colors.white,
                                   size: 16),
                               const SizedBox(width: 4),
-                              Text(isMembersTab ? 'Invite' : '+ Add Note',
+                              Text(
+                                  isMembersTab
+                                      ? AppLocalizations.of(context)!.invite
+                                      : AppLocalizations.of(context)!.addNote,
                                   style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 13,
@@ -300,8 +317,8 @@ class _NotesTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final notes = provider.filteredNotes;
     if (notes.isEmpty) {
-      return const Center(
-          child: Text('No notes found.',
+      return Center(
+          child: Text(AppLocalizations.of(context)!.noNotesFound,
               style: TextStyle(color: Color(0xFF6B7280))));
     }
     return ListView.separated(
@@ -328,8 +345,8 @@ class _MembersTab extends StatelessWidget {
     }
     final members = provider.filteredMembers;
     if (members.isEmpty) {
-      return const Center(
-          child: Text('No members found.',
+      return Center(
+          child: Text(AppLocalizations.of(context)!.noMembersFound,
               style: TextStyle(color: Color(0xFF6B7280))));
     }
     return ListView.builder(
@@ -350,9 +367,9 @@ class _NoteCard extends StatelessWidget {
   String _timeLabel(DateTime dt, {bool isEdited = false}) {
     final diff = DateTime.now().difference(dt);
     String timeStr = '';
-    if (diff.inDays == 0)
+    if (diff.inDays == 0) {
       timeStr = 'Today';
-    else if (diff.inDays == 1)
+    } else if (diff.inDays == 1)
       timeStr = 'Yesterday';
     else {
       const m = [
@@ -388,13 +405,20 @@ class _NoteCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
-        onTap: () => Navigator.push(context,
-            MaterialPageRoute(builder: (_) => SpaceNoteViewScreen(noteId: note.id.isNotEmpty ? note.id : '10'))),
+        onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => SpaceNoteViewScreen(
+                    noteId: note.id.isNotEmpty ? note.id : '10'))),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF151821) : Theme.of(context).cardColor,
-              border: isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
+              color: isDark
+                  ? const Color(0xFF151821)
+                  : Theme.of(context).cardColor,
+              border: isDark
+                  ? null
+                  : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
               borderRadius: BorderRadius.circular(16)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -421,13 +445,14 @@ class _NoteCard extends StatelessWidget {
                   GestureDetector(
                       onTap: () => _showOptions(context),
                       child: Icon(Icons.more_vert,
-                          color: cs.onSurface.withValues(alpha: 0.4), size: 20)),
+                          color: cs.onSurface.withValues(alpha: 0.4),
+                          size: 20)),
                 ],
               ),
               const SizedBox(height: 6),
               Text(note.content,
-                  style:
-                      TextStyle(color: cs.onSurface.withValues(alpha: 0.5), fontSize: 13),
+                  style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.5), fontSize: 13),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis),
               const SizedBox(height: 10),
@@ -439,7 +464,8 @@ class _NoteCard extends StatelessWidget {
                     _timeLabel(note.updatedAt ?? note.createdAt,
                         isEdited: note.updatedAt != null),
                     style: TextStyle(
-                        color: cs.onSurface.withValues(alpha: 0.4), fontSize: 11)),
+                        color: cs.onSurface.withValues(alpha: 0.4),
+                        fontSize: 11)),
                 const SizedBox(width: 10),
                 Expanded(
                     child: Wrap(
@@ -462,14 +488,17 @@ class _TagChip extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF202430) : Theme.of(context).cardColor,
-            border: isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
-            borderRadius: BorderRadius.circular(6)),
-        child: Text(tag,
-            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5), fontSize: 10)),
-      );
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF202430) : Theme.of(context).cardColor,
+          border: isDark
+              ? null
+              : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
+          borderRadius: BorderRadius.circular(6)),
+      child: Text(tag,
+          style: TextStyle(
+              color: cs.onSurface.withValues(alpha: 0.5), fontSize: 10)),
+    );
   }
 }
 
@@ -514,7 +543,9 @@ class _CreateNoteSheetState extends State<_CreateNoteSheet> {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF151821) : Theme.of(context).scaffoldBackgroundColor,
+        color: isDark
+            ? const Color(0xFF151821)
+            : Theme.of(context).scaffoldBackgroundColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: EdgeInsets.fromLTRB(20, 12, 20, 24 + bottom),
@@ -524,7 +555,10 @@ class _CreateNoteSheetState extends State<_CreateNoteSheet> {
         children: [
           _Handle(),
           const SizedBox(height: 20),
-          Text(widget.note == null ? 'Create Note' : 'Edit Note',
+          Text(
+              widget.note == null
+                  ? AppLocalizations.of(context)!.createNote
+                  : AppLocalizations.of(context)!.editNote,
               style: TextStyle(
                   color: cs.onSurface,
                   fontSize: 20,
@@ -532,19 +566,22 @@ class _CreateNoteSheetState extends State<_CreateNoteSheet> {
           const SizedBox(height: 4),
           Text(
               widget.note == null
-                  ? 'Give your note a name to get started'
-                  : 'Update the details of your note',
-              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5), fontSize: 13)),
+                  ? AppLocalizations.of(context)!.createNoteDescription
+                  : AppLocalizations.of(context)!.updateYourDetail,
+              style: TextStyle(
+                  color: cs.onSurface.withValues(alpha: 0.5), fontSize: 13)),
           const SizedBox(height: 20),
-          Text('Note Name',
+          Text(AppLocalizations.of(context)!.noteName,
               style: TextStyle(
                   color: cs.onSurface.withValues(alpha: 0.6),
                   fontSize: 13,
                   fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
-          SpaceTextField(controller: _nameCtrl, hintText: 'Enter note name...'),
+          SpaceTextField(
+              controller: _nameCtrl,
+              hintText: AppLocalizations.of(context)!.enterNoteName),
           const SizedBox(height: 16),
-          Text('Description',
+          Text(AppLocalizations.of(context)!.description,
               style: TextStyle(
                   color: cs.onSurface.withValues(alpha: 0.6),
                   fontSize: 13,
@@ -552,30 +589,33 @@ class _CreateNoteSheetState extends State<_CreateNoteSheet> {
           const SizedBox(height: 8),
           SpaceTextField(
             controller: _descCtrl,
-            hintText: 'Enter description...',
+            hintText: AppLocalizations.of(context)!.enterDescription,
             maxLines: null,
             keyboardType: TextInputType.multiline,
           ),
           const SizedBox(height: 16),
-          Text('Tags (optional)',
+          Text(AppLocalizations.of(context)!.tag,
               style: TextStyle(
                   color: cs.onSurface.withValues(alpha: 0.6),
                   fontSize: 13,
                   fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
           SpaceTextField(
-              controller: _tagsCtrl, hintText: 'marketing, ideas, planning...'),
+              controller: _tagsCtrl,
+              hintText: AppLocalizations.of(context)!.tagDescription),
           const SizedBox(height: 24),
           Row(children: [
             Expanded(
                 child: SpaceActionButton(
-                    label: 'Cancel',
+                    label: AppLocalizations.of(context)!.cancel,
                     variant: SpaceButtonVariant.secondary,
                     onPressed: () => Navigator.pop(context))),
             const SizedBox(width: 12),
             Expanded(
               child: SpaceActionButton(
-                label: widget.note == null ? '+ Create Note' : 'Update Note',
+                label: widget.note == null
+                    ? AppLocalizations.of(context)!.createNoteSpaces
+                    : AppLocalizations.of(context)!.updateNote,
                 onPressed: () {
                   final nav = Navigator.of(context);
                   final name = _nameCtrl.text.trim();
@@ -624,7 +664,9 @@ class _NoteOptionsSheet extends StatelessWidget {
         spaceRole == SpaceRole.admin || spaceRole == SpaceRole.contributor;
     return Container(
       decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF151821) : Theme.of(context).scaffoldBackgroundColor,
+          color: isDark
+              ? const Color(0xFF151821)
+              : Theme.of(context).scaffoldBackgroundColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
       child: Column(
@@ -635,7 +677,9 @@ class _NoteOptionsSheet extends StatelessWidget {
           _OptionTile(
             icon: note.isFavorite ? Icons.star : Icons.star_border,
             iconColor: const Color(0xFFFBBF24),
-            label: note.isFavorite ? 'Remove Favorite' : 'Toggle Favorite',
+            label: note.isFavorite
+                ? AppLocalizations.of(context)!.removeFavorite
+                : AppLocalizations.of(context)!.toggleFavorite,
             onTap: () {
               final nav = Navigator.of(context);
               context.read<SpaceDetailsProvider>().toggleFavorite(note.id);
@@ -647,7 +691,7 @@ class _NoteOptionsSheet extends StatelessWidget {
             _OptionTile(
               icon: Icons.edit_outlined,
               iconColor: const Color(0xFF60A5FA),
-              label: 'Edit Note',
+              label: AppLocalizations.of(context)!.editNote,
               onTap: () {
                 final nav = Navigator.of(context);
                 nav.pop();
@@ -662,7 +706,7 @@ class _NoteOptionsSheet extends StatelessWidget {
             _OptionTile(
               icon: Icons.delete_outline,
               iconColor: const Color(0xFFEF4444),
-              label: 'Delete Note',
+              label: AppLocalizations.of(context)!.deleteNote,
               labelColor: const Color(0xFFEF4444),
               onTap: () {
                 final nav = Navigator.of(context);
@@ -690,7 +734,9 @@ class _OptionsBottomSheet extends StatelessWidget {
     final isAdmin = space.role == SpaceRole.admin;
     return Container(
       decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF151821) : Theme.of(context).scaffoldBackgroundColor,
+          color: isDark
+              ? const Color(0xFF151821)
+              : Theme.of(context).scaffoldBackgroundColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
       child: Column(
@@ -702,7 +748,7 @@ class _OptionsBottomSheet extends StatelessWidget {
             _OptionTile(
               icon: Icons.edit_outlined,
               iconColor: const Color(0xFF6B58FF),
-              label: 'Edit Space',
+              label: AppLocalizations.of(context)!.editSpace,
               onTap: () {
                 final nav = Navigator.of(context);
                 nav.pop();
@@ -718,25 +764,29 @@ class _OptionsBottomSheet extends StatelessWidget {
             _OptionTile(
               icon: Icons.delete_outline,
               iconColor: const Color(0xFFEF4444),
-              label: 'Delete Space',
+              label: AppLocalizations.of(context)!.deleteSpace,
               labelColor: const Color(0xFFEF4444),
               onTap: () {
                 showDialog(
                   context: context,
                   builder: (dialogCtx) => AlertDialog(
-                    backgroundColor: isDark ? const Color(0xFF151821) : Theme.of(context).scaffoldBackgroundColor,
+                    backgroundColor: isDark
+                        ? const Color(0xFF151821)
+                        : Theme.of(context).scaffoldBackgroundColor,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16)),
-                    title: Text('Delete Space',
+                    title: Text(AppLocalizations.of(context)!.deleteSpace,
                         style: TextStyle(color: cs.onSurface)),
                     content: Text(
-                        'Delete "${space.title}"? This cannot be undone.',
-                        style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5))),
+                        '${AppLocalizations.of(context)!.delete}" ${space.title} "${AppLocalizations.of(context)!.thisCannotBe}',
+                        style: TextStyle(
+                            color: cs.onSurface.withValues(alpha: 0.5))),
                     actions: [
                       TextButton(
                           onPressed: () => Navigator.pop(dialogCtx),
-                          child: Text('Cancel',
-                              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5)))),
+                          child: Text(AppLocalizations.of(context)!.cancel,
+                              style: TextStyle(
+                                  color: cs.onSurface.withValues(alpha: 0.5)))),
                       TextButton(
                         onPressed: () {
                           final provider = dialogCtx.read<SpacesProvider>();
@@ -745,7 +795,7 @@ class _OptionsBottomSheet extends StatelessWidget {
                           Navigator.pop(context); // pop details screen
                           provider.deleteSpace(space.id);
                         },
-                        child: const Text('Delete',
+                        child: Text(AppLocalizations.of(context)!.delete,
                             style: TextStyle(color: Color(0xFFEF4444))),
                       ),
                     ],
@@ -757,7 +807,7 @@ class _OptionsBottomSheet extends StatelessWidget {
             _OptionTile(
               icon: Icons.logout,
               iconColor: const Color(0xFFEF4444),
-              label: 'Leave Space',
+              label: AppLocalizations.of(context)!.leaveSpace,
               labelColor: const Color(0xFFEF4444),
               onTap: () {
                 final provider = context.read<SpacesProvider>();
@@ -807,8 +857,11 @@ class _EditSpaceSheetState extends State<_EditSpaceSheet> {
     return Consumer<SpaceDetailsProvider>(
       builder: (ctx, provider, _) => Container(
         decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF151821) : Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
+            color: isDark
+                ? const Color(0xFF151821)
+                : Theme.of(context).scaffoldBackgroundColor,
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(24))),
         padding: EdgeInsets.fromLTRB(20, 12, 20, 24 + bottom),
         child: SingleChildScrollView(
           child: Column(
@@ -817,22 +870,23 @@ class _EditSpaceSheetState extends State<_EditSpaceSheet> {
             children: [
               _Handle(),
               const SizedBox(height: 20),
-              Text('Edit Space',
+              Text(AppLocalizations.of(context)!.editSpace,
                   style: TextStyle(
                       color: cs.onSurface,
                       fontSize: 20,
                       fontWeight: FontWeight.bold)),
               const SizedBox(height: 20),
-              Text('Space Name',
+              Text(AppLocalizations.of(context)!.spaceName,
                   style: TextStyle(
                       color: cs.onSurface.withValues(alpha: 0.6),
                       fontSize: 13,
                       fontWeight: FontWeight.w500)),
               const SizedBox(height: 8),
               SpaceTextField(
-                  controller: _nameCtrl, hintText: 'Enter space name'),
+                  controller: _nameCtrl,
+                  hintText: AppLocalizations.of(context)!.enterSpaceName),
               const SizedBox(height: 16),
-              Text('Description',
+              Text(AppLocalizations.of(context)!.description,
                   style: TextStyle(
                       color: cs.onSurface.withValues(alpha: 0.6),
                       fontSize: 13,
@@ -840,19 +894,20 @@ class _EditSpaceSheetState extends State<_EditSpaceSheet> {
               const SizedBox(height: 8),
               SpaceTextField(
                   controller: _descCtrl,
-                  hintText: 'Enter description',
+                  hintText: AppLocalizations.of(context)!.enterDescription,
                   maxLines: 3),
               const SizedBox(height: 16),
               SpaceSwitchTile(
-                title: 'Allow members to edit',
-                subtitle: 'Contributors can create and edit notes',
+                title: AppLocalizations.of(context)!.allowMembersToEdit,
+                subtitle:
+                    AppLocalizations.of(context)!.allowMembersToEditDescription,
                 value: provider.allowMembersToEdit,
                 onChanged: provider.setAllowMembersToEdit,
               ),
               const SizedBox(height: 10),
               SpaceSwitchTile(
-                title: 'Make space public',
-                subtitle: 'Anyone with the link can view',
+                title: AppLocalizations.of(context)!.makeSpacePublic,
+                subtitle: AppLocalizations.of(context)!.anyoneWithLink,
                 value: provider.isPublic,
                 onChanged: provider.setIsPublic,
               ),
@@ -860,13 +915,13 @@ class _EditSpaceSheetState extends State<_EditSpaceSheet> {
               Row(children: [
                 Expanded(
                     child: SpaceActionButton(
-                        label: 'Cancel',
+                        label: AppLocalizations.of(context)!.cancel,
                         variant: SpaceButtonVariant.secondary,
                         onPressed: () => Navigator.pop(context))),
                 const SizedBox(width: 12),
                 Expanded(
                   child: SpaceActionButton(
-                    label: 'Save',
+                    label: AppLocalizations.of(context)!.save,
                     isLoading: provider.isSaving,
                     onPressed: () async {
                       final nav = Navigator.of(context);
@@ -918,7 +973,9 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
     final bottom = MediaQuery.of(context).viewInsets.bottom;
     return Container(
       decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF151821) : Theme.of(context).scaffoldBackgroundColor,
+          color: isDark
+              ? const Color(0xFF151821)
+              : Theme.of(context).scaffoldBackgroundColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
       padding: EdgeInsets.fromLTRB(20, 12, 20, 24 + bottom),
       child: Column(
@@ -927,16 +984,17 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
         children: [
           _Handle(),
           const SizedBox(height: 20),
-          Text('Invite Member',
+          Text(AppLocalizations.of(context)!.inviteMembers,
               style: TextStyle(
                   color: cs.onSurface,
                   fontSize: 20,
                   fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
-          Text('Send an invite by email address',
-              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5), fontSize: 14)),
+          Text(AppLocalizations.of(context)!.inviteMembersDescription,
+              style: TextStyle(
+                  color: cs.onSurface.withValues(alpha: 0.5), fontSize: 14)),
           const SizedBox(height: 20),
-          Text('Email Address',
+          Text(AppLocalizations.of(context)!.emailAddress,
               style: TextStyle(
                   color: cs.onSurface.withValues(alpha: 0.6),
                   fontSize: 13,
@@ -944,19 +1002,19 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
           const SizedBox(height: 8),
           SpaceTextField(
               controller: _emailCtrl,
-              hintText: 'Enter email address',
+              hintText: AppLocalizations.of(context)!.enterEmail,
               keyboardType: TextInputType.emailAddress),
           const SizedBox(height: 24),
           Row(children: [
             Expanded(
                 child: SpaceActionButton(
-                    label: 'Cancel',
+                    label: AppLocalizations.of(context)!.cancel,
                     variant: SpaceButtonVariant.secondary,
                     onPressed: () => Navigator.pop(context))),
             const SizedBox(width: 12),
             Expanded(
               child: SpaceActionButton(
-                label: 'Send Invite',
+                label: AppLocalizations.of(context)!.sendInvite,
                 onPressed: () {
                   final nav = Navigator.of(context);
                   final email = _emailCtrl.text.trim();
@@ -1006,28 +1064,28 @@ class _OptionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-          child: Row(children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10)),
-              child: Icon(icon, color: iconColor, size: 20),
-            ),
-            const SizedBox(width: 14),
-            Text(label,
-                style: TextStyle(
-                    color: labelColor ?? cs.onSurface,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500)),
-          ]),
-        ),
-      );
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        child: Row(children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10)),
+            child: Icon(icon, color: iconColor, size: 20),
+          ),
+          const SizedBox(width: 14),
+          Text(label,
+              style: TextStyle(
+                  color: labelColor ?? cs.onSurface,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500)),
+        ]),
+      ),
+    );
   }
 }
 
@@ -1048,36 +1106,39 @@ class _TabButton extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: isDark 
-                ? (isSelected ? const Color(0xFF1A1F36) : const Color(0xFF151821))
-                : (isSelected ? cs.primary.withValues(alpha: 0.1) : Theme.of(context).cardColor),
-            borderRadius: BorderRadius.circular(12),
-            border: isSelected
-                ? Border.all(color: cs.primary)
-                : (isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.1))),
-          ),
-          child: Row(children: [
-            Icon(icon,
-                color: isSelected
-                    ? cs.primary
-                    : cs.onSurface.withValues(alpha: 0.4),
-                size: 16),
-            const SizedBox(width: 6),
-            Text(label,
-                style: TextStyle(
-                    color: isSelected
-                        ? cs.primary
-                        : cs.onSurface.withValues(alpha: 0.4),
-                    fontSize: 13,
-                    fontWeight:
-                        isSelected ? FontWeight.w600 : FontWeight.normal)),
-          ]),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: isDark
+              ? (isSelected ? const Color(0xFF1A1F36) : const Color(0xFF151821))
+              : (isSelected
+                  ? cs.primary.withValues(alpha: 0.1)
+                  : Theme.of(context).cardColor),
+          borderRadius: BorderRadius.circular(12),
+          border: isSelected
+              ? Border.all(color: cs.primary)
+              : (isDark
+                  ? null
+                  : Border.all(color: cs.onSurface.withValues(alpha: 0.1))),
         ),
-      );
+        child: Row(children: [
+          Icon(icon,
+              color:
+                  isSelected ? cs.primary : cs.onSurface.withValues(alpha: 0.4),
+              size: 16),
+          const SizedBox(width: 6),
+          Text(label,
+              style: TextStyle(
+                  color: isSelected
+                      ? cs.primary
+                      : cs.onSurface.withValues(alpha: 0.4),
+                  fontSize: 13,
+                  fontWeight:
+                      isSelected ? FontWeight.w600 : FontWeight.normal)),
+        ]),
+      ),
+    );
   }
 }
 
@@ -1095,19 +1156,19 @@ class _RoleBadge extends StatelessWidget {
       case SpaceRole.admin:
         text = const Color(0xFFFBBF24);
         bg = const Color(0xFF332B13);
-        label = 'Admin';
+        label = AppLocalizations.of(context)!.admin;
         icon = Icons.star_border;
         break;
       case SpaceRole.contributor:
         text = const Color(0xFF60A5FA);
         bg = const Color(0xFF14243B);
-        label = 'Contributor';
+        label = AppLocalizations.of(context)!.contributor;
         icon = Icons.edit_outlined;
         break;
       case SpaceRole.viewer:
         text = const Color(0xFF9CA3AF);
         bg = const Color(0xFF202430);
-        label = 'Viewer';
+        label = AppLocalizations.of(context)!.viewer;
         icon = Icons.visibility_outlined;
         break;
     }

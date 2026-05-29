@@ -9,13 +9,13 @@ class SpaceTextField extends StatelessWidget {
   final ValueChanged<String>? onChanged;
 
   const SpaceTextField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.hintText,
     this.maxLines = 1,
     this.keyboardType = TextInputType.text,
     this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +26,9 @@ class SpaceTextField extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF202430) : Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: isDark ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
+        border: isDark
+            ? null
+            : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
       ),
       child: TextField(
         controller: controller,

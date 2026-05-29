@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nota/l10n/app_localizations.dart';
 
 import '../../widgets/auth/auth_header.dart';
 import '../../widgets/auth/auth_button.dart';
@@ -42,7 +43,7 @@ class AccountCreatedScreen extends StatelessWidget {
 
               // Title
               Text(
-                'Account Created!',
+                AppLocalizations.of(context)!.accountCreatedSuccessfully,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: cs.onSurface,
@@ -56,7 +57,7 @@ class AccountCreatedScreen extends StatelessWidget {
 
               // Subtitle
               Text(
-                "You're all set to start taking notes.",
+                AppLocalizations.of(context)!.successDescription,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: cs.onSurface.withValues(alpha: 0.5),
@@ -69,7 +70,7 @@ class AccountCreatedScreen extends StatelessWidget {
 
               // Get Started button
               AuthButton(
-                label: 'Get Started',
+                label: AppLocalizations.of(context)!.getStarted,
                 onTap: () {
                   context.push('/onboarding');
                 },

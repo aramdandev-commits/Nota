@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nota/l10n/app_localizations.dart';
 
 class AICard extends StatelessWidget {
   const AICard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final cs     = Theme.of(context).colorScheme;
+    final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
@@ -30,7 +31,8 @@ class AICard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.auto_awesome, color: const Color(0xFFC084FC), size: 16),
+              Icon(Icons.auto_awesome,
+                  color: const Color(0xFFC084FC), size: 16),
               const SizedBox(width: 8),
               const Text(
                 'AI NOTA',
@@ -50,7 +52,7 @@ class AICard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Summarize your notes instantly',
+                  AppLocalizations.of(context)!.aiCard,
                   style: TextStyle(
                     color: cs.onSurface,
                     fontFamily: 'Inter',
@@ -65,15 +67,16 @@ class AICard extends StatelessWidget {
                   context.push('/ai-analyze');
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     color: const Color(0xFF6B4EE6),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
-                    children: const [
+                    children: [
                       Text(
-                        'Try',
+                        AppLocalizations.of(context)!.tryCard,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 14,

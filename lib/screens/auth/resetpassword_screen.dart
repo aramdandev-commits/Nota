@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nota/l10n/app_localizations.dart';
 import 'package:nota/widgets/auth/auth_button.dart';
 import 'package:nota/widgets/auth/auth_header.dart';
 import 'package:nota/widgets/auth/auth_text_field.dart';
@@ -33,7 +34,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
@@ -50,17 +51,17 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 // Back to Login
                 GestureDetector(
                   onTap: () => context.pop(),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.chevron_left_rounded,
                         color: Color(0xFF9810FA),
                         size: 20,
                       ),
                       Text(
-                        'Back to Login',
-                        style: TextStyle(
+                        AppLocalizations.of(context)!.backToLogin,
+                        style: const TextStyle(
                           color: Color(0xFF9810FA),
                           fontSize: 14,
                           fontFamily: 'Inter',
@@ -74,7 +75,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
                 // Title
                 Text(
-                  'Reset Password',
+                  AppLocalizations.of(context)!.resetPassword,
                   style: TextStyle(
                     color: cs.onSurface,
                     fontSize: 22,
@@ -100,8 +101,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         color: const Color(0xFF22C55E).withValues(alpha: 0.3),
                       ),
                     ),
-                    child: const Text(
-                      'Reset link sent to your email',
+                    child: Text(
+                      AppLocalizations.of(context)!.passwordResetLinkSent,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Color(0xFF22C55E),
@@ -117,12 +118,15 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     controller: _emailController,
                     hintText: 'your@email.com',
                     keyboardType: TextInputType.emailAddress,
-                    validator: AuthValidators.validateEmail,
+                    validator: (value) =>
+                        AuthValidators.validateEmail(context, value),
                   ),
                   const SizedBox(height: 20),
 
                   // Send Reset Link button
-                  AuthButton(label: 'Send Reset Link', onTap: _submit),
+                  AuthButton(
+                      label: AppLocalizations.of(context)!.sendResetLink,
+                      onTap: _submit),
                 ],
               ],
             ),

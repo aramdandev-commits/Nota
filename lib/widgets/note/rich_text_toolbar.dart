@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:nota/helper/app_theme.dart';
 
 class RichTextToolbar extends StatefulWidget {
   // We keep the QuillController dynamic to avoid a hard dependency on flutter_quill
@@ -15,7 +14,8 @@ class _RichTextToolbarState extends State<RichTextToolbar> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final toolbarBg = isDark ? const Color(0xFF111116) : const Color(0xFFF0F0F5);
+    final toolbarBg =
+        isDark ? const Color(0xFF111116) : const Color(0xFFF0F0F5);
 
     return Container(
       height: 60,
@@ -26,29 +26,50 @@ class _RichTextToolbarState extends State<RichTextToolbar> {
         builder: (context, _) {
           // Access quill attributes dynamically
           final style = widget.controller.getSelectionStyle();
-          final isBold      = style.containsKey('bold');
-          final isItalic    = style.containsKey('italic');
+          final isBold = style.containsKey('bold');
+          final isItalic = style.containsKey('italic');
           final isUnderline = style.containsKey('underline');
           final isH1 = style.attributes['header']?.value == 1;
           final isH2 = style.attributes['header']?.value == 2;
           final isBulletedList = style.attributes['list']?.value == 'bullet';
           final isNumberedList = style.attributes['list']?.value == 'ordered';
-          final isCheckbox     = style.attributes['list']?.value == 'checked';
+          final isCheckbox = style.attributes['list']?.value == 'checked';
 
           return SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
-                _buildToolbarIcon(context: context, icon: Icons.format_bold,          isActive: isBold),
-                _buildToolbarIcon(context: context, icon: Icons.format_italic,         isActive: isItalic),
-                _buildToolbarIcon(context: context, icon: Icons.format_underlined,     isActive: isUnderline),
-                _buildToolbarText(context: context, text: 'H1',                        isActive: isH1),
-                _buildToolbarText(context: context, text: 'H2',                        isActive: isH2),
-                _buildToolbarIcon(context: context, icon: Icons.format_list_bulleted,  isActive: isBulletedList),
-                _buildToolbarIcon(context: context, icon: Icons.format_list_numbered,  isActive: isNumberedList),
-                _buildToolbarIcon(context: context, icon: Icons.check_box_outlined,    isActive: isCheckbox),
-                _buildToolbarIcon(context: context, icon: Icons.image_outlined,        isActive: false),
+                _buildToolbarIcon(
+                    context: context,
+                    icon: Icons.format_bold,
+                    isActive: isBold),
+                _buildToolbarIcon(
+                    context: context,
+                    icon: Icons.format_italic,
+                    isActive: isItalic),
+                _buildToolbarIcon(
+                    context: context,
+                    icon: Icons.format_underlined,
+                    isActive: isUnderline),
+                _buildToolbarText(context: context, text: 'H1', isActive: isH1),
+                _buildToolbarText(context: context, text: 'H2', isActive: isH2),
+                _buildToolbarIcon(
+                    context: context,
+                    icon: Icons.format_list_bulleted,
+                    isActive: isBulletedList),
+                _buildToolbarIcon(
+                    context: context,
+                    icon: Icons.format_list_numbered,
+                    isActive: isNumberedList),
+                _buildToolbarIcon(
+                    context: context,
+                    icon: Icons.check_box_outlined,
+                    isActive: isCheckbox),
+                _buildToolbarIcon(
+                    context: context,
+                    icon: Icons.image_outlined,
+                    isActive: false),
               ],
             ),
           );
@@ -79,7 +100,8 @@ class _RichTextToolbarState extends State<RichTextToolbar> {
           ),
           child: Icon(
             icon,
-            color: isActive ? cs.onSurface : cs.onSurface.withValues(alpha: 0.54),
+            color:
+                isActive ? cs.onSurface : cs.onSurface.withValues(alpha: 0.54),
             size: 20,
           ),
         ),
@@ -111,7 +133,9 @@ class _RichTextToolbarState extends State<RichTextToolbar> {
             child: Text(
               text,
               style: TextStyle(
-                color: isActive ? cs.onSurface : cs.onSurface.withValues(alpha: 0.54),
+                color: isActive
+                    ? cs.onSurface
+                    : cs.onSurface.withValues(alpha: 0.54),
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nota/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:nota/helper/app_theme.dart';
 import '../../controllers/note_provider.dart';
@@ -15,11 +16,11 @@ class NoteOptionsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs      = Theme.of(context).colorScheme;
+    final cs = Theme.of(context).colorScheme;
     final sheetBg = AppTheme.sheetColor(context);
-    final itemBg  = AppTheme.itemColor(context);
+    final itemBg = AppTheme.itemColor(context);
     const Color destructiveColor = Color(0xFF3A1E24);
-    const Color iconAccentColor  = Color(0xFF3D7AF9);
+    const Color iconAccentColor = Color(0xFF3D7AF9);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -43,7 +44,7 @@ class NoteOptionsSheet extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Options',
+                AppLocalizations.of(context)!.options,
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -55,19 +56,20 @@ class NoteOptionsSheet extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
                   padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(color: itemBg, shape: BoxShape.circle),
-                  child: Icon(Icons.close, color: cs.onSurface.withValues(alpha: 0.5), size: 20),
+                  decoration:
+                      BoxDecoration(color: itemBg, shape: BoxShape.circle),
+                  child: Icon(Icons.close,
+                      color: cs.onSurface.withValues(alpha: 0.5), size: 20),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 20),
-
           _buildOptionItem(
             context: context,
             icon: Icons.share_outlined,
             iconColor: iconAccentColor,
-            title: 'Share',
+            title: AppLocalizations.of(context)!.share,
             bgColor: itemBg,
             onTap: () {
               Navigator.pop(context);
@@ -80,13 +82,12 @@ class NoteOptionsSheet extends StatelessWidget {
             },
           ),
           const SizedBox(height: 10),
-
           _buildOptionItem(
             context: context,
             icon: Icons.folder_outlined,
             iconColor: Colors.tealAccent,
-            title: 'Move to Space',
-            subtitle: 'Research Space',
+            title: AppLocalizations.of(context)!.moveToSpaces,
+            subtitle: AppLocalizations.of(context)!.researchSpace,
             showArrow: true,
             bgColor: itemBg,
             onTap: () {
@@ -100,12 +101,11 @@ class NoteOptionsSheet extends StatelessWidget {
             },
           ),
           const SizedBox(height: 10),
-
           _buildOptionItem(
             context: context,
             icon: Icons.info_outline_rounded,
             iconColor: Colors.cyanAccent,
-            title: 'Note Info',
+            title: AppLocalizations.of(context)!.noteInfo,
             showArrow: true,
             bgColor: itemBg,
             onTap: () {
@@ -125,12 +125,11 @@ class NoteOptionsSheet extends StatelessWidget {
             },
           ),
           const SizedBox(height: 10),
-
           _buildOptionItem(
             context: context,
             icon: Icons.delete_outline_rounded,
             iconColor: Colors.redAccent,
-            title: 'Delete Note',
+            title: AppLocalizations.of(context)!.deleteNote,
             titleColor: Colors.redAccent,
             bgColor: destructiveColor,
             onTap: () {
@@ -143,7 +142,6 @@ class NoteOptionsSheet extends StatelessWidget {
               );
             },
           ),
-
           SizedBox(height: MediaQuery.of(context).padding.bottom + 10),
         ],
       ),
@@ -203,7 +201,8 @@ class NoteOptionsSheet extends StatelessWidget {
               ),
             ),
             if (showArrow)
-              Icon(Icons.chevron_right_rounded, color: cs.onSurface.withValues(alpha: 0.5)),
+              Icon(Icons.chevron_right_rounded,
+                  color: cs.onSurface.withValues(alpha: 0.5)),
           ],
         ),
       ),

@@ -1,51 +1,77 @@
+import 'package:flutter/material.dart';
+import 'package:nota/l10n/app_localizations.dart';
+
 class AuthValidators {
-  static String? validateName(String? value) {
+  static String? validateName(BuildContext context, String? value) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (value == null || value.trim().isEmpty) {
-      return 'Full name is required';
+      return l10n.name;
     }
 
     if (value.trim().length < 3) {
-      return 'Name must be at least 3 characters';
+      return l10n.validationName;
     }
 
     return null;
   }
 
-  static String? validateEmail(String? value) {
+  static String? validateEmail(BuildContext context, String? value) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (value == null || value.trim().isEmpty) {
-      return 'Email is required';
+      return l10n.email;
     }
 
     final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
     if (!emailRegex.hasMatch(value.trim())) {
-      return 'Enter a valid email';
+      return l10n.invalidEmailAddress;
     }
 
     return null;
   }
 
-  static String? validatePassword(String? value) {
+  static String? validatePassword(BuildContext context, String? value) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (value == null || value.isEmpty) {
-      return 'Password is required';
+      return l10n.password;
     }
 
-    if (value.length < 6) {
-      return 'Password must be at least 6 characters';
+    if (value.length < 8) {
+      return l10n.validationPasswordAtLeast8Characters;
+    }
+
+    if (!value.contains(RegExp(r'[a-z]'))) {
+      return l10n.validationPasswordLowercaseLetters;
+    }
+
+    if (!value.contains(RegExp(r'[A-Z]'))) {
+      return l10n.validationPasswordUppercaseLetters;
+    }
+
+    if (!value.contains(RegExp(r'[0-9]'))) {
+      return l10n.validationPasswordNumbers;
+    }
+
+    if (!value.contains(RegExp(r'[!@#\$%^&*(),.?":{}|<>]'))) {
+      return l10n.validationPasswordSpecialCharacter;
     }
 
     return null;
   }
 
   static String? validateConfirmPassword(
+    BuildContext context,
     String? value,
     String originalPassword,
   ) {
     if (value == null || value.isEmpty) {
-      return 'Please confirm your password';
+      return AppLocalizations.of(context)!.confirmPassword;
     }
 
     if (value != originalPassword) {
-      return 'Passwords do not match';
+      return AppLocalizations.of(context)!.validationConfirmPassword;
     }
 
     return null;

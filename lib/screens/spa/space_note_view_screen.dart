@@ -6,7 +6,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 class SpaceNoteViewScreen extends StatefulWidget {
   final String noteId;
 
-  const SpaceNoteViewScreen({Key? key, required this.noteId}) : super(key: key);
+  const SpaceNoteViewScreen({super.key, required this.noteId});
 
   @override
   State<SpaceNoteViewScreen> createState() => _SpaceNoteViewScreenState();
@@ -34,7 +34,8 @@ class _SpaceNoteViewScreenState extends State<SpaceNoteViewScreen> {
   }
 
   Future<void> _loadLocalHtml() async {
-    String htmlContent = await rootBundle.loadString('assets/web_editor/index.html');
+    String htmlContent =
+        await rootBundle.loadString('assets/web_editor/index.html');
     _controller.loadHtmlString(htmlContent, baseUrl: 'https://nota.local');
   }
 

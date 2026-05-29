@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nota/l10n/app_localizations.dart';
 
 class BottomNavigation extends StatelessWidget {
   final int selectedIndex;
@@ -31,7 +32,7 @@ class BottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs     = Theme.of(context).colorScheme;
+    final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     BottomNavigationBarItem buildItem({
@@ -42,8 +43,9 @@ class BottomNavigation extends StatelessWidget {
       Color? iconColor,
     }) {
       final isSelected = selectedIndex == index;
-      final activeIconColor  = iconColor  ?? const Color(0xFF3377FF);
-      final activeBackground = activeBg   ?? (isDark ? const Color(0xFF162544) : const Color(0xFFE8EEFF));
+      final activeIconColor = iconColor ?? const Color(0xFF3377FF);
+      final activeBackground = activeBg ??
+          (isDark ? const Color(0xFF162544) : const Color(0xFFE8EEFF));
 
       return BottomNavigationBarItem(
         label: label,
@@ -55,7 +57,9 @@ class BottomNavigation extends StatelessWidget {
           ),
           child: Icon(
             icon,
-            color: isSelected ? activeIconColor : cs.onSurface.withValues(alpha: 0.4),
+            color: isSelected
+                ? activeIconColor
+                : cs.onSurface.withValues(alpha: 0.4),
           ),
         ),
       );
@@ -87,17 +91,30 @@ class BottomNavigation extends StatelessWidget {
           selectedFontSize: 10,
           unselectedFontSize: 10,
           items: [
-            buildItem(icon: Icons.home,          label: 'Home',     index: 0),
-            buildItem(icon: Icons.description,   label: 'Notes',    index: 1),
+            buildItem(
+                icon: Icons.home,
+                label: AppLocalizations.of(context)!.home,
+                index: 0),
+            buildItem(
+                icon: Icons.description,
+                label: AppLocalizations.of(context)!.myNotes,
+                index: 1),
             buildItem(
               icon: Icons.auto_awesome,
               label: '',
               index: 2,
-              activeBg:   isDark ? const Color(0xFF2C134A) : const Color(0xFFF3EAFF),
-              iconColor:  const Color(0xFFC084FC),
+              activeBg:
+                  isDark ? const Color(0xFF2C134A) : const Color(0xFFF3EAFF),
+              iconColor: const Color(0xFFC084FC),
             ),
-            buildItem(icon: Icons.folder,        label: 'Spaces',   index: 3),
-            buildItem(icon: Icons.settings,      label: 'Settings', index: 4),
+            buildItem(
+                icon: Icons.folder,
+                label: AppLocalizations.of(context)!.spaces,
+                index: 3),
+            buildItem(
+                icon: Icons.settings,
+                label: AppLocalizations.of(context)!.settings,
+                index: 4),
           ],
         ),
       ),

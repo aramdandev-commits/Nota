@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nota/l10n/app_localizations.dart';
+import 'package:nota/l10n/app_localizations_ar.dart';
 
 /// Multi-line text field for pasting / typing text to analyze.
 class AiTextInput extends StatelessWidget {
@@ -8,9 +10,10 @@ class AiTextInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs     = Theme.of(context).colorScheme;
+    final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF1A1A2E) : Theme.of(context).cardColor;
+    final bgColor =
+        isDark ? const Color(0xFF1A1A2E) : Theme.of(context).cardColor;
 
     return Container(
       decoration: BoxDecoration(
@@ -28,7 +31,7 @@ class AiTextInput extends StatelessWidget {
           fontFamily: 'Inter',
         ),
         decoration: InputDecoration(
-          hintText: 'Paste or type text to analyze...',
+          hintText: AppLocalizations.of(context)!.pasteOrType,
           hintStyle: TextStyle(
             color: cs.onSurface.withValues(alpha: 0.3),
             fontSize: 14,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:nota/l10n/app_localizations.dart';
 import '../../model/ai_analysis_model.dart';
 
 /// Card that displays the AI analysis result with Copy / Save as Note actions.
@@ -21,15 +22,16 @@ class AiResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs     = Theme.of(context).colorScheme;
+    final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? const Color(0xFF1A1A2E) : Theme.of(context).cardColor;
+    final cardBg =
+        isDark ? const Color(0xFF1A1A2E) : Theme.of(context).cardColor;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Analysis Results',
+          AppLocalizations.of(context)!.aiAnalysisResult,
           style: TextStyle(
             color: cs.onSurface,
             fontSize: 20,
@@ -38,7 +40,6 @@ class AiResultCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(20),
@@ -50,7 +51,7 @@ class AiResultCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _SectionLabel(label: 'SUMMARY'),
+              _SectionLabel(label: AppLocalizations.of(context)!.summary),
               const SizedBox(height: 10),
               Text(
                 result.summary,
@@ -62,8 +63,7 @@ class AiResultCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-
-              _SectionLabel(label: 'KEY POINTS'),
+              _SectionLabel(label: AppLocalizations.of(context)!.keyPoint),
               const SizedBox(height: 10),
               ...result.keyPoints.map(
                 (point) => Padding(
@@ -100,15 +100,17 @@ class AiResultCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-
         Row(
           children: [
             Expanded(
               child: _ActionButton(
                 icon: copied ? Icons.check_rounded : Icons.copy_rounded,
-                label: copied ? 'Copied!' : 'Copy',
+                label: copied
+                    ? AppLocalizations.of(context)!.copied
+                    : AppLocalizations.of(context)!.copy,
                 onTap: () {
-                  final text = '${result.summary}\n\n${result.keyPoints.join('\n')}';
+                  final text =
+                      '${result.summary}\n\n${result.keyPoints.join('\n')}';
                   Clipboard.setData(ClipboardData(text: text));
                   onCopy();
                 },
@@ -120,7 +122,7 @@ class AiResultCard extends StatelessWidget {
             Expanded(
               child: _ActionButton(
                 icon: Icons.add_rounded,
-                label: 'Save as Note',
+                label: AppLocalizations.of(context)!.saveAsNote,
                 onTap: onSaveAsNote,
                 isAccent: true,
               ),
@@ -128,13 +130,13 @@ class AiResultCard extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-
         Center(
           child: TextButton.icon(
             onPressed: onNewAnalysis,
-            icon: Icon(Icons.refresh_rounded, color: cs.onSurface.withValues(alpha: 0.5), size: 18),
+            icon: Icon(Icons.refresh_rounded,
+                color: cs.onSurface.withValues(alpha: 0.5), size: 18),
             label: Text(
-              'New Analysis',
+              AppLocalizations.of(context)!.newAnalysis,
               style: TextStyle(
                 color: cs.onSurface.withValues(alpha: 0.5),
                 fontSize: 14,
@@ -185,9 +187,10 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs     = Theme.of(context).colorScheme;
+    final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final nonAccentBg = isDark ? const Color(0xFF252535) : const Color(0xFFEEEEF5);
+    final nonAccentBg =
+        isDark ? const Color(0xFF252535) : const Color(0xFFEEEEF5);
 
     return GestureDetector(
       onTap: onTap,
@@ -204,21 +207,27 @@ class _ActionButton extends StatelessWidget {
               : null,
           color: isAccent ? null : nonAccentBg,
           borderRadius: BorderRadius.circular(12),
-          border: isAccent ? null : Border.all(color: cs.onSurface.withValues(alpha: 0.08)),
+          border: isAccent
+              ? null
+              : Border.all(color: cs.onSurface.withValues(alpha: 0.08)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
-              color: isCopied ? const Color(0xFF22C55E) : (isAccent ? Colors.white : cs.onSurface),
+              color: isCopied
+                  ? const Color(0xFF22C55E)
+                  : (isAccent ? Colors.white : cs.onSurface),
               size: 18,
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
-                color: isCopied ? const Color(0xFF22C55E) : (isAccent ? Colors.white : cs.onSurface),
+                color: isCopied
+                    ? const Color(0xFF22C55E)
+                    : (isAccent ? Colors.white : cs.onSurface),
                 fontSize: 14,
                 fontFamily: 'Inter',
                 fontWeight: FontWeight.w600,

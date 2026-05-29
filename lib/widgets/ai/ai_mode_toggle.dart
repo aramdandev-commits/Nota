@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nota/l10n/app_localizations.dart';
 import '../../controllers/ai_analyze_provider.dart';
 
 /// Tab toggle between "Paste Text" and "From Note" modes.
@@ -26,12 +27,12 @@ class AiModeToggle extends StatelessWidget {
       child: Row(
         children: [
           _Tab(
-            label: 'Paste Text',
+            label: AppLocalizations.of(context)!.pasteText,
             isSelected: selected == AiAnalyzeMode.pasteText,
             onTap: () => onChanged(AiAnalyzeMode.pasteText),
           ),
           _Tab(
-            label: 'From Note',
+            label: AppLocalizations.of(context)!.fromNote,
             isSelected: selected == AiAnalyzeMode.fromNote,
             onTap: () => onChanged(AiAnalyzeMode.fromNote),
           ),
@@ -76,7 +77,9 @@ class _Tab extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.white : cs.onSurface.withValues(alpha: 0.5),
+              color: isSelected
+                  ? Colors.white
+                  : cs.onSurface.withValues(alpha: 0.5),
               fontSize: 14,
               fontFamily: 'Inter',
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,

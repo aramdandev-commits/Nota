@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nota/l10n/app_localizations.dart';
 import 'package:nota/widgets/home/bottom_navigation.dart';
 import 'package:nota/widgets/pdf/import_pdf.dart';
 import 'package:provider/provider.dart';
@@ -26,10 +27,10 @@ class _HomeScreenState extends State<HomeScreen> {
     NotaModalSheet.show(
       context: context,
       icon: Icons.picture_as_pdf_rounded,
-      title: 'Import PDF',
-      subtitle: 'Upload a PDF file to convert into a note',
+      title: AppLocalizations.of(context)!.importPDF,
+      subtitle: AppLocalizations.of(context)!.importPdfDescriptionFile,
       body: const ImportPdfBody(),
-      cancelLabel: 'Cancel',
+      cancelLabel: AppLocalizations.of(context)!.cancel,
     );
   }
 
@@ -56,9 +57,12 @@ class _HomeScreenState extends State<HomeScreen> {
               const AICard(),
               const SizedBox(height: 24),
               Text(
-                'QUICK ACTIONS',
+                AppLocalizations.of(context)!.quickActions,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.5),
                   fontSize: 12,
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.bold,
@@ -73,8 +77,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icons.add,
                       iconColor: Colors.white,
                       iconBackgroundColor: const Color(0xFFE520A4),
-                      title: 'New Note',
-                      subtitle: 'Start writing',
+                      title: AppLocalizations.of(context)!.createNote,
+                      subtitle:
+                          AppLocalizations.of(context)!.createNoteDescription,
                       onTap: () => context.push('/new-note'),
                     ),
                   ),
@@ -84,8 +89,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icons.auto_awesome,
                       iconColor: Colors.white,
                       iconBackgroundColor: const Color(0xFF1D84FF),
-                      title: 'AI Analyze',
-                      subtitle: 'Summarize',
+                      title: AppLocalizations.of(context)!.aiAnalyze,
+                      subtitle: AppLocalizations.of(context)!.summarize,
                       onTap: () => context.push('/ai-analyze'),
                     ),
                   ),
@@ -99,8 +104,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icons.upload_file,
                       iconColor: Colors.white,
                       iconBackgroundColor: const Color(0xFFFF8A00),
-                      title: 'Import PDF',
-                      subtitle: 'PDF → Note',
+                      title: AppLocalizations.of(context)!.importPDF,
+                      subtitle:
+                          AppLocalizations.of(context)!.importPdfDescription,
                       onTap: () => _showImportPdfSheet(context),
                     ),
                   ),
@@ -110,16 +116,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       icon: Icons.group_add,
                       iconColor: Colors.white,
                       iconBackgroundColor: const Color(0xFF00C48C),
-                      title: 'Collaborate',
-                      subtitle: 'Team notes',
+                      title: AppLocalizations.of(context)!.collaborate,
+                      subtitle:
+                          AppLocalizations.of(context)!.collaborateDescription,
                       onTap: () => context.push('/spaces'),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 32),
-              const Text(
-                'FAVORITES',
+              Text(
+                AppLocalizations.of(context)!.favorites,
                 style: TextStyle(
                   color: Color(0xFF8E9099),
                   fontSize: 12,
@@ -154,9 +161,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'RECENT NOTES',
+                    AppLocalizations.of(context)!.recentNotes,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.5),
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.0,
@@ -167,9 +177,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       context.push('/notes');
                     },
                     child: Row(
-                      children: const [
+                      children: [
                         Text(
-                          'View All',
+                          AppLocalizations.of(context)!.viewAll,
                           style: TextStyle(
                             color: Color(0xFF3377FF),
                             fontSize: 12,
@@ -199,8 +209,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       child: Center(
                         child: Text(
-                          'No recent notes yet.',
-                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5), fontSize: 14),
+                          AppLocalizations.of(context)!.noNotesFoundYet,
+                          style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.5),
+                              fontSize: 14),
                         ),
                       ),
                     );
@@ -215,7 +230,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemBuilder: (context, index) {
                       final note = recentNotes[index];
 
-                      String previewText = "No content";
+                      String previewText =
+                          AppLocalizations.of(context)!.noContent;
                       try {
                         if (note.content.isNotEmpty) {
                           final List<dynamic> ops = jsonDecode(note.content);
@@ -245,7 +261,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: Theme.of(context).cardColor,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06)),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.06)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,9 +272,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               Text(
                                 note.title.isNotEmpty
                                     ? note.title
-                                    : 'Untitled Note',
+                                    : AppLocalizations.of(context)!
+                                        .untitledNote,
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -264,9 +285,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               Text(
                                 previewText.isNotEmpty
                                     ? previewText
-                                    : 'Empty Note',
+                                    : AppLocalizations.of(context)!.emptyNote,
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.54),
                                   fontSize: 14,
                                 ),
                                 maxLines: 1,
@@ -276,7 +300,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               Text(
                                 'Updated: ${note.updatedAt.toString().substring(0, 16)}',
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.38),
                                   fontSize: 12,
                                 ),
                               ),

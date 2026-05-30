@@ -6,7 +6,6 @@ class SpaceNoteModel {
   final DateTime createdAt;
   DateTime? updatedAt;
   bool isFavorite;
-  final List<String> tags;
 
   SpaceNoteModel({
     required this.id,
@@ -16,19 +15,21 @@ class SpaceNoteModel {
     required this.createdAt,
     this.updatedAt,
     this.isFavorite = false,
-    this.tags = const [],
   });
 
   factory SpaceNoteModel.fromJson(Map<String, dynamic> json) {
     return SpaceNoteModel(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      content: json['content'] as String,
-      authorName: json['author_name'] as String,
-      createdAt: DateTime.parse(json['created_at'] as String),
-      updatedAt: json['updated_at'] != null ? DateTime.parse(json['updated_at'] as String) : null,
-      isFavorite: json['is_favorite'] as bool? ?? false,
-      tags: List<String>.from(json['tags'] ?? []),
+      id: json['id']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+      content: json['content']?.toString() ?? '',
+      authorName: json['author_name']?.toString() ?? '',
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'].toString())
+          : DateTime.now(),
+      updatedAt: json['updated_at'] != null
+          ? DateTime.tryParse(json['updated_at'].toString())
+          : null,
+      isFavorite: json['is_favorite'] == true || json['is_favorite'] == 'true' || json['is_favorite'] == 1,
     );
   }
 
@@ -41,7 +42,6 @@ class SpaceNoteModel {
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
       'is_favorite': isFavorite,
-      'tags': tags,
     };
   }
 }

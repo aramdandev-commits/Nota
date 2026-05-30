@@ -71,13 +71,6 @@ class SpaceCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      Icon(
-                        space.privacy == SpacePrivacy.private
-                            ? Icons.lock_outline
-                            : Icons.language,
-                        color: const Color(0xFF6B7280),
-                        size: 16,
-                      ),
                       const SizedBox(width: 12),
                       const Icon(
                         Icons.chevron_right,

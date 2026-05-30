@@ -13,7 +13,6 @@ class CreateSpaceBottomSheet extends StatefulWidget {
 }
 
 class _CreateSpaceBottomSheetState extends State<CreateSpaceBottomSheet> {
-  String _selectedPrivacy = 'Private';
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
 
@@ -89,7 +88,7 @@ class _CreateSpaceBottomSheetState extends State<CreateSpaceBottomSheet> {
               hintText: AppLocalizations.of(context)!.enterSpaceName,
             ),
             const SizedBox(height: 20),
-
+            
             // Description Field
             Text(
               AppLocalizations.of(context)!.description,
@@ -103,37 +102,7 @@ class _CreateSpaceBottomSheetState extends State<CreateSpaceBottomSheet> {
             _buildTextField(
               controller: _descController,
               hintText: AppLocalizations.of(context)!.enterDescription,
-            ),
-            const SizedBox(height: 24),
-
-            // Privacy Section
-            Text(
-              AppLocalizations.of(context)!.privacy,
-              style: TextStyle(
-                color: cs.onSurface.withValues(alpha: 0.6),
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildPrivacyOption(
-              title: AppLocalizations.of(context)!.private,
-              description: AppLocalizations.of(context)!.privateDescription,
-              icon: Icons.lock_outline,
-              isSelected:
-                  _selectedPrivacy == AppLocalizations.of(context)!.private,
-              onTap: () => setState(() =>
-                  _selectedPrivacy = AppLocalizations.of(context)!.private),
-            ),
-            const SizedBox(height: 12),
-            _buildPrivacyOption(
-              title: AppLocalizations.of(context)!.public,
-              description: AppLocalizations.of(context)!.publicDescription,
-              icon: Icons.language,
-              isSelected:
-                  _selectedPrivacy == AppLocalizations.of(context)!.public,
-              onTap: () => setState(() =>
-                  _selectedPrivacy = AppLocalizations.of(context)!.public),
+              maxLines: 3,
             ),
             const SizedBox(height: 32),
 
@@ -169,28 +138,13 @@ class _CreateSpaceBottomSheetState extends State<CreateSpaceBottomSheet> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      final newSpace = SpaceModel(
-                        id: Random().nextInt(10000).toString(),
-                        title: _nameController.text.isEmpty
-                            ? AppLocalizations.of(context)!.newSpace
-                            : _nameController.text,
-                        description: _descController.text.isEmpty
-                            ? AppLocalizations.of(context)!.noDescription
-                            : _descController.text,
-                        role: SpaceRole.admin,
-                        memberCount: 1,
-                        noteCount: 0,
-                        iconColor: const Color(0xFF6B58FF), // Default color
-                        iconData: Icons.folder_open,
-                        privacy: _selectedPrivacy ==
-                                AppLocalizations.of(context)!.private
-                            ? SpacePrivacy.private
-                            : SpacePrivacy.public,
-                        lastEditedBy: 'You',
-                        lastEditedAction: 'created this space',
-                        lastEditedAt: DateTime.now(),
-                      );
-                      context.read<SpacesProvider>().addSpace(newSpace);
+                      final name = _nameController.text.isEmpty
+                          ? AppLocalizations.of(context)!.newSpace
+                          : _nameController.text;
+                      final desc = _descController.text.isEmpty
+                          ? AppLocalizations.of(context)!.noDescription
+                          : _descController.text;
+                      context.read<SpacesProvider>().createSpace(name, desc);
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(
@@ -220,6 +174,7 @@ class _CreateSpaceBottomSheetState extends State<CreateSpaceBottomSheet> {
   Widget _buildTextField({
     required TextEditingController controller,
     required String hintText,
+    int? maxLines = 1,
   }) {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -234,6 +189,7 @@ class _CreateSpaceBottomSheetState extends State<CreateSpaceBottomSheet> {
       child: TextField(
         controller: controller,
         style: TextStyle(color: cs.onSurface),
+        maxLines: maxLines,
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.5)),

@@ -7,6 +7,9 @@ class SpacesProvider extends ChangeNotifier {
   
   List<SpaceModel> _spaces = [];
   bool _isLoading = true;
+  bool _isCreating = false;
+  bool _isUpdating = false;
+  bool _isDeleting = false;
   String? _errorMessage;
   String _searchQuery = '';
 
@@ -17,7 +20,11 @@ class SpacesProvider extends ChangeNotifier {
       return space.title.toLowerCase().contains(_searchQuery.toLowerCase());
     }).toList();
   }
+  
   bool get isLoading => _isLoading;
+  bool get isCreating => _isCreating;
+  bool get isUpdating => _isUpdating;
+  bool get isDeleting => _isDeleting;
   String? get errorMessage => _errorMessage;
 
   SpacesProvider() {
@@ -30,27 +37,7 @@ class SpacesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final fetchedSpaces = await _repository.getSpaces();
-      // Add some dummy recent activity data to the mock spaces for demonstration
-      _spaces = fetchedSpaces.map((space) {
-        if (space.id == '1') {
-          return SpaceModel(
-            id: space.id,
-            title: space.title,
-            description: space.description,
-            role: space.role,
-            memberCount: space.memberCount,
-            noteCount: space.noteCount,
-            iconColor: space.iconColor,
-            iconData: space.iconData,
-            privacy: space.privacy,
-            lastEditedBy: 'Sarah Khan',
-            lastEditedAction: 'edited "Project Plan"',
-            lastEditedAt: DateTime.now().subtract(const Duration(hours: 2)),
-          );
-        }
-        return space;
-      }).toList();
+      _spaces = await _repository.fetchSpaces();
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -59,40 +46,62 @@ class SpacesProvider extends ChangeNotifier {
     }
   }
 
-  void addSpace(SpaceModel space) {
-    _spaces.add(space);
+  Future<void> createSpace(String name, String description) async {
+    _isCreating = true;
+    _errorMessage = null;
     notifyListeners();
-  }
 
-  void searchSpaces(String query) {
-    _searchQuery = query;
-    notifyListeners();
-  }
-
-  void renameSpace(String spaceId, String newTitle) {
-    final index = _spaces.indexWhere((s) => s.id == spaceId);
-    if (index != -1) {
-      final old = _spaces[index];
-      _spaces[index] = SpaceModel(
-        id: old.id,
-        title: newTitle,
-        description: old.description,
-        role: old.role,
-        memberCount: old.memberCount,
-        noteCount: old.noteCount,
-        iconColor: old.iconColor,
-        iconData: old.iconData,
-        privacy: old.privacy,
-        lastEditedBy: old.lastEditedBy,
-        lastEditedAction: old.lastEditedAction,
-        lastEditedAt: old.lastEditedAt,
-      );
+    try {
+      final newSpace = await _repository.createSpace(name, description);
+      _spaces.insert(0, newSpace);
+    } catch (e) {
+      _errorMessage = e.toString();
+      throw e;
+    } finally {
+      _isCreating = false;
       notifyListeners();
     }
   }
 
-  void deleteSpace(String spaceId) {
-    _spaces.removeWhere((s) => s.id == spaceId);
+  Future<void> updateSpace(String id, String name, String description) async {
+    _isUpdating = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final updatedSpace = await _repository.updateSpace(id, name, description);
+      final index = _spaces.indexWhere((s) => s.id == id);
+      if (index != -1) {
+        _spaces[index] = updatedSpace;
+      }
+    } catch (e) {
+      _errorMessage = e.toString();
+      throw e;
+    } finally {
+      _isUpdating = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteSpace(String id) async {
+    _isDeleting = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _repository.deleteSpace(id);
+      _spaces.removeWhere((s) => s.id == id);
+    } catch (e) {
+      _errorMessage = e.toString();
+      throw e;
+    } finally {
+      _isDeleting = false;
+      notifyListeners();
+    }
+  }
+
+  void searchSpaces(String query) {
+    _searchQuery = query;
     notifyListeners();
   }
 }

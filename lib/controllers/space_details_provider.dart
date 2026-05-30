@@ -23,6 +23,7 @@ class SpaceDetailsProvider extends ChangeNotifier {
   bool _allowMembersToEdit = true;
   bool _isPublic = false;
   bool _isSaving = false;
+  bool _isActionRunning = false;
 
   // ── Tab state ────────────────────────────────────────────────────────────────
   String _activeTab = 'notes';
@@ -50,6 +51,7 @@ class SpaceDetailsProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isMembersLoading => _isMembersLoading;
   bool get isSaving => _isSaving;
+  bool get isActionRunning => _isActionRunning;
   String? get errorMessage => _errorMessage;
   String get activeTab => _activeTab;
   bool get allowMembersToEdit => _allowMembersToEdit;
@@ -83,24 +85,50 @@ class SpaceDetailsProvider extends ChangeNotifier {
     }
   }
 
-  void deleteNote(String noteId) {
-    _notes.removeWhere((n) => n.id == noteId);
+  Future<void> deleteNote(String spaceId, String noteId) async {
+    _isActionRunning = true;
     notifyListeners();
+    try {
+      await _repository.deleteNote(spaceId, noteId);
+      _notes.removeWhere((n) => n.id == noteId);
+    } catch (e) {
+      _errorMessage = e.toString();
+      throw e;
+    } finally {
+      _isActionRunning = false;
+      notifyListeners();
+    }
   }
 
-  void addNote(SpaceNoteModel note) {
-    _notes.insert(0, note);
+  Future<void> createNote(String spaceId, String title, String content) async {
+    _isActionRunning = true;
     notifyListeners();
+    try {
+      final newNote = await _repository.createNote(spaceId, title, content);
+      _notes.insert(0, newNote);
+    } catch (e) {
+      _errorMessage = e.toString();
+      throw e;
+    } finally {
+      _isActionRunning = false;
+      notifyListeners();
+    }
   }
 
-  void editNote(String id, String newName, String newDescription, List<String> tags) {
-    final index = _notes.indexWhere((n) => n.id == id);
-    if (index != -1) {
-      _notes[index].title = newName;
-      _notes[index].content = newDescription;
-      _notes[index].updatedAt = DateTime.now();
-      _notes[index].tags.clear();
-      _notes[index].tags.addAll(tags);
+  Future<void> updateNote(String spaceId, String noteId, String title, String content) async {
+    _isActionRunning = true;
+    notifyListeners();
+    try {
+      final updatedNote = await _repository.updateNote(spaceId, noteId, title, content);
+      final index = _notes.indexWhere((n) => n.id == noteId);
+      if (index != -1) {
+        _notes[index] = updatedNote;
+      }
+    } catch (e) {
+      _errorMessage = e.toString();
+      throw e;
+    } finally {
+      _isActionRunning = false;
       notifyListeners();
     }
   }

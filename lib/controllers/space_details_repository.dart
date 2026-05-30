@@ -1,81 +1,75 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../model/space_note_model.dart';
 import '../model/space_member_model.dart';
 import '../model/space_model.dart';
 
 class SpaceDetailsRepository {
-  /// Simulates fetching notes for a specific space from the backend.
-  /// Replace [Future.delayed] + mock data with real http.get() call later.
+  static const String _baseUrl = 'https://synopsis-cursive-ethics.ngrok-free.dev/api/v1/spaces';
+  static const Map<String, String> _headers = {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': '69420',
+    'Authorization': 'Bearer 5|luSv7vcNqYuYeawhAmm7MRAqOKl24wmDPj6JLtHabdbd7e03',
+  };
+
   Future<List<SpaceNoteModel>> getNotesForSpace(String spaceId) async {
-    await Future.delayed(const Duration(milliseconds: 800));
+    final response = await http.get(Uri.parse('$_baseUrl/$spaceId/notes'), headers: _headers);
 
-    // Mock data keyed by spaceId for realistic simulation
-    final Map<String, List<SpaceNoteModel>> mockData = {
-      '1': [
-        SpaceNoteModel(
-          id: 'n1',
-          title: 'Q4 Marketing Strategy',
-          content:
-              'Detailed strategy for Q4 campaigns including social media, email, and content marketing...',
-          authorName: 'Sarah Khan',
-          createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-          isFavorite: true,
-          tags: ['strategy', 'marketing'],
-        ),
-        SpaceNoteModel(
-          id: 'n2',
-          title: 'Campaign Ideas Brainstorm',
-          content:
-              'Collection of creative campaign concepts for the upcoming product launch...',
-          authorName: 'Ahmed Ali',
-          createdAt: DateTime.now().subtract(const Duration(days: 1)),
-          tags: ['ideas', 'brainstorm'],
-        ),
-        SpaceNoteModel(
-          id: 'n3',
-          title: 'Budget Planning 2025',
-          content:
-              'Annual budget allocations and projections for marketing department...',
-          authorName: 'Sarah Khan',
-          createdAt: DateTime(2025, 2, 18),
-          isFavorite: true,
-          tags: ['budget', 'planning'],
-        ),
-        SpaceNoteModel(
-          id: 'n4',
-          title: 'Brand Guidelines Update',
-          content:
-              'Updated brand voice, color palette, and typography standards...',
-          authorName: 'Ahmed Ali',
-          createdAt: DateTime(2025, 2, 15),
-          tags: ['brand'],
-        ),
-      ],
-      '3': [
-        SpaceNoteModel(
-          id: 'n5',
-          title: 'Design System v2',
-          content:
-              'Complete component library with tokens, spacing, and color system...',
-          authorName: 'Sara Al-Mansouri',
-          createdAt: DateTime.now().subtract(const Duration(hours: 5)),
-          isFavorite: true,
-          tags: ['design-system'],
-        ),
-        SpaceNoteModel(
-          id: 'n6',
-          title: 'Icon Set Guidelines',
-          content:
-              'Standard icon sizes, stroke widths, and naming conventions...',
-          authorName: 'Sara Al-Mansouri',
-          createdAt: DateTime(2025, 2, 10),
-          tags: ['icons', 'guidelines'],
-        ),
-      ],
-    };
-
-    return mockData[spaceId] ?? [];
+    if (response.statusCode == 200) {
+      final jsonResponse = jsonDecode(response.body);
+      final List<dynamic> data = jsonResponse['data'] ?? jsonResponse;
+      return data.map((e) => SpaceNoteModel.fromJson(e)).toList();
+    } else {
+      throw Exception('Failed to load space notes: ${response.statusCode} ${response.body}');
+    }
   }
+
+  Future<SpaceNoteModel> createNote(String spaceId, String title, String content) async {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/$spaceId/notes'),
+      headers: _headers,
+      body: jsonEncode({'title': title, 'content': content}),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final jsonResponse = jsonDecode(response.body);
+      final data = jsonResponse['data'] ?? jsonResponse;
+      return SpaceNoteModel.fromJson(data);
+    } else {
+      throw Exception('Failed to create space note: ${response.statusCode} ${response.body}');
+    }
+  }
+
+  Future<SpaceNoteModel> updateNote(String spaceId, String noteId, String title, String content) async {
+    final response = await http.put(
+      Uri.parse('$_baseUrl/$spaceId/notes/$noteId'),
+      headers: _headers,
+      body: jsonEncode({'title': title, 'content': content}),
+    );
+
+    if (response.statusCode == 200) {
+      final jsonResponse = jsonDecode(response.body);
+      final data = jsonResponse['data'] ?? jsonResponse;
+      return SpaceNoteModel.fromJson(data);
+    } else {
+      throw Exception('Failed to update space note: ${response.statusCode} ${response.body}');
+    }
+  }
+
+  Future<void> deleteNote(String spaceId, String noteId) async {
+    final response = await http.delete(
+      Uri.parse('$_baseUrl/$spaceId/notes/$noteId'),
+      headers: _headers,
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to delete space note: ${response.statusCode} ${response.body}');
+    }
+  }
+
 
   Future<List<SpaceMemberModel>> getMembersForSpace(String spaceId) async {
     await Future.delayed(const Duration(milliseconds: 600));

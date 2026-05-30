@@ -53,7 +53,7 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const _CreateNoteSheet(),
+      builder: (_) => _CreateNoteSheet(spaceId: widget.space.id),
     );
   }
 
@@ -152,25 +152,6 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
                     ],
                   ),
                   _RoleBadge(role: space.role),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                          space.privacy == SpacePrivacy.private
-                              ? Icons.lock_outline
-                              : Icons.language,
-                          color: cs.onSurface.withValues(alpha: 0.4),
-                          size: 14),
-                      const SizedBox(width: 4),
-                      Text(
-                          space.privacy == SpacePrivacy.private
-                              ? AppLocalizations.of(context)!.private
-                              : AppLocalizations.of(context)!.public,
-                          style: TextStyle(
-                              color: cs.onSurface.withValues(alpha: 0.4),
-                              fontSize: 12)),
-                    ],
-                  ),
                 ],
               ),
             ),
@@ -295,7 +276,9 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
                         myRole: widget.space.role, provider: provider);
                   }
                   return _NotesTab(
-                      provider: provider, spaceRole: widget.space.role);
+                      spaceId: space.id,
+                      provider: provider,
+                      spaceRole: space.role);
                 },
               ),
             ),
@@ -311,7 +294,8 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
 class _NotesTab extends StatelessWidget {
   final SpaceDetailsProvider provider;
   final SpaceRole spaceRole;
-  const _NotesTab({required this.provider, required this.spaceRole});
+  final String spaceId;
+  const _NotesTab({required this.spaceId, required this.provider, required this.spaceRole});
 
   @override
   Widget build(BuildContext context) {
@@ -325,7 +309,7 @@ class _NotesTab extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: notes.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (ctx, i) => _NoteCard(note: notes[i], spaceRole: spaceRole),
+      itemBuilder: (ctx, i) => _NoteCard(spaceId: spaceId, note: notes[i], spaceRole: spaceRole),
     );
   }
 }
@@ -362,7 +346,8 @@ class _MembersTab extends StatelessWidget {
 class _NoteCard extends StatelessWidget {
   final SpaceNoteModel note;
   final SpaceRole spaceRole;
-  const _NoteCard({required this.note, required this.spaceRole});
+  final String spaceId;
+  const _NoteCard({required this.spaceId, required this.note, required this.spaceRole});
 
   String _timeLabel(DateTime dt, {bool isEdited = false}) {
     final diff = DateTime.now().difference(dt);
@@ -395,7 +380,7 @@ class _NoteCard extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => _NoteOptionsSheet(note: note, spaceRole: spaceRole),
+      builder: (_) => _NoteOptionsSheet(spaceId: spaceId, note: note, spaceRole: spaceRole),
     );
   }
 
@@ -463,12 +448,6 @@ class _NoteCard extends StatelessWidget {
                     style: TextStyle(
                         color: cs.onSurface.withValues(alpha: 0.4),
                         fontSize: 11)),
-                const SizedBox(width: 10),
-                Expanded(
-                    child: Wrap(
-                        spacing: 6,
-                        children:
-                            note.tags.map((t) => _TagChip(tag: t)).toList())),
               ]),
             ],
           ),
@@ -476,61 +455,34 @@ class _NoteCard extends StatelessWidget {
   }
 }
 
-class _TagChip extends StatelessWidget {
-  final String tag;
-  const _TagChip({required this.tag});
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF202430) : Theme.of(context).cardColor,
-          border: isDark
-              ? null
-              : Border.all(color: cs.onSurface.withValues(alpha: 0.1)),
-          borderRadius: BorderRadius.circular(6)),
-      child: Text(tag,
-          style: TextStyle(
-              color: cs.onSurface.withValues(alpha: 0.5), fontSize: 10)),
-    );
-  }
-}
 
 // ── Create Note Sheet ─────────────────────────────────────────────────────────
 
 class _CreateNoteSheet extends StatefulWidget {
   final SpaceNoteModel? note;
-  const _CreateNoteSheet({this.note});
+  final String spaceId;
+  const _CreateNoteSheet({required this.spaceId, this.note});
   @override
   State<_CreateNoteSheet> createState() => _CreateNoteSheetState();
 }
 
 class _CreateNoteSheetState extends State<_CreateNoteSheet> {
   late final TextEditingController _nameCtrl;
-  late final TextEditingController _tagsCtrl;
   late final TextEditingController _descCtrl;
 
   @override
   void initState() {
     super.initState();
     _nameCtrl = TextEditingController(text: widget.note?.title ?? '');
-    _tagsCtrl = TextEditingController(text: widget.note?.tags.join(', ') ?? '');
     _descCtrl = TextEditingController(text: widget.note?.content ?? '');
   }
 
   @override
   void dispose() {
     _nameCtrl.dispose();
-    _tagsCtrl.dispose();
     _descCtrl.dispose();
     super.dispose();
   }
-
-  List<String> _parseTags(String raw) =>
-      raw.split(',').map((t) => t.trim()).where((t) => t.isNotEmpty).toList();
 
   @override
   Widget build(BuildContext context) {
@@ -590,16 +542,6 @@ class _CreateNoteSheetState extends State<_CreateNoteSheet> {
             maxLines: null,
             keyboardType: TextInputType.multiline,
           ),
-          const SizedBox(height: 16),
-          Text(AppLocalizations.of(context)!.tag,
-              style: TextStyle(
-                  color: cs.onSurface.withValues(alpha: 0.6),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500)),
-          const SizedBox(height: 8),
-          SpaceTextField(
-              controller: _tagsCtrl,
-              hintText: AppLocalizations.of(context)!.tagDescription),
           const SizedBox(height: 24),
           Row(children: [
             Expanded(
@@ -613,27 +555,22 @@ class _CreateNoteSheetState extends State<_CreateNoteSheet> {
                 label: widget.note == null
                     ? AppLocalizations.of(context)!.createNoteSpaces
                     : AppLocalizations.of(context)!.updateNote,
-                onPressed: () {
+                onPressed: () async {
                   final nav = Navigator.of(context);
                   final name = _nameCtrl.text.trim();
                   if (name.isEmpty) return;
 
                   if (widget.note != null) {
-                    context.read<SpaceDetailsProvider>().editNote(
+                    await context.read<SpaceDetailsProvider>().updateNote(
+                        widget.spaceId,
                         widget.note!.id,
                         name,
-                        _descCtrl.text.trim(),
-                        _parseTags(_tagsCtrl.text));
+                        _descCtrl.text.trim());
                   } else {
-                    final note = SpaceNoteModel(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      title: name,
-                      content: _descCtrl.text.trim(),
-                      authorName: 'You',
-                      createdAt: DateTime.now(),
-                      tags: _parseTags(_tagsCtrl.text),
-                    );
-                    context.read<SpaceDetailsProvider>().addNote(note);
+                    await context.read<SpaceDetailsProvider>().createNote(
+                        widget.spaceId,
+                        name,
+                        _descCtrl.text.trim());
                   }
                   nav.pop();
                 },
@@ -651,7 +588,8 @@ class _CreateNoteSheetState extends State<_CreateNoteSheet> {
 class _NoteOptionsSheet extends StatelessWidget {
   final SpaceNoteModel note;
   final SpaceRole spaceRole;
-  const _NoteOptionsSheet({required this.note, required this.spaceRole});
+  final String spaceId;
+  const _NoteOptionsSheet({required this.spaceId, required this.note, required this.spaceRole});
 
   @override
   Widget build(BuildContext context) {
@@ -696,7 +634,7 @@ class _NoteOptionsSheet extends StatelessWidget {
                   context: context,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
-                  builder: (_) => _CreateNoteSheet(note: note),
+                  builder: (_) => _CreateNoteSheet(spaceId: spaceId, note: note),
                 );
               },
             ),
@@ -707,7 +645,7 @@ class _NoteOptionsSheet extends StatelessWidget {
               labelColor: const Color(0xFFEF4444),
               onTap: () {
                 final nav = Navigator.of(context);
-                context.read<SpaceDetailsProvider>().deleteNote(note.id);
+                context.read<SpaceDetailsProvider>().deleteNote(spaceId, note.id);
                 nav.pop();
               },
             ),
@@ -785,12 +723,19 @@ class _OptionsBottomSheet extends StatelessWidget {
                               style: TextStyle(
                                   color: cs.onSurface.withValues(alpha: 0.5)))),
                       TextButton(
-                        onPressed: () {
+                        onPressed: () async {
                           final provider = dialogCtx.read<SpacesProvider>();
-                          Navigator.pop(dialogCtx); // pop dialog
-                          Navigator.pop(context); // pop bottom sheet
-                          Navigator.pop(context); // pop details screen
-                          provider.deleteSpace(space.id);
+                          final scaffold = ScaffoldMessenger.of(context);
+                          final nav = Navigator.of(context);
+                          try {
+                            await provider.deleteSpace(space.id);
+                            nav.pop(); // pop dialog
+                            nav.pop(); // pop bottom sheet
+                            nav.pop(); // pop details screen
+                          } catch (e) {
+                            nav.pop();
+                            scaffold.showSnackBar(SnackBar(content: Text(e.toString())));
+                          }
                         },
                         child: Text(AppLocalizations.of(context)!.delete,
                             style: TextStyle(color: Color(0xFFEF4444))),
@@ -806,11 +751,18 @@ class _OptionsBottomSheet extends StatelessWidget {
               iconColor: const Color(0xFFEF4444),
               label: AppLocalizations.of(context)!.leaveSpace,
               labelColor: const Color(0xFFEF4444),
-              onTap: () {
+              onTap: () async {
                 final provider = context.read<SpacesProvider>();
-                Navigator.pop(context); // pop bottom sheet
-                Navigator.pop(context); // pop details screen
-                provider.deleteSpace(space.id);
+                final nav = Navigator.of(context);
+                final scaffold = ScaffoldMessenger.of(context);
+                try {
+                  await provider.deleteSpace(space.id);
+                  nav.pop(); // pop bottom sheet
+                  nav.pop(); // pop details screen
+                } catch (e) {
+                  nav.pop();
+                  scaffold.showSnackBar(SnackBar(content: Text(e.toString())));
+                }
               },
             ),
         ],
@@ -901,13 +853,6 @@ class _EditSpaceSheetState extends State<_EditSpaceSheet> {
                 value: provider.allowMembersToEdit,
                 onChanged: provider.setAllowMembersToEdit,
               ),
-              const SizedBox(height: 10),
-              SpaceSwitchTile(
-                title: AppLocalizations.of(context)!.makeSpacePublic,
-                subtitle: AppLocalizations.of(context)!.anyoneWithLink,
-                value: provider.isPublic,
-                onChanged: provider.setIsPublic,
-              ),
               const SizedBox(height: 24),
               Row(children: [
                 Expanded(
@@ -922,18 +867,18 @@ class _EditSpaceSheetState extends State<_EditSpaceSheet> {
                     isLoading: provider.isSaving,
                     onPressed: () async {
                       final nav = Navigator.of(context);
-                      final settings = SpaceSettingsModel(
-                        name: _nameCtrl.text.trim(),
-                        description: _descCtrl.text.trim(),
-                        isPublic: provider.isPublic,
-                        allowMembersToEdit: provider.allowMembersToEdit,
-                        invitedEmails: [],
-                      );
-                      await provider.updateSpaceSettings(settings);
-                      context
-                          .read<SpacesProvider>()
-                          .renameSpace(widget.space.id, settings.name);
-                      nav.pop();
+                      try {
+                        await context.read<SpacesProvider>().updateSpace(
+                              widget.space.id,
+                              _nameCtrl.text.trim(),
+                              _descCtrl.text.trim(),
+                            );
+                        nav.pop();
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(e.toString())),
+                        );
+                      }
                     },
                   ),
                 ),

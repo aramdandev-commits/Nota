@@ -15,6 +15,14 @@ class SpacesScreen extends StatefulWidget {
 }
 
 class _SpacesScreenState extends State<SpacesScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SpacesProvider>().fetchSpaces();
+    });
+  }
+
   void _showCreateSpaceBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,

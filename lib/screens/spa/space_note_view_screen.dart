@@ -6,6 +6,7 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../model/space_note_model.dart';
 import '../../controllers/note_formatting_controller.dart';
+import '../../widgets/note/note_app_bar.dart';
 
 class SpaceNoteViewScreen extends StatefulWidget {
   final SpaceNoteModel note;
@@ -21,6 +22,7 @@ class _SpaceNoteViewScreenState extends State<SpaceNoteViewScreen> {
   final NoteFormattingController _formattingController =
       NoteFormattingController();
   Map<String, dynamic> _activeFormats = {};
+  final ValueNotifier<String> _saveStateNotifier = ValueNotifier<String>('Saved');
 
   @override
   void initState() {
@@ -60,6 +62,7 @@ class _SpaceNoteViewScreenState extends State<SpaceNoteViewScreen> {
 
   @override
   void dispose() {
+    _saveStateNotifier.dispose();
     _titleController.dispose();
     super.dispose();
   }
@@ -99,29 +102,19 @@ class _SpaceNoteViewScreenState extends State<SpaceNoteViewScreen> {
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         resizeToAvoidBottomInset: true,
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: ValueListenableBuilder<String>(
+            valueListenable: _saveStateNotifier,
+            builder: (context, saveState, child) {
+              return NoteAppBar(saveState: saveState, noteId: widget.note.id);
+            },
+          ),
+        ),
         body: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── App bar ──────────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        widget.note.title = _titleController.text;
-                        Navigator.pop(context, widget.note);
-                      },
-                      child: Icon(Icons.arrow_back_ios_new,
-                          color: cs.onSurface, size: 20),
-                    ),
-                    const Spacer(),
-                    Icon(Icons.more_vert,
-                        color: cs.onSurface.withValues(alpha: 0.4), size: 22),
-                  ],
-                ),
-              ),
               // ── Title & Date Header ──────────────────────────────────
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),

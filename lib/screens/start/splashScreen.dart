@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nota/controllers/auth_provider.dart';
 import 'package:nota/helper/splashScreenFunctions.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -31,13 +33,27 @@ class _SplashScreenState extends State<SplashScreen>
       });
     });
 
-    // Navigate to the next screen after 2 seconds
+    // Navigate after splash animation
     Future.delayed(const Duration(seconds: 4), () async {
+      if (!mounted) return;
+
+      // 1. Try to restore a saved auth token
+      final authProvider = context.read<AuthProvider>();
+      final hasSession = await authProvider.tryRestoreSession();
+      if (!mounted) return;
+
+      if (hasSession) {
+        context.go("/home");
+        return;
+      }
+
+      // 2. No token — check if onboarding was seen
       final prefs = await SharedPreferences.getInstance();
       final seen = prefs.getBool("onboardingSeen") ?? false;
       if (!mounted) return;
+
       if (seen) {
-        context.go("/home");
+        context.go("/auth");
       } else {
         context.go("/auth");
       }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nota/l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
+import 'package:nota/controllers/auth_provider.dart';
 import 'resetpassword_screen.dart';
 import '../../widgets/auth/auth_button.dart';
 import '../../widgets/auth/auth_divider.dart';
@@ -44,19 +46,48 @@ class _AuthScreenState extends State<AuthScreen> {
     });
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid) return;
 
+    final auth = context.read<AuthProvider>();
+
     if (_isLogin) {
-      debugPrint('Login => ${_emailController.text}');
-      context.go('/home');
-    } else {
-      debugPrint(
-        'Sign Up => ${_nameController.text} | ${_emailController.text}',
+      final error = await auth.login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
       );
-      context.push('/account-created');
+      if (!mounted) return;
+      if (error == null) {
+        context.go('/home');
+      } else {
+        _showError(error);
+      }
+    } else {
+      final error = await auth.register(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        confirmPassword: _confirmPasswordController.text,
+      );
+      if (!mounted) return;
+      if (error == null) {
+        context.push('/account-created');
+      } else {
+        _showError(error);
+      }
     }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: const Color(0xFFDB2777),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   @override
@@ -66,10 +97,6 @@ class _AuthScreenState extends State<AuthScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
-  }
-
-  Widget _buildLabel(String text) {
-    return const SizedBox.shrink();
   }
 
   Widget _sectionLabel(String text, ColorScheme cs) {
@@ -86,6 +113,7 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final isLoading = context.watch<AuthProvider>().isLoading;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -213,7 +241,8 @@ class _AuthScreenState extends State<AuthScreen> {
                   label: _isLogin
                       ? AppLocalizations.of(context)!.logIn
                       : AppLocalizations.of(context)!.createAccount,
-                  onTap: _submit,
+                  onTap: isLoading ? null : _submit,
+                  isLoading: isLoading,
                 ),
                 const SizedBox(height: 22),
                 AuthFooter(isLogin: _isLogin, onActionTap: _toggleMode),

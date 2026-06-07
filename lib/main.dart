@@ -9,6 +9,7 @@ import 'package:nota/controllers/spaces_provider.dart';
 import 'package:nota/controllers/space_details_provider.dart';
 import 'package:nota/controllers/theme_provider.dart';
 import 'package:nota/controllers/locale_provider.dart';
+import 'package:nota/controllers/auth_provider.dart';
 import 'package:nota/helper/app_theme.dart';
 
 late final GoRouter router;
@@ -25,6 +26,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => SpaceDetailsProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => LocaleProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
       ],
       child: const MainApp(),
     ),

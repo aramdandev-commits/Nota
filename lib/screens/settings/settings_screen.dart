@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nota/l10n/app_localizations.dart';
 import '../../controllers/settings_controller.dart';
 import '../../widgets/settings/settings_tile.dart';
@@ -9,6 +10,7 @@ import '../../widgets/home/bottom_navigation.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/theme_provider.dart';
 import '../../controllers/locale_provider.dart';
+import '../../controllers/auth_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -173,6 +175,79 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
               ]),
+
+              const SizedBox(height: 32),
+
+              /// 🚪 Logout
+              GestureDetector(
+                onTap: () async {
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      backgroundColor: Theme.of(context).cardColor,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                      title: Text(
+                        AppLocalizations.of(context)!.logout,
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface),
+                      ),
+                      content: Text(
+                        AppLocalizations.of(context)!.logoutConfirm,
+                        style: TextStyle(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.6)),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, false),
+                          child: Text(AppLocalizations.of(context)!.cancel,
+                              style: const TextStyle(color: Color(0xFF9810FA))),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx, true),
+                          child: Text(AppLocalizations.of(context)!.logout,
+                              style: const TextStyle(color: Color(0xFFDB2777))),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirmed == true && context.mounted) {
+                    await context.read<AuthProvider>().logout();
+                    if (context.mounted) context.go('/auth');
+                  }
+                },
+                child: Container(
+                  width: double.infinity,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDB2777).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                        color: const Color(0xFFDB2777).withValues(alpha: 0.3)),
+                  ),
+                  alignment: Alignment.center,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.logout_rounded,
+                          color: Color(0xFFDB2777), size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        AppLocalizations.of(context)!.logout,
+                        style: const TextStyle(
+                          color: Color(0xFFDB2777),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'Inter',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
 
               const SizedBox(height: 80),
             ],

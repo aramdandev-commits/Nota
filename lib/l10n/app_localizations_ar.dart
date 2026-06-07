@@ -451,6 +451,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get resetPassword => 'إعادة تعيين كلمة المرور';
 
   @override
+  String get resetPasswordSubtitle =>
+      'أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة التعيين.';
+
+  @override
   String get backToLogin => 'العودة إلى تسجيل الدخول';
 
   @override
@@ -547,6 +551,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get logout => 'تسجيل الخروج';
+
+  @override
+  String get logoutConfirm => 'هل أنت متأكد أنك تريد تسجيل الخروج؟';
 
   @override
   String get dontHaveAccount => 'ليس لديك حساب؟  ';

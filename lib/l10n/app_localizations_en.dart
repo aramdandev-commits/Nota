@@ -453,6 +453,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resetPassword => 'Reset Password';
 
   @override
+  String get resetPasswordSubtitle =>
+      'Enter your email and we\'ll send you a reset link.';
+
+  @override
   String get backToLogin => 'Back to Login';
 
   @override
@@ -547,6 +551,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get logout => 'Logout';
+
+  @override
+  String get logoutConfirm => 'Are you sure you want to log out?';
 
   @override
   String get dontHaveAccount => 'Don\'t have an account?  ';

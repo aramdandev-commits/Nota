@@ -115,11 +115,13 @@ class SpaceDetailsProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> updateNote(String spaceId, String noteId, String title, String content) async {
+  Future<void> updateNote(
+      String spaceId, String noteId, String title, String content) async {
     _isActionRunning = true;
     notifyListeners();
     try {
-      final updatedNote = await _repository.updateNote(spaceId, noteId, title, content);
+      final updatedNote =
+          await _repository.updateNote(spaceId, noteId, title, content);
       final index = _notes.indexWhere((n) => n.id == noteId);
       if (index != -1) {
         _notes[index] = updatedNote;

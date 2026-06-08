@@ -8,15 +8,22 @@ import '../model/space_model.dart';
 
 class SpaceDetailsRepository {
   static const String _baseUrl = 'https://synopsis-cursive-ethics.ngrok-free.dev/api/v1/spaces';
-  static const Map<String, String> _headers = {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-    'ngrok-skip-browser-warning': '69420',
-    'Authorization': 'Bearer 5|luSv7vcNqYuYeawhAmm7MRAqOKl24wmDPj6JLtHabdbd7e03',
-  };
+  static const String _globalUrl = 'https://synopsis-cursive-ethics.ngrok-free.dev/api/v1';
+
+  Future<Map<String, String>> _getHeaders() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    return {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'ngrok-skip-browser-warning': '69420',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+  }
 
   Future<List<SpaceNoteModel>> getNotesForSpace(String spaceId) async {
-    final response = await http.get(Uri.parse('$_baseUrl/$spaceId/notes'), headers: _headers);
+    final headers = await _getHeaders();
+    final response = await http.get(Uri.parse('$_baseUrl/$spaceId/notes'), headers: headers);
 
     if (response.statusCode == 200) {
       final jsonResponse = jsonDecode(response.body);
@@ -27,11 +34,12 @@ class SpaceDetailsRepository {
     }
   }
 
-  Future<SpaceNoteModel> createNote(String spaceId, String title, String content) async {
+  Future<SpaceNoteModel> createNote(String spaceId, String title, String content, String preview) async {
+    final headers = await _getHeaders();
     final response = await http.post(
       Uri.parse('$_baseUrl/$spaceId/notes'),
-      headers: _headers,
-      body: jsonEncode({'title': title, 'content': content}),
+      headers: headers,
+      body: jsonEncode({'title': title, 'content': [content], 'preview': preview}), // send as list
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
@@ -43,11 +51,12 @@ class SpaceDetailsRepository {
     }
   }
 
-  Future<SpaceNoteModel> updateNote(String spaceId, String noteId, String title, String content) async {
+  Future<SpaceNoteModel> updateNote(String spaceId, String noteId, String title, String content, String preview) async {
+    final headers = await _getHeaders();
     final response = await http.put(
-      Uri.parse('$_baseUrl/$spaceId/notes/$noteId'),
-      headers: _headers,
-      body: jsonEncode({'title': title, 'content': content}),
+      Uri.parse('$_globalUrl/notes/$noteId'), // Shallow routing
+      headers: headers,
+      body: jsonEncode({'title': title, 'content': [content], 'preview': preview}), // send as list
     );
 
     if (response.statusCode == 200) {
@@ -60,16 +69,16 @@ class SpaceDetailsRepository {
   }
 
   Future<void> deleteNote(String spaceId, String noteId) async {
+    final headers = await _getHeaders();
     final response = await http.delete(
-      Uri.parse('$_baseUrl/$spaceId/notes/$noteId'),
-      headers: _headers,
+      Uri.parse('$_globalUrl/notes/$noteId'), // Shallow routing
+      headers: headers,
     );
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception('Failed to delete space note: ${response.statusCode} ${response.body}');
     }
   }
-
 
   Future<List<SpaceMemberModel>> getMembersForSpace(String spaceId) async {
     await Future.delayed(const Duration(milliseconds: 600));

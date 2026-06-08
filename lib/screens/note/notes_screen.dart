@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:nota/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/note_provider.dart';
+import '../../controllers/space_details_provider.dart';
+import '../../model/note_model.dart';
 
 class NotesScreen extends StatelessWidget {
   const NotesScreen({super.key});
@@ -32,9 +34,24 @@ class NotesScreen extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: Consumer<NoteProvider>(
-        builder: (context, noteProvider, child) {
-          final notes = noteProvider.notes;
+      body: Consumer2<NoteProvider, SpaceDetailsProvider>(
+        builder: (context, noteProvider, spaceDetailsProvider, child) {
+          final allNotes = [
+            ...noteProvider.notes,
+            ...spaceDetailsProvider.notes.map((sn) => NoteModel(
+                  id: sn.id,
+                  spaceId: 'unknown', // not explicitly tracked in sn
+                  title: sn.title,
+                  content: sn.content,
+                  preview: sn.preview,
+                  createdAt: sn.createdAt,
+                  updatedAt: sn.updatedAt ?? sn.createdAt,
+                ))
+          ];
+          
+          allNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+          
+          final notes = allNotes;
 
           if (notes.isEmpty) {
             return Center(
@@ -71,10 +88,13 @@ class NotesScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               final note = notes[index];
 
-              String previewText = getPreviewText(note.content);
+              String previewText = note.preview ?? '';
+              if (previewText.isEmpty) {
+                previewText = AppLocalizations.of(context)!.emptyNote;
+              }
 
               return GestureDetector(
-                onTap: () => context.push('/new-note', extra: note.id),
+                onTap: () => context.push('/new-note', extra: note),
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -98,9 +118,7 @@ class NotesScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        previewText.isNotEmpty
-                            ? previewText
-                            : AppLocalizations.of(context)!.emptyNote,
+                        previewText,
                         style: TextStyle(
                           color: cs.onSurface.withValues(alpha: 0.54),
                           fontSize: 14,
@@ -160,17 +178,3 @@ class NotesScreen extends StatelessWidget {
   }
 }
 
-String getPreviewText(String content) {
-  if (content.isEmpty) return "No content";
-  try {
-    final List<dynamic> ops = jsonDecode(content);
-    String text = ops
-        .map((op) => op['insert']?.toString() ?? '')
-        .join('')
-        .replaceAll('\n', ' ')
-        .trim();
-    return text.length > 50 ? '${text.substring(0, 50)}...' : text;
-  } catch (e) {
-    return "Rich text note (Open to view)";
-  }
-}

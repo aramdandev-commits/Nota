@@ -109,7 +109,7 @@
         };
 
         // Explicitly attach the init function to the window object so Flutter can call it
-        window.initEditor = function(noteId, token, wssUrl) {
+        window.initEditor = function(noteId, token, wssUrl, fallbackBase64) {
             // Clean up existing connections if any
             if (provider) {
                 provider.destroy();
@@ -144,6 +144,20 @@
             ydoc = new Y.Doc();
             window.ydoc = ydoc;
 
+            // Pre-load state from Flutter if provided, BEFORE connecting to Hocuspocus
+            if (fallbackBase64 && fallbackBase64 !== '') {
+                try {
+                    const binaryString = atob(fallbackBase64);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    window.Y.applyUpdate(ydoc, bytes);
+                } catch (e) {
+                    console.error("Error applying fallback base64 state:", e);
+                }
+            }
+
             // Connect to Hocuspocus using the provided URL
             provider = new HocuspocusProvider({
                 url: wssUrl,
@@ -165,6 +179,10 @@
                     window.FormatChannel.postMessage(JSON.stringify(window.quill.getFormat()));
                 }
             });
+        };
+
+        window.initEditorWithBinary = function(noteId, token, wssUrl, fallbackBase64) {
+            window.initEditor(noteId, token, wssUrl, fallbackBase64);
         };
 
         // Function to EXPORT state to Flutter (Saving)

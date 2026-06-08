@@ -100,11 +100,11 @@ class SpaceDetailsProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> createNote(String spaceId, String title, String content) async {
+  Future<void> createNote(String spaceId, String title, String content, String preview) async {
     _isActionRunning = true;
     notifyListeners();
     try {
-      final newNote = await _repository.createNote(spaceId, title, content);
+      final newNote = await _repository.createNote(spaceId, title, content, preview);
       _notes.insert(0, newNote);
     } catch (e) {
       _errorMessage = e.toString();
@@ -116,12 +116,12 @@ class SpaceDetailsProvider extends ChangeNotifier {
   }
 
   Future<void> updateNote(
-      String spaceId, String noteId, String title, String content) async {
+      String spaceId, String noteId, String title, String content, String preview) async {
     _isActionRunning = true;
     notifyListeners();
     try {
       final updatedNote =
-          await _repository.updateNote(spaceId, noteId, title, content);
+          await _repository.updateNote(spaceId, noteId, title, content, preview);
       final index = _notes.indexWhere((n) => n.id == noteId);
       if (index != -1) {
         _notes[index] = updatedNote;

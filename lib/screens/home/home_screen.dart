@@ -6,6 +6,8 @@ import 'package:nota/widgets/home/bottom_navigation.dart';
 import 'package:nota/widgets/pdf/import_pdf.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/note_provider.dart';
+import '../../controllers/space_details_provider.dart';
+import '../../model/note_model.dart';
 import '../../widgets/home/home_header.dart';
 import '../../widgets/home/search_bar.dart';
 import '../../widgets/home/ai_card.dart';
@@ -195,9 +197,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              Consumer<NoteProvider>(
-                builder: (context, noteProvider, child) {
-                  final recentNotes = noteProvider.notes.take(5).toList();
+              Consumer2<NoteProvider, SpaceDetailsProvider>(
+                builder: (context, noteProvider, spaceDetailsProvider, child) {
+                  final allNotes = [
+                    ...noteProvider.notes,
+                    ...spaceDetailsProvider.notes.map((sn) => NoteModel(
+                          id: sn.id,
+                          spaceId: 'unknown', // Need to pass a value so it's not null, or map it properly
+                          title: sn.title,
+                          content: sn.content,
+                          preview: sn.preview,
+                          createdAt: sn.createdAt,
+                          updatedAt: sn.updatedAt ?? sn.createdAt,
+                        ))
+                  ];
+                  
+                  // Sort descending by updated date
+                  allNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+                  
+                  final recentNotes = allNotes.take(5).toList();
 
                   if (recentNotes.isEmpty) {
                     return Container(
@@ -230,29 +248,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemBuilder: (context, index) {
                       final note = recentNotes[index];
 
-                      String previewText = "No content";
-                      try {
-                        if (note.content.isNotEmpty) {
-                          final List<dynamic> ops = jsonDecode(note.content);
-                          previewText = ops
-                              .map((op) => op['insert']?.toString() ?? '')
-                              .join('')
-                              .replaceAll('\n', ' ')
-                              .trim();
-                          if (previewText.length > 50) {
-                            previewText = '${previewText.substring(0, 50)}...';
-                          }
-                        }
-                      } catch (e) {
-                        previewText = note.content;
-                        if (previewText.length > 50) {
-                          previewText = '${previewText.substring(0, 50)}...';
-                        }
+                      String previewText = note.preview ?? '';
+                      if (previewText.isEmpty) {
+                        previewText = AppLocalizations.of(context)!.emptyNote;
                       }
 
                       return GestureDetector(
                         onTap: () {
-                          context.push('/new-note', extra: note.id);
+                          context.push('/new-note', extra: note);
                         },
                         child: Container(
                           padding: const EdgeInsets.all(16),
@@ -282,9 +285,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                previewText.isNotEmpty
-                                    ? previewText
-                                    : AppLocalizations.of(context)!.emptyNote,
+                                previewText,
                                 style: TextStyle(
                                   color: Theme.of(context)
                                       .colorScheme
@@ -344,20 +345,5 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       bottomNavigationBar: const BottomNavigation(selectedIndex: 0),
     );
-  }
-}
-
-String getPreviewText(String content) {
-  if (content.isEmpty) return "No content";
-  try {
-    final List<dynamic> ops = jsonDecode(content);
-    String text = ops
-        .map((op) => op['insert']?.toString() ?? '')
-        .join('')
-        .replaceAll('\n', ' ')
-        .trim();
-    return text.length > 50 ? '${text.substring(0, 50)}...' : text;
-  } catch (e) {
-    return "Rich text note (Open to view)";
   }
 }

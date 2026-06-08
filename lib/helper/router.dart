@@ -10,8 +10,10 @@ import '../screens/AI/ai_analyze_screen.dart';
 import '../screens/pdf/import_pdf_screen.dart';
 import '../screens/note/notes_screen.dart';
 import '../screens/spa/spaces_screen.dart';
+import 'package:provider/provider.dart';
+import '../controllers/note_provider.dart';
+import '../model/note_model.dart';
 import '../screens/settings/settings_screen.dart';
-
 GoRouter createRouter() {
   return GoRouter(
     initialLocation: '/',
@@ -32,8 +34,20 @@ GoRouter createRouter() {
       GoRoute(
         path: '/new-note',
         builder: (context, state) {
-          final noteId = state.extra as String?;
-          return NewNoteScreen(noteId: noteId);
+          final extra = state.extra;
+          NoteModel? note;
+          
+          if (extra is String) {
+            try {
+              note = Provider.of<NoteProvider>(context, listen: false)
+                  .notes
+                  .firstWhere((n) => n.id == extra);
+            } catch (_) {}
+          } else if (extra is NoteModel) {
+            note = extra;
+          }
+          
+          return NewNoteScreen(note: note);
         },
       ),
       GoRoute(

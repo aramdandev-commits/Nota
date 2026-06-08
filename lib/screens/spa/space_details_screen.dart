@@ -6,7 +6,8 @@ import '../../controllers/spaces_provider.dart';
 import '../../model/space_model.dart';
 import '../../model/space_note_model.dart';
 import '../../model/space_settings_model.dart';
-import 'space_note_view_screen.dart';
+import '../../model/note_model.dart';
+import '../note/new_note_screen.dart';
 import '../../widgets/spa/member_card.dart';
 import '../../widgets/spa/space_text_field.dart';
 import '../../widgets/spa/space_switch_tile.dart';
@@ -391,7 +392,20 @@ class _NoteCard extends StatelessWidget {
 
     return GestureDetector(
         onTap: () => Navigator.push(context,
-            MaterialPageRoute(builder: (_) => SpaceNoteViewScreen(note: note))),
+            MaterialPageRoute(
+              builder: (_) => NewNoteScreen(
+                note: NoteModel(
+                  id: note.id,
+                  spaceId: spaceId,
+                  title: note.title,
+                  content: note.content,
+                  preview: note.preview,
+                  createdAt: note.createdAt,
+                  updatedAt: note.updatedAt ?? note.createdAt,
+                ),
+                spaceId: spaceId,
+              ),
+            )),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -565,11 +579,13 @@ class _CreateNoteSheetState extends State<_CreateNoteSheet> {
                         widget.spaceId,
                         widget.note!.id,
                         name,
+                        _descCtrl.text.trim(),
                         _descCtrl.text.trim());
                   } else {
                     await context.read<SpaceDetailsProvider>().createNote(
                         widget.spaceId,
                         name,
+                        _descCtrl.text.trim(),
                         _descCtrl.text.trim());
                   }
                   nav.pop();

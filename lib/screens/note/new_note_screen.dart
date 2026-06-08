@@ -4,21 +4,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:nota/l10n/app_localizations.dart';
-import 'package:nota/l10n/app_localizations_ar.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../widgets/note/note_app_bar.dart';
 import '../../controllers/note_provider.dart';
+import '../../controllers/space_details_provider.dart';
 import '../../model/note_model.dart';
 import '../../controllers/note_formatting_controller.dart';
 
 class NewNoteScreen extends StatefulWidget {
-  final DateTime? createdAt;
-  final String? noteId;
+  final NoteModel? note;
+  final String? spaceId;
 
-  const NewNoteScreen({super.key, this.createdAt, this.noteId});
+  const NewNoteScreen({super.key, this.note, this.spaceId});
 
   @override
   State<NewNoteScreen> createState() => _NewNoteScreenState();
@@ -36,6 +36,8 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
   bool _isNewNote = false;
   Timer? _debounceTimer;
 
+  final FocusNode _titleFocusNode = FocusNode();
+
   final ValueNotifier<String> _saveStateNotifier =
       ValueNotifier<String>('Saved');
 
@@ -43,26 +45,19 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
   void initState() {
     super.initState();
 
-    final noteProvider = Provider.of<NoteProvider>(context, listen: false);
-    NoteModel? existingNote;
-
-    if (widget.noteId != null) {
-      try {
-        existingNote =
-            noteProvider.notes.firstWhere((n) => n.id == widget.noteId);
-      } catch (e) {
-        existingNote = null;
-      }
-    }
-
-    _isNewNote = existingNote == null && widget.noteId == null;
-
-    _noteId = existingNote?.id ??
-        widget.noteId ??
+    _isNewNote = widget.note == null;
+    _noteId = widget.note?.id ??
         DateTime.now().millisecondsSinceEpoch.toString();
-    _createdAt = existingNote?.createdAt ?? widget.createdAt ?? DateTime.now();
+    _createdAt = widget.note?.createdAt ?? DateTime.now();
 
-    _titleController = TextEditingController(text: existingNote?.title ?? '');
+    _titleController = TextEditingController(text: widget.note?.title ?? '');
+
+    _titleFocusNode.addListener(() {
+      if (_titleFocusNode.hasFocus) {
+        _webViewController
+            .runJavaScript("if (window.editor) window.editor.blur();");
+      }
+    });
 
     _webViewController = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -94,13 +89,7 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageFinished: (String url) {
-            _injectThemeAndInitialize(existingNote?.content ?? '');
-
-            final noteContent = existingNote?.content ?? '';
-            if (noteContent.isNotEmpty && noteContent != 'No content') {
-              _webViewController
-                  .runJavaScript("window.loadEditorState('$noteContent');");
-            }
+            _injectThemeAndInitialize();
           },
         ),
       );
@@ -121,7 +110,7 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
         baseUrl: 'https://nota.local');
   }
 
-  void _injectThemeAndInitialize(String initialContent) {
+  void _injectThemeAndInitialize() {
     if (!mounted) return;
 
     final bgHex =
@@ -129,18 +118,31 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
     final textHex =
         '#${(Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface).value.toRadixString(16).padLeft(8, '0').substring(2)}';
 
-    // Escape initial content securely if needed
-    final safeContent =
-        initialContent.replaceAll("'", "\\'").replaceAll('\n', '\\n');
+    String cleanBase64 = "";
+    if (widget.note != null && widget.note!.content.isNotEmpty) {
+      cleanBase64 = widget.note!.content.trim();
+    }
+    if (cleanBase64 == "AAA=" || cleanBase64 == "null") cleanBase64 = "";
+
+    String escapedPayload =
+        cleanBase64.replaceAll("'", r"\'").replaceAll("\n", r"\n");
 
     _webViewController.runJavaScript('''
       document.body.style.setProperty('--bg-color', '$bgHex');
       document.body.style.setProperty('--text-color', '$textHex');
       
-      if (window.initEditor) {
-        window.initEditor('$_noteId', 'DUMMY_TOKEN', 'wss://synopsis-cursive-ethics.ngrok-free.dev');
+      try {
+        if (window.initEditorWithBinary) {
+          window.initEditorWithBinary('$_noteId', 'DUMMY_TOKEN', 'wss://synopsis-cursive-ethics.ngrok-free.dev', '$escapedPayload');
+        } else if (window.initEditor) {
+          window.initEditor('$_noteId', 'DUMMY_TOKEN', 'wss://synopsis-cursive-ethics.ngrok-free.dev', '$escapedPayload');
+        }
+      } catch (e) {
+        console.error('Initialization failed:', e);
+        if (window.editor) {
+          window.editor.setText('$escapedPayload');
+        }
       }
-      
     ''');
   }
 
@@ -149,6 +151,7 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
     _debounceTimer?.cancel();
     _saveStateNotifier.dispose();
     _titleController.dispose();
+    _titleFocusNode.dispose();
     super.dispose();
   }
 
@@ -170,7 +173,17 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
           ? 'Untitled Note'
           : _titleController.text;
 
-      // Yjs base64 encoding/decoding logic hook
+      final rawText = await _webViewController.runJavaScriptReturningResult(
+          "window.editor ? window.editor.getText() : document.body.innerText;");
+      String cleanPreview = rawText
+          .toString()
+          .replaceAll('"', '')
+          .replaceAll(r'\n', ' ')
+          .trim();
+      if (cleanPreview.length > 60) {
+        cleanPreview = "${cleanPreview.substring(0, 60)}...";
+      }
+
       String contentString = '';
       try {
         final contentResult = await _webViewController
@@ -183,21 +196,48 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
 
       final updatedNote = NoteModel(
         id: _noteId,
+        spaceId: widget.spaceId,
         title: title,
+        preview: cleanPreview,
         content: contentString,
         createdAt: _createdAt,
         updatedAt: DateTime.now(),
       );
 
       try {
-        final newId = await context
-            .read<NoteProvider>()
-            .saveNote(updatedNote, isNew: _isNewNote);
-        if (mounted) {
-          if (_isNewNote) {
-            _noteId = newId;
-            _isNewNote = false;
+        if (widget.note != null) {
+          // Editing existing note
+          if (widget.spaceId != null) {
+            await context.read<SpaceDetailsProvider>().updateNote(
+                widget.spaceId!, _noteId, title, contentString, cleanPreview);
+          } else {
+            await context
+                .read<NoteProvider>()
+                .saveNote(updatedNote, isNew: false);
           }
+        } else {
+          // Creating new note
+          if (widget.spaceId != null) {
+            if (_isNewNote) {
+              await context.read<SpaceDetailsProvider>().createNote(
+                  widget.spaceId!, title, contentString, cleanPreview);
+              _isNewNote = false;
+            } else {
+              await context.read<SpaceDetailsProvider>().updateNote(
+                  widget.spaceId!, _noteId, title, contentString, cleanPreview);
+            }
+          } else {
+            final newId = await context
+                .read<NoteProvider>()
+                .saveNote(updatedNote, isNew: _isNewNote);
+            if (mounted && _isNewNote) {
+              _noteId = newId;
+              _isNewNote = false;
+            }
+          }
+        }
+
+        if (mounted) {
           _saveStateNotifier.value = 'Saved';
         }
       } catch (e) {
@@ -232,6 +272,7 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
               const SizedBox(height: 16),
               TextField(
                 controller: _titleController,
+                focusNode: _titleFocusNode,
                 style: TextStyle(
                   color: cs.onSurface,
                   fontSize: 28,

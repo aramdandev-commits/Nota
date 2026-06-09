@@ -55,7 +55,7 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
     _titleFocusNode.addListener(() {
       if (_titleFocusNode.hasFocus) {
         _webViewController
-            .runJavaScript("if (window.editor) window.editor.blur();");
+            .runJavaScript("if (window.quill) window.quill.blur();");
       }
     });
 
@@ -118,30 +118,32 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
     final textHex =
         '#${(Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface).value.toRadixString(16).padLeft(8, '0').substring(2)}';
 
-    String cleanBase64 = "";
+    String payload = "null";
     if (widget.note != null && widget.note!.content.isNotEmpty) {
-      cleanBase64 = widget.note!.content.trim();
+      final firstElement = widget.note!.content.first;
+      if (firstElement is Map && firstElement.containsKey('ops')) {
+        payload = jsonEncode(firstElement);
+      } else {
+        payload = jsonEncode(widget.note!.content);
+      }
     }
-    if (cleanBase64 == "AAA=" || cleanBase64 == "null") cleanBase64 = "";
-
-    String escapedPayload =
-        cleanBase64.replaceAll("'", r"\'").replaceAll("\n", r"\n");
 
     _webViewController.runJavaScript('''
       document.body.style.setProperty('--bg-color', '$bgHex');
       document.body.style.setProperty('--text-color', '$textHex');
       
       try {
-        if (window.initEditorWithBinary) {
-          window.initEditorWithBinary('$_noteId', 'DUMMY_TOKEN', 'wss://synopsis-cursive-ethics.ngrok-free.dev', '$escapedPayload');
-        } else if (window.initEditor) {
-          window.initEditor('$_noteId', 'DUMMY_TOKEN', 'wss://synopsis-cursive-ethics.ngrok-free.dev', '$escapedPayload');
+        if (window.initEditor) {
+          window.initEditor();
+        }
+        const content = $payload;
+        if (content) {
+          if (window.quill) {
+            window.quill.setContents(content);
+          }
         }
       } catch (e) {
         console.error('Initialization failed:', e);
-        if (window.editor) {
-          window.editor.setText('$escapedPayload');
-        }
       }
     ''');
   }
@@ -173,8 +175,8 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
           ? 'Untitled Note'
           : _titleController.text;
 
-      final rawText = await _webViewController.runJavaScriptReturningResult(
-          "window.editor ? window.editor.getText() : document.body.innerText;");
+      // Fetch plain text for the preview
+      final rawText = await _webViewController.runJavaScriptReturningResult("window.quill ? window.quill.getText() : document.body.innerText;");
       String cleanPreview = rawText
           .toString()
           .replaceAll('"', '')
@@ -184,14 +186,21 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
         cleanPreview = "${cleanPreview.substring(0, 60)}...";
       }
 
-      String contentString = '';
+      // Fetch Delta JSON string from JS
+      List<dynamic> contentPayload = [];
       try {
-        final contentResult = await _webViewController
-            .runJavaScriptReturningResult('window.getEditorState()');
-        contentString = contentResult.toString().replaceAll('"', '');
-        if (contentString == 'null') contentString = '';
+        final rawDeltaStr = await _webViewController.runJavaScriptReturningResult("JSON.stringify(window.quill.getContents());");
+        String cleanDeltaStr = rawDeltaStr.toString();
+        // Remove outer quotes and unescape string if it comes back double-escaped from JS
+        if (cleanDeltaStr.startsWith('"') && cleanDeltaStr.endsWith('"')) {
+          cleanDeltaStr = jsonDecode(cleanDeltaStr); 
+        }
+
+        // Parse it into a Dart Map
+        Map<String, dynamic> deltaJson = jsonDecode(cleanDeltaStr);
+        contentPayload = [deltaJson];
       } catch (e) {
-        // Fallback
+        // Fallback or error
       }
 
       final updatedNote = NoteModel(
@@ -199,7 +208,7 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
         spaceId: widget.spaceId,
         title: title,
         preview: cleanPreview,
-        content: contentString,
+        content: contentPayload,
         createdAt: _createdAt,
         updatedAt: DateTime.now(),
       );
@@ -209,7 +218,7 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
           // Editing existing note
           if (widget.spaceId != null) {
             await context.read<SpaceDetailsProvider>().updateNote(
-                widget.spaceId!, _noteId, title, contentString, cleanPreview);
+                widget.spaceId!, _noteId, title, contentPayload, cleanPreview);
           } else {
             await context
                 .read<NoteProvider>()
@@ -220,11 +229,11 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
           if (widget.spaceId != null) {
             if (_isNewNote) {
               await context.read<SpaceDetailsProvider>().createNote(
-                  widget.spaceId!, title, contentString, cleanPreview);
+                  widget.spaceId!, title, contentPayload, cleanPreview);
               _isNewNote = false;
             } else {
               await context.read<SpaceDetailsProvider>().updateNote(
-                  widget.spaceId!, _noteId, title, contentString, cleanPreview);
+                  widget.spaceId!, _noteId, title, contentPayload, cleanPreview);
             }
           } else {
             final newId = await context

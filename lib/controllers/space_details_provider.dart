@@ -100,7 +100,7 @@ class SpaceDetailsProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> createNote(String spaceId, String title, String content, String preview) async {
+  Future<void> createNote(String spaceId, String title, List<dynamic> content, String preview) async {
     _isActionRunning = true;
     notifyListeners();
     try {
@@ -116,7 +116,7 @@ class SpaceDetailsProvider extends ChangeNotifier {
   }
 
   Future<void> updateNote(
-      String spaceId, String noteId, String title, String content, String preview) async {
+      String spaceId, String noteId, String title, List<dynamic> content, String preview) async {
     _isActionRunning = true;
     notifyListeners();
     try {

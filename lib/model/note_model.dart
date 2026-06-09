@@ -6,7 +6,7 @@ class NoteModel {
 
   String title;
   String? preview;
-  String content;
+  List<dynamic> content;
 
   final DateTime createdAt;
   DateTime updatedAt;
@@ -28,7 +28,7 @@ class NoteModel {
       'space_id': spaceId,
       'title': title,
       'preview': preview,
-      'content': [content], // API expects single-element list
+      'content': content, // Already a list, API expects array
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -43,20 +43,31 @@ class NoteModel {
         ? DateTime.parse(data['updated_at'].toString())
         : DateTime.now();
 
-    // Safely parse content which might be a List<dynamic> containing the Yjs base64
-    String parsedContent = '';
+    List<dynamic> parsedContent = [];
     final rawContent = data['content'];
-    if (rawContent is List && rawContent.isNotEmpty) {
-      parsedContent = rawContent.first.toString();
-    } else if (rawContent is String) {
+    if (rawContent is List) {
       parsedContent = rawContent;
+    }
+
+    // Fallback logic for preview if it's null
+    String? parsedPreview = data['preview']?.toString();
+    if (parsedPreview == null && rawContent is List) {
+      final buffer = StringBuffer();
+      for (var element in rawContent) {
+        if (element is Map && element.containsKey('insert')) {
+          buffer.write(element['insert']?.toString() ?? '');
+        }
+      }
+      if (buffer.isNotEmpty) {
+        parsedPreview = buffer.toString();
+      }
     }
 
     return NoteModel(
       id: data['id']?.toString() ?? '',
       spaceId: data['space_id']?.toString(),
       title: data['title']?.toString() ?? '',
-      preview: data['preview']?.toString(),
+      preview: parsedPreview,
       content: parsedContent,
       createdAt: data['created_at'] != null
           ? DateTime.parse(data['created_at'].toString())
@@ -78,7 +89,7 @@ class NoteModel {
     String? spaceId,
     String? title,
     String? preview,
-    String? content,
+    List<dynamic>? content,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {

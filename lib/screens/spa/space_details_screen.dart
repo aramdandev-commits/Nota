@@ -446,7 +446,7 @@ class _NoteCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 6),
-              Text(note.content,
+              Text(note.preview ?? '',
                   style: TextStyle(
                       color: cs.onSurface.withValues(alpha: 0.5), fontSize: 13),
                   maxLines: 2,
@@ -488,7 +488,7 @@ class _CreateNoteSheetState extends State<_CreateNoteSheet> {
   void initState() {
     super.initState();
     _nameCtrl = TextEditingController(text: widget.note?.title ?? '');
-    _descCtrl = TextEditingController(text: widget.note?.content ?? '');
+    _descCtrl = TextEditingController(text: widget.note?.preview ?? '');
   }
 
   @override
@@ -574,19 +574,28 @@ class _CreateNoteSheetState extends State<_CreateNoteSheet> {
                   final name = _nameCtrl.text.trim();
                   if (name.isEmpty) return;
 
+                  final desc = _descCtrl.text.trim();
+                  final List<dynamic> contentPayload = desc.isEmpty ? [] : [
+                    {
+                      "ops": [
+                        {"insert": "$desc\n"}
+                      ]
+                    }
+                  ];
+
                   if (widget.note != null) {
                     await context.read<SpaceDetailsProvider>().updateNote(
                         widget.spaceId,
                         widget.note!.id,
                         name,
-                        _descCtrl.text.trim(),
-                        _descCtrl.text.trim());
+                        contentPayload,
+                        desc);
                   } else {
                     await context.read<SpaceDetailsProvider>().createNote(
                         widget.spaceId,
                         name,
-                        _descCtrl.text.trim(),
-                        _descCtrl.text.trim());
+                        contentPayload,
+                        desc);
                   }
                   nav.pop();
                 },

@@ -46,14 +46,14 @@ class _AIAnalyzeScreenState extends State<AIAnalyzeScreen> {
     final plainText =
         'Summary:\n${result.summary}\n\nKey Points:\n${result.keyPoints.map((p) => '• $p').join('\n')}\n';
 
-    final deltaJson = jsonEncode([
+    final List<dynamic> deltaPayload = [
       {'insert': plainText}
-    ]);
+    ];
 
     final note = NoteModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: 'AI Analysis',
-      content: deltaJson,
+      content: deltaPayload,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );

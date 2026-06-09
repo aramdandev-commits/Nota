@@ -2,12 +2,18 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../model/user_model.dart';
 import '../services/auth_service.dart';
+import '../services/pusher_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   static const _tokenKey = 'auth_token';
   static const _userNameKey = 'auth_user_name';
   static const _userEmailKey = 'auth_user_email';
   static const _userIdKey = 'auth_user_id';
+
+  final String currentApiBaseUrl =
+      "https://synopsis-cursive-ethics.ngrok-free.dev";
+  // I will replace the string below with the new port 8080 ngrok link when my backend dev sends it
+  final String reverbWsHost = "synopsis-cursive-ethics.ngrok-free.dev";
 
   final _service = AuthService();
 
@@ -29,13 +35,23 @@ class AuthProvider extends ChangeNotifier {
     final token = prefs.getString(_tokenKey);
     if (token == null || token.isEmpty) return false;
 
+    final userId = prefs.getString(_userIdKey) ?? '';
     _user = UserModel(
-      id: prefs.getString(_userIdKey) ?? '',
+      id: userId,
       name: prefs.getString(_userNameKey) ?? '',
       email: prefs.getString(_userEmailKey) ?? '',
       token: token,
     );
     notifyListeners();
+
+    // Initialize Pusher for persistent session
+    PusherService().initPusher(
+      userId: userId,
+      userToken: token,
+      websocketHost: reverbWsHost,
+      authUrl: "$currentApiBaseUrl/broadcasting/auth",
+    );
+
     return true;
   }
 
@@ -67,6 +83,15 @@ class AuthProvider extends ChangeNotifier {
       final user = await _service.login(email: email, password: password);
       _user = user;
       await _persistUser(user);
+
+      // Initialize Pusher upon login
+      PusherService().initPusher(
+        userId: user.id.toString(),
+        userToken: user.token,
+        websocketHost: reverbWsHost,
+        authUrl: "$currentApiBaseUrl/broadcasting/auth",
+      );
+
       _error = null;
       return null; // success
     } on AuthException catch (e) {
@@ -97,6 +122,15 @@ class AuthProvider extends ChangeNotifier {
       );
       _user = user;
       await _persistUser(user);
+
+      // Initialize Pusher upon registration
+      PusherService().initPusher(
+        userId: user.id.toString(),
+        userToken: user.token,
+        websocketHost: reverbWsHost,
+        authUrl: "$currentApiBaseUrl/broadcasting/auth",
+      );
+
       _error = null;
       return null; // success
     } on AuthException catch (e) {
@@ -129,6 +163,9 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> logout() async {
+    // Disconnect Pusher before clearing session
+    PusherService().disconnect();
+
     _user = null;
     _error = null;
     await _clearSession();

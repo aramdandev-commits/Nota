@@ -63,159 +63,60 @@
     <div id="editor-container"></div>
 
     <script type="module">
-        import * as Y from 'https://esm.sh/yjs';
-        import { HocuspocusProvider } from 'https://esm.sh/@hocuspocus/provider';
-        import { QuillBinding } from 'https://esm.sh/y-quill';
         import Quill from 'https://esm.sh/quill';
 
-        window.Y = Y;
-
         let quill;
-        let provider;
-        let binding;
-        let ydoc;
 
         window.toggleFormat = function(format, value) {
             if (!window.quill) return;
-
-            // 1. Force immediate focus back to the editor so it registers the formatting context
             window.quill.focus(); 
 
             const range = window.quill.getSelection();
             if (range) {
                 if (range.length > 0) {
-                    // Case A: Text is selected, apply to selection
                     let current = window.quill.getFormat(range.index, range.length);
                     let newValue = (value !== undefined) ? (current[format] === value ? false : value) : !current[format];
                     window.quill.format(format, newValue);
                 } else {
-                    // Case B: No text selected (pre-typing), apply format to the cursor (formatLine or formatText at index)
                     let current = window.quill.getFormat(range.index);
                     let newValue = (value !== undefined) ? (current[format] === value ? false : value) : !current[format];
 
                     if (format === 'header' || format === 'list') {
                         window.quill.formatLine(range.index, 1, format, newValue);
                     } else {
-                        // Apply inline format directly to the active cursor selection context
                         window.quill.format(format, newValue);
                     }
                 }
             }
 
-            // Broadcast updated state back to Flutter instantly to update button highlights
             if (window.FormatChannel) {
                 window.FormatChannel.postMessage(JSON.stringify(window.quill.getFormat()));
             }
         };
 
-        // Explicitly attach the init function to the window object so Flutter can call it
-        window.initEditor = function(noteId, token, wssUrl, fallbackBase64) {
-            // Clean up existing connections if any
-            if (provider) {
-                provider.destroy();
-            }
-            if (binding) {
-                binding.destroy();
-            }
-            if (ydoc) {
-                ydoc.destroy();
-            }
-
-            // Initialize Quill on the correct container ID only once
+        window.initEditor = function() {
             if (!quill) {
                 quill = new Quill('#editor-container', {
                     theme: 'snow',
                     modules: {
-                        toolbar: false // Disabled HTML toolbar in favor of native Flutter toolbar
+                        toolbar: false
                     }
                 });
                 window.quill = quill;
+                
                 window.quill.on('text-change', function(delta, oldDelta, source) {
-                    // Only trigger save if the change was made by the user, not the API
                     if (source === 'user' && window.TextChangeChannel) {
                         window.TextChangeChannel.postMessage('changed');
                     }
                 });
-            } else {
-                quill.setText(''); // reset editor text if re-initializing
-            }
-
-            // Create a new Y document
-            ydoc = new Y.Doc();
-            window.ydoc = ydoc;
-
-            // Pre-load state from Flutter if provided, BEFORE connecting to Hocuspocus
-            if (fallbackBase64 && fallbackBase64 !== '') {
-                try {
-                    const binaryString = atob(fallbackBase64);
-                    const bytes = new Uint8Array(binaryString.length);
-                    for (let i = 0; i < binaryString.length; i++) {
-                        bytes[i] = binaryString.charCodeAt(i);
+                
+                window.quill.on('editor-change', function() {
+                    if(window.FormatChannel) {
+                        window.FormatChannel.postMessage(JSON.stringify(window.quill.getFormat()));
                     }
-                    window.Y.applyUpdate(ydoc, bytes);
-                } catch (e) {
-                    console.error("Error applying fallback base64 state:", e);
-                }
-            }
-
-            // Connect to Hocuspocus using the provided URL
-            provider = new HocuspocusProvider({
-                url: wssUrl,
-                name: noteId,
-                document: ydoc,
-                token: token,
-                onStatus: ({ status }) => {
-                    console.log('Hocuspocus status:', status);
-                },
-            });
-
-            // Bind Yjs document to the Quill editor
-            const type = ydoc.getText('quill');
-            binding = new QuillBinding(type, quill, provider.awareness);
-
-            // Broadcast format changes to Flutter JS Channel
-            quill.on('editor-change', function() {
-                if(window.FormatChannel) {
-                    window.FormatChannel.postMessage(JSON.stringify(window.quill.getFormat()));
-                }
-            });
-        };
-
-        window.initEditorWithBinary = function(noteId, token, wssUrl, fallbackBase64) {
-            window.initEditor(noteId, token, wssUrl, fallbackBase64);
-        };
-
-        // Function to EXPORT state to Flutter (Saving)
-        window.getEditorState = function() {
-            if (!window.ydoc || !window.Y) return "";
-            try {
-                const update = window.Y.encodeStateAsUpdate(window.ydoc);
-                let binaryString = "";
-                // Convert Uint8Array to binary string safely
-                for (let i = 0; i < update.length; i++) {
-                    binaryString += String.fromCharCode(update[i]);
-                }
-                // Return as Base64 to Flutter
-                return btoa(binaryString);
-            } catch (e) {
-                console.error("Error generating Yjs Base64:", e);
-                return "";
-            }
-        };
-
-        // Function to IMPORT state from Flutter (Fetching)
-        window.loadEditorState = function(base64String) {
-            if (!base64String || !window.ydoc || !window.Y) return;
-            try {
-                const binaryString = atob(base64String);
-                const bytes = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                    bytes[i] = binaryString.charCodeAt(i);
-                }
-                // Apply the backend update to the editor
-                window.Y.applyUpdate(window.ydoc, bytes);
-            } catch (e) {
-                console.error("Error applying Yjs update from Base64:", e);
+                });
+            } else {
+                quill.setText('');
             }
         };
     </script>

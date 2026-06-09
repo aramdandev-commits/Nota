@@ -34,12 +34,12 @@ class SpaceDetailsRepository {
     }
   }
 
-  Future<SpaceNoteModel> createNote(String spaceId, String title, String content, String preview) async {
+  Future<SpaceNoteModel> createNote(String spaceId, String title, List<dynamic> content, String preview) async {
     final headers = await _getHeaders();
     final response = await http.post(
       Uri.parse('$_baseUrl/$spaceId/notes'),
       headers: headers,
-      body: jsonEncode({'title': title, 'content': [content], 'preview': preview}), // send as list
+      body: jsonEncode({'title': title, 'content': content, 'preview': preview}),
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
@@ -51,12 +51,12 @@ class SpaceDetailsRepository {
     }
   }
 
-  Future<SpaceNoteModel> updateNote(String spaceId, String noteId, String title, String content, String preview) async {
+  Future<SpaceNoteModel> updateNote(String spaceId, String noteId, String title, List<dynamic> content, String preview) async {
     final headers = await _getHeaders();
     final response = await http.put(
       Uri.parse('$_globalUrl/notes/$noteId'), // Shallow routing
       headers: headers,
-      body: jsonEncode({'title': title, 'content': [content], 'preview': preview}), // send as list
+      body: jsonEncode({'title': title, 'content': content, 'preview': preview}),
     );
 
     if (response.statusCode == 200) {

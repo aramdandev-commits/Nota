@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nota/l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
+import '../../controllers/note_provider.dart';
 
 enum SummaryState { initial, loading, generated, editing }
 
 class AiSummaryGeneratedSheet extends StatefulWidget {
+  final String noteId;
   final Function(String)? onInsert;
 
-  const AiSummaryGeneratedSheet({super.key, this.onInsert});
+  const AiSummaryGeneratedSheet({super.key, required this.noteId, this.onInsert});
 
   @override
   State<AiSummaryGeneratedSheet> createState() =>
@@ -15,8 +18,15 @@ class AiSummaryGeneratedSheet extends StatefulWidget {
 }
 
 class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
-  SummaryState _currentState = SummaryState.initial;
   final TextEditingController _summaryController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<NoteProvider>(context, listen: false).resetSummaryState();
+    });
+  }
 
   @override
   void dispose() {
@@ -24,49 +34,17 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
     super.dispose();
   }
 
-  Future<void> _generateSummaryFromAI() async {
-    setState(() {
-      _currentState = SummaryState.loading;
-    });
-
-    try {
-      // TODO: 1. اربط الـ API بتاعك هنا
-      // TODO: 2. ابعت محتوى النوتة للـ AI
-      // final response = await myAiService.summarize(noteContent);
-
-      // محاكاة لوقت الرد من السيرفر (شيلها وقت الربط)
-      await Future.delayed(const Duration(seconds: 2));
-
-      // النتيجة الوهمية (استبدلها بـ response الموديل)
-      final generatedText =
-          "This note discusses the key aspects of the NOTA project — an AI-powered note-taking platform designed for bilingual users.\n\n**Main Points:**\n• AI summarization and real-time collaboration\n• Full RTL support for Arabic language\n• Modern dark theme with clean mobile UX\n• Cross-platform: MacBook, iOS, and Android";
-
-      if (mounted) {
-        setState(() {
-          _summaryController.text = generatedText;
-          _currentState = SummaryState.generated;
-        });
-      }
-    } catch (e) {
-      // TODO: Handle Error (Show SnackBar)
-      if (mounted) {
-        setState(() => _currentState = SummaryState.initial);
-      }
-    }
-  }
-
   void _copyToClipboard() async {
     if (_summaryController.text.isNotEmpty) {
+      final messenger = ScaffoldMessenger.of(context);
       await Clipboard.setData(ClipboardData(text: _summaryController.text));
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Summary copied to clipboard'),
-            backgroundColor: Color(0xFF3D7AF9),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Summary copied to clipboard'),
+          backgroundColor: Color(0xFF3D7AF9),
+          duration: Duration(seconds: 2),
+        ),
+      );
     }
   }
 
@@ -94,12 +72,34 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
     final Color summaryBoxColor =
         isDark ? const Color(0xFF242038) : cs.primary.withValues(alpha: 0.05);
 
+    // Watch NoteProvider to rebuild on changes
+    final noteProvider = context.watch<NoteProvider>();
+
+    // Sync TextEditingController with provider when not editing
+    if (!noteProvider.isEditingSummary &&
+        noteProvider.summarizedText != null &&
+        noteProvider.summarizedText != _summaryController.text) {
+      _summaryController.text = noteProvider.summarizedText!;
+    }
+
+    // Determine current UI state
+    final SummaryState currentState;
+    if (noteProvider.isSummarizing) {
+      currentState = SummaryState.loading;
+    } else if (noteProvider.summarizedText != null) {
+      currentState = noteProvider.isEditingSummary
+          ? SummaryState.editing
+          : SummaryState.generated;
+    } else {
+      currentState = SummaryState.initial;
+    }
+
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       child: Container(
-        height: _currentState == SummaryState.initial
+        height: currentState == SummaryState.initial
             ? MediaQuery.of(context).size.height * 0.45
             : MediaQuery.of(context).size.height * 0.55,
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
@@ -178,7 +178,7 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
             const SizedBox(height: 24),
 
             Expanded(
-              child: _buildBody(context, summaryBoxColor, closeButtonColor),
+              child: _buildBody(context, noteProvider, currentState, summaryBoxColor, closeButtonColor),
             ),
           ],
         ),
@@ -187,11 +187,10 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
   }
 
   Widget _buildBody(
-      BuildContext context, Color summaryBoxColor, Color secondaryBtnColor) {
+      BuildContext context, NoteProvider noteProvider, SummaryState currentState, Color summaryBoxColor, Color secondaryBtnColor) {
     final cs = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    switch (_currentState) {
+    switch (currentState) {
       case SummaryState.loading:
         return const Center(
           child: CircularProgressIndicator(color: Color(0xFF7A36DC)),
@@ -199,7 +198,7 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
 
       case SummaryState.generated:
       case SummaryState.editing:
-        final isEditing = _currentState == SummaryState.editing;
+        final isEditing = currentState == SummaryState.editing;
         return Column(
           children: [
             // Summary Box
@@ -284,11 +283,12 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
                         elevation: 0,
                       ),
                       onPressed: () {
-                        setState(() {
-                          _currentState = isEditing
-                              ? SummaryState.generated
-                              : SummaryState.editing;
-                        });
+                        if (isEditing) {
+                          noteProvider.summarizedText = _summaryController.text;
+                          noteProvider.isEditingSummary = false;
+                        } else {
+                          noteProvider.isEditingSummary = true;
+                        }
                       },
                       icon: Icon(isEditing ? Icons.check : Icons.edit_outlined,
                           color: cs.onSurface, size: 18),
@@ -343,12 +343,24 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
-                onPressed: _generateSummaryFromAI,
+                onPressed: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  try {
+                    await noteProvider.generateSummary(widget.noteId);
+                  } catch (e) {
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to request summary: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
                 icon: const Icon(Icons.auto_awesome,
                     color: Colors.white, size: 20),
                 label: Text(
                   AppLocalizations.of(context)!.generateSummary,
-                  style: TextStyle(
+                  style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.bold),

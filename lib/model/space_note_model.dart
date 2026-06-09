@@ -2,7 +2,7 @@ class SpaceNoteModel {
   final String id;
   String title;
   String? preview;
-  String content;
+  List<dynamic> content;
   final String authorName;
   final DateTime createdAt;
   DateTime? updatedAt;
@@ -23,12 +23,9 @@ class SpaceNoteModel {
     // Handle data wrapper
     final data = json.containsKey('data') ? json['data'] : json;
 
-    // Safely parse content which might be a List<dynamic> containing the Yjs base64
-    String parsedContent = '';
+    List<dynamic> parsedContent = [];
     final rawContent = data['content'];
-    if (rawContent is List && rawContent.isNotEmpty) {
-      parsedContent = rawContent.first.toString();
-    } else if (rawContent is String) {
+    if (rawContent is List) {
       parsedContent = rawContent;
     }
 
@@ -53,7 +50,7 @@ class SpaceNoteModel {
       'id': id,
       'title': title,
       'preview': preview,
-      'content': [content], // API expects single-element list
+      'content': content, // Already a list, API expects array
       'author_name': authorName,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),

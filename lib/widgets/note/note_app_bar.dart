@@ -107,7 +107,7 @@ class NoteAppBar extends StatelessWidget implements PreferredSizeWidget {
                       context: context,
                       isScrollControlled: true,
                       backgroundColor: Colors.transparent,
-                      builder: (context) => const AiSummaryGeneratedSheet(),
+                      builder: (context) => AiSummaryGeneratedSheet(noteId: noteId),
                     );
                   },
                   child: Container(

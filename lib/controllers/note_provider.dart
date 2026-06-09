@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../model/note_model.dart';
+import '../services/pusher_service.dart';
 
 class NoteProvider extends ChangeNotifier {
   final String baseUrl =
@@ -11,8 +12,37 @@ class NoteProvider extends ChangeNotifier {
 
   List<NoteModel> get notes => _notes;
 
+  // AI Summary State
+  bool _isSummarizing = false;
+  String? _summarizedText;
+  bool _isEditingSummary = false;
+
+  bool get isSummarizing => _isSummarizing;
+  String? get summarizedText => _summarizedText;
+  bool get isEditingSummary => _isEditingSummary;
+
+  set isEditingSummary(bool value) {
+    _isEditingSummary = value;
+    notifyListeners();
+  }
+
+  set summarizedText(String? value) {
+    _summarizedText = value;
+    notifyListeners();
+  }
+
+  void resetSummaryState() {
+    _isSummarizing = false;
+    _summarizedText = null;
+    _isEditingSummary = false;
+    notifyListeners();
+  }
+
   NoteProvider() {
     loadNotes();
+    // Register callbacks to PusherService
+    PusherService().onNoteSummarized = onSummaryEventReceived;
+    PusherService().onNoteSummarizationFailed = onSummaryEventFailed;
   }
 
   List<NoteModel> getRecentNotes({int count = 5}) {
@@ -68,7 +98,7 @@ class NoteProvider extends ChangeNotifier {
           ? Uri.parse('$baseUrl/notes')
           : Uri.parse('$baseUrl/notes/${note.id}');
       debugPrint('🚀 Yjs Base64 Payload: ${note.content}');
-      
+
       final token = await _getToken();
       final response = await (isNew ? http.post : http.put)(
         url,
@@ -85,7 +115,8 @@ class NoteProvider extends ChangeNotifier {
         final data = jsonDecode(response.body)['data'];
         final NoteModel returnedNote = NoteModel.fromMap(data);
 
-        final updateIndex = _notes.indexWhere((n) => n.id == returnedNote.id || (isNew && n.id == note.id));
+        final updateIndex = _notes.indexWhere(
+            (n) => n.id == returnedNote.id || (isNew && n.id == note.id));
         if (updateIndex >= 0) {
           _notes[updateIndex] = returnedNote;
         } else {
@@ -123,5 +154,67 @@ class NoteProvider extends ChangeNotifier {
     } catch (e) {
       print('Failed to delete note via API: $e');
     }
+  }
+
+  Future<void> generateSummary(String noteId) async {
+    _isSummarizing = true;
+    _summarizedText = null;
+    _isEditingSummary = false;
+    notifyListeners();
+
+    try {
+      final token = await _getToken();
+      final url = Uri.parse('$baseUrl/notes/$noteId/summarize');
+      final response = await http.get(
+        url,
+        headers: {
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': '69420',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 202) {
+        _isSummarizing = false;
+        notifyListeners();
+        throw Exception('Failed to request summary: ${response.statusCode}');
+      }
+    } catch (e) {
+      _isSummarizing = false;
+      notifyListeners();
+      debugPrint('Error generating summary: $e');
+      rethrow;
+    }
+  }
+
+  void onSummaryEventReceived(Map<String, dynamic> eventData) {
+    String? extractedText;
+
+    try {
+      if (eventData.containsKey('content') &&
+          eventData['content'] is List &&
+          (eventData['content'] as List).isNotEmpty) {
+        final firstElement = (eventData['content'] as List).first;
+        if (firstElement is Map && firstElement.containsKey('insert')) {
+          extractedText = firstElement['insert']?.toString();
+        }
+      }
+    } catch (e) {
+      debugPrint('Error parsing summary content: $e');
+    }
+
+    // Fallback to title if extraction failed or is empty
+    if (extractedText == null || extractedText.isEmpty) {
+      extractedText = eventData['title']?.toString() ?? '';
+    }
+
+    _summarizedText = extractedText;
+    _isSummarizing = false;
+    notifyListeners();
+  }
+
+  void onSummaryEventFailed(Map<String, dynamic> eventData) {
+    _isSummarizing = false;
+    notifyListeners();
   }
 }

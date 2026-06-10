@@ -183,5 +183,8 @@
   "dontHaveAccount": "Don't have an account?  ",
   "alreadyHaveAccount": "Already have an account?  ",
   "signUp": "Sign up",
-  "logIn": "Log in"
+  "logIn": "Log in",
+  "all": "All",
+  "trashIsEmpty": "Trash is empty",
+  "deletedNotesWillAppearHere": "Deleted notes will appear here"
 }

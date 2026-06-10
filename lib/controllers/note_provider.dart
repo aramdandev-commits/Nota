@@ -191,7 +191,85 @@ class NoteProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> deleteNote(String id) async {
+  Future<void> toggleFavorite(String noteId) async {
+    final noteIndex = _notes.indexWhere((n) => n.id == noteId);
+    if (noteIndex == -1) return;
+
+    final currentNote = _notes[noteIndex];
+    final newStatus = !currentNote.isFavorite;
+
+    // Optimistic UI update
+    _notes[noteIndex] = currentNote.copyWith(isFavorite: newStatus);
+    notifyListeners();
+
+    try {
+      final token = await _getToken();
+      final url = Uri.parse('$baseUrl/notes/$noteId/favorites');
+      final response = await http.post(
+        url,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': '69420',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+        body: json.encode({'is_favorite': newStatus}),
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Failed to toggle favorite');
+      }
+    } catch (e) {
+      // Revert if API fails
+      _notes[noteIndex] = currentNote.copyWith(isFavorite: !newStatus);
+      notifyListeners();
+      debugPrint('Error toggling favorite: $e');
+    }
+  }
+
+  Future<void> moveNoteToTrash(String id) async {
+    final index = _notes.indexWhere((note) => note.id == id);
+    if (index >= 0) {
+      _notes[index] = _notes[index].copyWith(isDeleted: true);
+      notifyListeners();
+    }
+    // TODO: Connect to actual backend endpoint for soft delete when ready.
+    // For now, it just updates local state.
+  }
+
+  Future<void> restoreNote(String id) async {
+    final index = _notes.indexWhere((note) => note.id == id);
+    if (index >= 0) {
+      _notes[index] = _notes[index].copyWith(isDeleted: false, content: []);
+      notifyListeners();
+    }
+
+    try {
+      final token = await _getToken();
+      final response = await http.post(
+        Uri.parse('$baseUrl/notes/$id/restore'),
+        headers: {
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': '69420',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        debugPrint('Failed to restore note via API: ${response.statusCode}');
+        // Do NOT revert on server errors (like 404 or 500) to prevent UI stuttering
+        // if the backend is not fully implemented yet.
+      }
+    } catch (e) {
+      debugPrint('Critical network error restoring note via API: $e');
+      if (index >= 0) {
+        // Only revert on critical network errors
+        _notes[index] = _notes[index].copyWith(isDeleted: true);
+        notifyListeners();
+      }
+    }
+  }
+
+  Future<void> permanentlyDeleteNote(String id) async {
     _notes.removeWhere((note) => note.id == id);
     notifyListeners();
 
@@ -206,11 +284,15 @@ class NoteProvider extends ChangeNotifier {
         },
       );
       if (response.statusCode != 200 && response.statusCode != 204) {
-        print('Failed to delete note via API: ${response.statusCode}');
+        debugPrint('Failed to delete note via API: ${response.statusCode}');
       }
     } catch (e) {
-      print('Failed to delete note via API: $e');
+      debugPrint('Failed to delete note via API: $e');
     }
+  }
+
+  Future<void> deleteNote(String id) async {
+    await permanentlyDeleteNote(id);
   }
 
   Future<void> generateSummary(String noteId) async {

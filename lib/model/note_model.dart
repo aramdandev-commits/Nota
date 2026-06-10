@@ -10,6 +10,8 @@ class NoteModel {
 
   final DateTime createdAt;
   DateTime updatedAt;
+  bool isFavorite;
+  bool isDeleted;
 
   NoteModel({
     required this.id,
@@ -19,6 +21,8 @@ class NoteModel {
     required this.content,
     required this.createdAt,
     required this.updatedAt,
+    this.isFavorite = false,
+    this.isDeleted = false,
   });
 
   // Convert Object -> Map
@@ -31,6 +35,8 @@ class NoteModel {
       'content': content, // Already a list, API expects array
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      'is_favorite': isFavorite,
+      'is_deleted': isDeleted,
     };
   }
 
@@ -73,6 +79,8 @@ class NoteModel {
           ? DateTime.parse(data['created_at'].toString())
           : parsedUpdatedAt,
       updatedAt: parsedUpdatedAt,
+      isFavorite: data['is_favorite'] == true || data['is_favorite'] == 1 || data['is_favorite'] == 'true',
+      isDeleted: data['is_deleted'] == true || data['is_deleted'] == 1 || data['is_deleted'] == 'true',
     );
   }
 
@@ -92,6 +100,8 @@ class NoteModel {
     List<dynamic>? content,
     DateTime? createdAt,
     DateTime? updatedAt,
+    bool? isFavorite,
+    bool? isDeleted,
   }) {
     return NoteModel(
       id: id ?? this.id,
@@ -101,6 +111,8 @@ class NoteModel {
       content: content ?? this.content,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      isFavorite: isFavorite ?? this.isFavorite,
+      isDeleted: isDeleted ?? this.isDeleted,
     );
   }
 
@@ -113,7 +125,9 @@ class NoteModel {
         'preview: $preview, '
         'content: $content, '
         'createdAt: $createdAt, '
-        'updatedAt: $updatedAt'
+        'updatedAt: $updatedAt, '
+        'isFavorite: $isFavorite, '
+        'isDeleted: $isDeleted'
         ')';
   }
 }

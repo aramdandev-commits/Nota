@@ -1,4 +1,4 @@
-import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nota/l10n/app_localizations.dart';
@@ -24,6 +24,14 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  final TextEditingController _searchController = TextEditingController();
+  String searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   void _showImportPdfSheet(BuildContext context) {
     NotaModalSheet.show(
@@ -54,10 +62,117 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               const HomeHeader(),
               const SizedBox(height: 24),
-              const CustomSearchBar(),
+              CustomSearchBar(
+                controller: _searchController,
+                onChanged: (value) {
+                  setState(() {
+                    searchQuery = value.toLowerCase();
+                  });
+                },
+              ),
               const SizedBox(height: 24),
-              const AICard(),
-              const SizedBox(height: 24),
+              if (searchQuery.isNotEmpty) ...[
+                Text(
+                  AppLocalizations.of(context)!.searchNotes,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Consumer2<NoteProvider, SpaceDetailsProvider>(
+                  builder: (context, noteProvider, spaceDetailsProvider, child) {
+                    final allNotes = [
+                      ...noteProvider.notes,
+                      ...spaceDetailsProvider.notes.map((sn) => NoteModel(
+                            id: sn.id,
+                            spaceId: 'unknown',
+                            title: sn.title,
+                            content: sn.content,
+                            preview: sn.preview,
+                            createdAt: sn.createdAt,
+                            updatedAt: sn.updatedAt ?? sn.createdAt,
+                          ))
+                    ];
+                    final activeNotes = allNotes.where((n) => !n.isDeleted).toList();
+                    final searchResults = activeNotes.where((n) {
+                      return n.title.toLowerCase().contains(searchQuery) ||
+                          (n.preview ?? '').toLowerCase().contains(searchQuery);
+                    }).toList();
+
+                    if (searchResults.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 32.0),
+                          child: Text(
+                            AppLocalizations.of(context)!.noNotesFoundYet,
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                                fontSize: 14),
+                          ),
+                        ),
+                      );
+                    }
+
+                    return ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: searchResults.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final note = searchResults[index];
+                        String previewText = note.preview ?? '';
+                        if (previewText.isEmpty) {
+                          previewText = AppLocalizations.of(context)!.emptyNote;
+                        }
+
+                        return GestureDetector(
+                          onTap: () {
+                            context.push('/new-note', extra: note);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).cardColor,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  note.title.isNotEmpty ? note.title : AppLocalizations.of(context)!.untitledNote,
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  previewText,
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                                    fontSize: 14,
+                                    height: 1.4,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ] else ...[
+                const AICard(),
+                const SizedBox(height: 24),
               Text(
                 AppLocalizations.of(context)!.quickActions,
                 style: TextStyle(
@@ -137,26 +252,57 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: const [
-                    FavoriteCard(
-                      date: 'Nov 19',
-                      title: 'Project Ideas 💡',
-                      subtitle: 'Collection of innovative project',
-                      icon: Icons.star,
+              Consumer2<NoteProvider, SpaceDetailsProvider>(
+                builder: (context, noteProvider, spaceDetailsProvider, child) {
+                  final allNotes = [
+                    ...noteProvider.notes,
+                    ...spaceDetailsProvider.notes.map((sn) => NoteModel(
+                          id: sn.id,
+                          spaceId: 'unknown',
+                          title: sn.title,
+                          content: sn.content,
+                          preview: sn.preview,
+                          createdAt: sn.createdAt,
+                          updatedAt: sn.updatedAt ?? sn.createdAt,
+                          isFavorite: false,
+                        ))
+                  ];
+                  
+                  final favoriteNotes = allNotes.where((n) => n.isFavorite && !n.isDeleted).toList();
+                  favoriteNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+
+                  if (favoriteNotes.isEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      child: Text(
+                        'No favorites yet.',
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                            fontSize: 14),
+                      ),
+                    );
+                  }
+
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: favoriteNotes.map((note) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 16.0),
+                          child: GestureDetector(
+                            onTap: () => context.push('/new-note', extra: note),
+                            child: FavoriteCard(
+                              date: note.updatedAt.toString().substring(0, 10),
+                              title: note.title.isNotEmpty ? note.title : 'Untitled',
+                              subtitle: (note.preview ?? '').isNotEmpty ? note.preview! : 'Empty Note',
+                              icon: Icons.star,
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     ),
-                    SizedBox(width: 16),
-                    FavoriteCard(
-                      date: 'Nov 17',
-                      title: 'Reading Notes - AI Research',
-                      subtitle: 'Key insights from recent AI papers: large',
-                      icon: Icons.star,
-                    ),
-                    SizedBox(width: 16),
-                  ],
-                ),
+                  );
+                },
               ),
               const SizedBox(height: 32),
               Row(
@@ -212,10 +358,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         ))
                   ];
                   
+                  // Filter out deleted notes
+                  final activeNotes = allNotes.where((n) => !n.isDeleted).toList();
                   // Sort descending by updated date
-                  allNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+                  activeNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
                   
-                  final recentNotes = allNotes.take(5).toList();
+                  final recentNotes = activeNotes.take(5).toList();
 
                   if (recentNotes.isEmpty) {
                     return Container(
@@ -316,6 +464,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
               const SizedBox(height: 80),
+              ],
             ],
           ),
         ),

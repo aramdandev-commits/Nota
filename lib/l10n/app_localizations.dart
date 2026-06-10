@@ -1195,6 +1195,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Log in'**
   String get logIn;
+
+  /// No description provided for @all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get all;
+
+  /// No description provided for @trashIsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Trash is empty'**
+  String get trashIsEmpty;
+
+  /// No description provided for @deletedNotesWillAppearHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted notes will appear here'**
+  String get deletedNotesWillAppearHere;
 }
 
 class _AppLocalizationsDelegate

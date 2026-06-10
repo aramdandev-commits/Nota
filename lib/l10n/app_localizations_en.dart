@@ -569,4 +569,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get logIn => 'Log in';
+
+  @override
+  String get all => 'All';
+
+  @override
+  String get trashIsEmpty => 'Trash is empty';
+
+  @override
+  String get deletedNotesWillAppearHere => 'Deleted notes will appear here';
 }

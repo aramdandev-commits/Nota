@@ -5,8 +5,10 @@ import '../../controllers/note_provider.dart';
 
 class DeleteNoteSheet extends StatelessWidget {
   final String noteId;
+  final bool isTrash;
+  final VoidCallback? onDeleted;
 
-  const DeleteNoteSheet({super.key, required this.noteId});
+  const DeleteNoteSheet({super.key, required this.noteId, this.isTrash = false, this.onDeleted});
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +69,9 @@ class DeleteNoteSheet extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            AppLocalizations.of(context)!.moveToTrash,
+            isTrash
+                ? AppLocalizations.of(context)!.thisCannotBe
+                : AppLocalizations.of(context)!.moveToTrash,
             style: TextStyle(
               fontSize: 14,
               color: subtitleColor,
@@ -88,11 +92,19 @@ class DeleteNoteSheet extends StatelessWidget {
                 elevation: 0,
               ),
               onPressed: () {
-                Provider.of<NoteProvider>(context, listen: false)
-                    .deleteNote(noteId);
+                if (isTrash) {
+                  Provider.of<NoteProvider>(context, listen: false)
+                      .permanentlyDeleteNote(noteId);
+                } else {
+                  Provider.of<NoteProvider>(context, listen: false)
+                      .moveNoteToTrash(noteId);
+                }
 
-                Navigator.pop(context);
-                Navigator.pop(context);
+                if (onDeleted != null) {
+                  onDeleted!();
+                } else {
+                  Navigator.pop(context);
+                }
               },
               child: Text(
                 AppLocalizations.of(context)!.delete,

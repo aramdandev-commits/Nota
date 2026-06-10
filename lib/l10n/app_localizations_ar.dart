@@ -569,4 +569,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get logIn => 'تسجيل الدخول';
+
+  @override
+  String get all => 'الكل';
+
+  @override
+  String get trashIsEmpty => 'سلة المهملات فارغة';
+
+  @override
+  String get deletedNotesWillAppearHere => 'الملاحظات المحذوفة ستظهر هنا';
 }

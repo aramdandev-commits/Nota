@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:nota/l10n/app_localizations.dart';
 
 class CustomSearchBar extends StatelessWidget {
-  const CustomSearchBar({super.key});
+  final TextEditingController? controller;
+  final ValueChanged<String>? onChanged;
+
+  const CustomSearchBar({super.key, this.controller, this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -10,6 +13,8 @@ class CustomSearchBar extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return TextField(
+      controller: controller,
+      onChanged: onChanged,
       style: TextStyle(color: cs.onSurface, fontSize: 14),
       decoration: InputDecoration(
         hintText: AppLocalizations.of(context)!.search,
@@ -35,9 +40,6 @@ class CustomSearchBar extends StatelessWidget {
               : BorderSide(color: cs.onSurface.withValues(alpha: 0.1)),
         ),
       ),
-      onChanged: (value) {
-        // Search logic to be added here
-      },
     );
   }
 }

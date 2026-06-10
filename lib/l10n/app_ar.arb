@@ -182,5 +182,8 @@
   "dontHaveAccount": "ليس لديك حساب؟  ",
   "alreadyHaveAccount": "لديك حساب بالفعل؟  ",
   "signUp": "إنشاء حساب",
-  "logIn": "تسجيل الدخول"
+  "logIn": "تسجيل الدخول",
+  "all": "الكل",
+  "trashIsEmpty": "سلة المهملات فارغة",
+  "deletedNotesWillAppearHere": "الملاحظات المحذوفة ستظهر هنا"
 }

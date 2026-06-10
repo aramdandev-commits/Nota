@@ -138,7 +138,15 @@ class NoteOptionsSheet extends StatelessWidget {
                 context: context,
                 isScrollControlled: true,
                 backgroundColor: Colors.transparent,
-                builder: (context) => DeleteNoteSheet(noteId: noteId),
+                builder: (sheetContext) => DeleteNoteSheet(
+                  noteId: noteId,
+                  onDeleted: () {
+                    Navigator.pop(sheetContext); // Close the DeleteNoteSheet
+                    if (context.mounted) {
+                      Navigator.pop(context); // Close the NewNoteScreen (Editor)
+                    }
+                  },
+                ),
               );
             },
           ),

@@ -556,6 +556,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get logoutConfirm => 'هل أنت متأكد أنك تريد تسجيل الخروج؟';
 
   @override
+  String get tryAgain => 'حاول مرة أخرى';
+
+  @override
   String get dontHaveAccount => 'ليس لديك حساب؟  ';
 
   @override

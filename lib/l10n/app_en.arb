@@ -179,6 +179,7 @@
   "changePassword": "Change Password",
   "logout": "Logout",
   "logoutConfirm": "Are you sure you want to log out?",
+  "tryAgain": "Try Again",
   "dontHaveAccount": "Don't have an account?  ",
   "alreadyHaveAccount": "Already have an account?  ",
   "signUp": "Sign up",

@@ -556,6 +556,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logoutConfirm => 'Are you sure you want to log out?';
 
   @override
+  String get tryAgain => 'Try Again';
+
+  @override
   String get dontHaveAccount => 'Don\'t have an account?  ';
 
   @override

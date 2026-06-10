@@ -38,11 +38,68 @@ class NoteProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ── PDF extraction state ──────────────────────────────────────────────────
+
+  bool _isPdfProcessing = false;
+  String? _pdfError;
+  NoteModel? _pdfNote; // set when pdf.extracted fires
+
+  bool get isPdfProcessing => _isPdfProcessing;
+  String? get pdfError => _pdfError;
+  NoteModel? get pdfNote => _pdfNote;
+
+  void startPdfProcessing() {
+    debugPrint('📄 NoteProvider: startPdfProcessing called');
+    _isPdfProcessing = true;
+    _pdfError = null;
+    _pdfNote = null;
+    notifyListeners();
+  }
+
+  void resetPdfState() {
+    debugPrint('📄 NoteProvider: resetPdfState called');
+    _isPdfProcessing = false;
+    _pdfError = null;
+    _pdfNote = null;
+    notifyListeners();
+  }
+
+  void onPdfExtracted(Map<String, dynamic> eventData) {
+    debugPrint('📄 NoteProvider: onPdfExtracted called — data: $eventData');
+    try {
+      final note = NoteModel.fromMap(
+        eventData.containsKey('data')
+            ? eventData['data'] as Map<String, dynamic>
+            : eventData,
+      );
+      debugPrint(
+          '📄 NoteProvider: parsed note id=${note.id} title="${note.title}"');
+      _notes.removeWhere((n) => n.id == note.id);
+      _notes.insert(0, note);
+      _pdfNote = note;
+    } catch (e) {
+      debugPrint('📄 NoteProvider: ❌ onPdfExtracted parse error: $e');
+      _pdfError = 'Failed to parse extracted note.';
+    }
+    _isPdfProcessing = false;
+    notifyListeners();
+  }
+
+  void onPdfExtractionFailed(Map<String, dynamic> eventData) {
+    debugPrint(
+        '📄 NoteProvider: onPdfExtractionFailed called — data: $eventData');
+    _pdfError = eventData['message'] as String? ?? 'PDF extraction failed.';
+    _isPdfProcessing = false;
+    notifyListeners();
+  }
+
   NoteProvider() {
     loadNotes();
     // Register callbacks to PusherService
     PusherService().onNoteSummarized = onSummaryEventReceived;
     PusherService().onNoteSummarizationFailed = onSummaryEventFailed;
+    PusherService().onPdfExtracted = onPdfExtracted;
+    PusherService().onPdfExtractionFailed = onPdfExtractionFailed;
   }
 
   List<NoteModel> getRecentNotes({int count = 5}) {

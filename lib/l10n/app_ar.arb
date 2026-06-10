@@ -178,6 +178,7 @@
   "changePassword": "تغيير كلمة المرور",
   "logout": "تسجيل الخروج",
   "logoutConfirm": "هل أنت متأكد أنك تريد تسجيل الخروج؟",
+  "tryAgain": "حاول مرة أخرى",
   "dontHaveAccount": "ليس لديك حساب؟  ",
   "alreadyHaveAccount": "لديك حساب بالفعل؟  ",
   "signUp": "إنشاء حساب",

@@ -1,8 +1,11 @@
-import 'dart:async';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nota/l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
+import '../../controllers/auth_provider.dart';
+import '../../controllers/note_provider.dart';
+import '../../services/pdf_service.dart';
 
 class ImportPdfBody extends StatefulWidget {
   const ImportPdfBody({super.key});
@@ -12,117 +15,126 @@ class ImportPdfBody extends StatefulWidget {
 }
 
 class _ImportPdfBodyState extends State<ImportPdfBody> {
-  // ── State ──────────────────────────────────────────────────────────────────
-
   bool _isPicking = false;
-
-  // Once a file is picked these are set and we switch to the processing view
   String? _fileName;
   String? _fileSize;
+  String? _uploadError;
 
-  // Progress goes from 0.0 to 1.0
-  double _progress = 0.0;
+  // ── File picking + upload ─────────────────────────────────────────────────
 
-  // The fake timer that ticks progress forward
-  Timer? _timer;
-
-  // ── File picking ───────────────────────────────────────────────────────────
-
-  Future<void> _pickPdf() async {
+  Future<void> _pickAndUpload() async {
     if (_isPicking) return;
-    setState(() => _isPicking = true);
+    setState(() {
+      _isPicking = true;
+      _uploadError = null;
+    });
 
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
         allowMultiple: false,
+        withData: false,
+        withReadStream: false,
       );
 
-      if (result != null && result.files.isNotEmpty) {
-        final file = result.files.first;
+      if (result == null || result.files.isEmpty) return;
 
-        // Format the file size nicely (e.g. "65.0 KB" or "2.3 MB")
-        final bytes = file.size;
-        final sizeLabel = bytes < 1024 * 1024
-            ? '${(bytes / 1024).toStringAsFixed(1)} KB'
-            : '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
-
-        setState(() {
-          _fileName = file.name;
-          _fileSize = sizeLabel;
-        });
-
-        // Start the fake processing animation
-        _startFakeProcessing();
+      final file = result.files.first;
+      final path = file.path;
+      if (path == null) {
+        setState(() => _uploadError = 'Cannot read file path.');
+        return;
       }
+
+      final bytes = file.size;
+      final sizeLabel = bytes < 1024 * 1024
+          ? '${(bytes / 1024).toStringAsFixed(1)} KB'
+          : '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+
+      setState(() {
+        _fileName = file.name;
+        _fileSize = sizeLabel;
+      });
+
+      // Mark processing started in NoteProvider
+      final noteProvider = context.read<NoteProvider>();
+      noteProvider.startPdfProcessing();
+
+      // Get token
+      final token = context.read<AuthProvider>().token;
+      if (token == null) {
+        setState(() => _uploadError = 'Not authenticated.');
+        noteProvider.resetPdfState();
+        return;
+      }
+
+      // Upload — any upload error is shown inline
+      await PdfService().uploadPdf(filePath: path, token: token);
+      // From here we wait for Pusher pdf.extracted event
+      // NoteProvider.isPdfProcessing stays true until Pusher fires
+    } catch (e) {
+      setState(() => _uploadError = e.toString());
+      if (mounted) context.read<NoteProvider>().resetPdfState();
     } finally {
       if (mounted) setState(() => _isPicking = false);
     }
   }
 
-  // ── Fake processing ────────────────────────────────────────────────────────
-  //
-  // This simulates OCR progress with a Timer that fires every 80ms.
-  // Each tick adds a small random amount so it feels natural, not robotic.
-  //
-  // TO REPLACE WITH REAL API:
-  //   - Remove this method and the Timer
-  //   - Call your OCR endpoint here
-  //   - As the server sends progress updates, call:
-  //       setState(() => _progress = newValueBetween0and1);
-
-  void _startFakeProcessing() {
-    _progress = 0.0;
-
-    // Tick every 80ms → ~4 seconds to reach 100%
-    _timer = Timer.periodic(const Duration(milliseconds: 80), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-
-      setState(() {
-        // Slow down as we approach 95% (feels like waiting for server)
-        final increment = _progress < 0.9 ? 0.018 : 0.004;
-        _progress = (_progress + increment).clamp(0.0, 1.0);
-      });
-
-      if (_progress >= 1.0) {
-        timer.cancel();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  // ── Build ──────────────────────────────────────────────────────────────────
+  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    // Show processing view once a file has been picked
+    final noteProvider = context.watch<NoteProvider>();
+
+    // When Pusher delivers the note → navigate and close the sheet
+    if (noteProvider.pdfNote != null) {
+      final noteId = noteProvider.pdfNote!.id;
+      // Schedule navigation after the current frame
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        noteProvider.resetPdfState();
+        Navigator.of(context).pop(); // close the modal sheet
+        context.push('/new-note', extra: noteId);
+      });
+    }
+
+    // Upload error state
+    final uploadError = _uploadError ?? noteProvider.pdfError;
+
+    if (uploadError != null) {
+      return _ErrorView(
+        message: uploadError,
+        onRetry: () {
+          setState(() => _uploadError = null);
+          context.read<NoteProvider>().resetPdfState();
+          setState(() {
+            _fileName = null;
+            _fileSize = null;
+          });
+        },
+      );
+    }
+
+    // Processing view (after file picked, waiting for Pusher)
     if (_fileName != null) {
       return _ProcessingView(
         fileName: _fileName!,
         fileSize: _fileSize!,
-        progress: _progress,
+        isProcessing: noteProvider.isPdfProcessing,
       );
     }
 
-    // Otherwise show the file picker view
+    // Default: file picker view
     return _PickerView(
       isPicking: _isPicking,
-      onTap: _pickPdf,
+      onTap: _pickAndUpload,
     );
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// _PickerView  –  "Tap to select a PDF file" + Browse Files button
+// _PickerView
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _PickerView extends StatelessWidget {
@@ -145,7 +157,6 @@ class _PickerView extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // Upload icon / spinner
             Container(
               width: 64,
               height: 64,
@@ -161,16 +172,13 @@ class _PickerView extends StatelessWidget {
                         color: Color(0xFF9810FA),
                       ),
                     )
-                  : const Icon(
-                      Icons.upload_rounded,
-                      color: Color(0xFF9810FA),
-                      size: 30,
-                    ),
+                  : const Icon(Icons.upload_rounded,
+                      color: Color(0xFF9810FA), size: 30),
             ),
             const SizedBox(height: 16),
             Text(
               AppLocalizations.of(context)!.tapToSelectPdf,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Color(0xFFF0F0F8),
                 fontSize: 15,
                 fontFamily: 'Inter',
@@ -180,14 +188,13 @@ class _PickerView extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               AppLocalizations.of(context)!.pdfFileDescription,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Color(0xFF6A7282),
                 fontSize: 13,
                 fontFamily: 'Inter',
               ),
             ),
             const SizedBox(height: 20),
-            // Browse Files button
             GestureDetector(
               onTap: onTap,
               child: Container(
@@ -204,12 +211,12 @@ class _PickerView extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.folder_open_rounded,
+                    const Icon(Icons.folder_open_rounded,
                         color: Colors.white, size: 18),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Text(
                       AppLocalizations.of(context)!.browseFiles,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14,
                         fontFamily: 'Inter',
@@ -228,45 +235,26 @@ class _PickerView extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// _ProcessingView  –  file info + progress bar + step list
+// _ProcessingView
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _ProcessingView extends StatelessWidget {
   const _ProcessingView({
     required this.fileName,
     required this.fileSize,
-    required this.progress,
+    required this.isProcessing,
   });
 
   final String fileName;
   final String fileSize;
-
-  /// 0.0 → 1.0.  Drive this from your API later.
-  final double progress;
-
-  // Which step is currently active based on progress thresholds
-  _StepState _stateFor(_StepSlot slot) {
-    // Each step occupies roughly one third of the progress range
-    const thresholds = [0.33, 0.66, 0.95]; // end of each step
-    final i = slot.index;
-
-    if (progress >= 1.0) return _StepState.done; // all done at 100%
-    if (progress >= thresholds[i]) return _StepState.done;
-    // Is this the currently active step?
-    final prevDone = i == 0 || progress >= thresholds[i - 1];
-    if (prevDone) return _StepState.active;
-    return _StepState.pending;
-  }
+  final bool isProcessing;
 
   @override
   Widget build(BuildContext context) {
-    final pct = (progress * 100).round();
-    final isDone = progress >= 1.0;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── File info card ─────────────────────────────────────────────────
+        // File info card
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
@@ -276,7 +264,6 @@ class _ProcessingView extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // PDF icon badge
               Container(
                 width: 40,
                 height: 40,
@@ -284,11 +271,8 @@ class _ProcessingView extends StatelessWidget {
                   color: const Color(0xFF2A1020),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
-                  Icons.picture_as_pdf_rounded,
-                  color: Color(0xFFE53935),
-                  size: 22,
-                ),
+                child: const Icon(Icons.picture_as_pdf_rounded,
+                    color: Color(0xFFE53935), size: 22),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -307,14 +291,11 @@ class _ProcessingView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      fileSize,
-                      style: const TextStyle(
-                        color: Color(0xFF6A7282),
-                        fontSize: 12,
-                        fontFamily: 'Inter',
-                      ),
-                    ),
+                    Text(fileSize,
+                        style: const TextStyle(
+                            color: Color(0xFF6A7282),
+                            fontSize: 12,
+                            fontFamily: 'Inter')),
                   ],
                 ),
               ),
@@ -324,63 +305,58 @@ class _ProcessingView extends StatelessWidget {
 
         const SizedBox(height: 20),
 
-        // ── "Processing PDF  32%" ──────────────────────────────────────────
+        // Status row
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            if (isProcessing)
+              const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Color(0xFF9810FA),
+                ),
+              )
+            else
+              Container(
+                width: 18,
+                height: 18,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFF4ADE80),
+                ),
+                child: const Icon(Icons.check_rounded,
+                    color: Colors.white, size: 12),
+              ),
+            const SizedBox(width: 10),
             Text(
-              AppLocalizations.of(context)!.processingPdf,
+              isProcessing
+                  ? AppLocalizations.of(context)!.processingPdf
+                  : AppLocalizations.of(context)!.conversionComplete,
               style: TextStyle(
-                color: Color(0xFFF0F0F8),
-                fontSize: 13,
+                color: isProcessing
+                    ? const Color(0xFFF0F0F8)
+                    : const Color(0xFF4ADE80),
+                fontSize: 14,
                 fontFamily: 'Inter',
                 fontWeight: FontWeight.w600,
               ),
             ),
-            Text(
-              '$pct%',
-              style: const TextStyle(
-                color: Color(0xFFF0F0F8),
-                fontSize: 13,
-                fontFamily: 'Inter',
-                fontWeight: FontWeight.w700,
-              ),
-            ),
           ],
         ),
-        const SizedBox(height: 10),
 
-        // ── Gradient progress bar ──────────────────────────────────────────
-        _ProgressBar(progress: progress),
+        const SizedBox(height: 12),
 
-        const SizedBox(height: 20),
-
-        // ── Step list ──────────────────────────────────────────────────────
-        _StepRow(
-          label: AppLocalizations.of(context)!.analyzingPages,
-          state: _stateFor(_StepSlot.analyzing),
-        ),
-        const SizedBox(height: 8),
-        _StepRow(
-          label: AppLocalizations.of(context)!.recognizingText,
-          state: _stateFor(_StepSlot.recognizing),
-        ),
-        const SizedBox(height: 8),
-        _StepRow(
-          label: AppLocalizations.of(context)!.formattingContent,
-          state: _stateFor(_StepSlot.formatting),
-        ),
-
-        // "Conversion Complete" card – only visible when done
-        if (isDone) ...[
-          const SizedBox(height: 8),
-          _StepRow(
-            label: AppLocalizations.of(context)!.conversionComplete,
-            sublabel: AppLocalizations.of(context)!.processedPages,
-            state: _StepState.done,
-            highlight: true,
+        // Indeterminate progress bar while waiting for Pusher
+        if (isProcessing)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: const LinearProgressIndicator(
+              minHeight: 6,
+              backgroundColor: Color(0xFF1E1E30),
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF9810FA)),
+            ),
           ),
-        ],
 
         const SizedBox(height: 4),
       ],
@@ -389,189 +365,66 @@ class _ProcessingView extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Small helpers
+// _ErrorView
 // ─────────────────────────────────────────────────────────────────────────────
 
-// The three OCR steps in order
-enum _StepSlot { analyzing, recognizing, formatting }
+class _ErrorView extends StatelessWidget {
+  const _ErrorView({required this.message, required this.onRetry});
 
-// Visual state of a single step row
-enum _StepState { pending, active, done }
-
-// ── Gradient progress bar ─────────────────────────────────────────────────────
-
-class _ProgressBar extends StatelessWidget {
-  const _ProgressBar({required this.progress});
-  final double progress;
+  final String message;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      return Stack(
-        children: [
-          // Track (background)
-          Container(
-            height: 6,
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E1E30),
-              borderRadius: BorderRadius.circular(3),
-            ),
-          ),
-          // Fill (animated width)
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 80),
-            height: 6,
-            width: constraints.maxWidth * progress,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF9810FA), Color(0xFF3B82F6)],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-              ),
-              borderRadius: BorderRadius.circular(3),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF9810FA).withValues(alpha: 0.4),
-                  blurRadius: 6,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-          ),
-        ],
-      );
-    });
-  }
-}
-
-// ── Single step row ───────────────────────────────────────────────────────────
-
-class _StepRow extends StatelessWidget {
-  const _StepRow({
-    required this.label,
-    required this.state,
-    this.sublabel,
-    this.highlight = false,
-  });
-
-  final String label;
-  final String? sublabel;
-  final _StepState state;
-
-  /// True for the "Conversion Complete" card (green background)
-  final bool highlight;
-
-  @override
-  Widget build(BuildContext context) {
-    // Pick colours based on state
-    final Color labelColor;
-    final Color bgColor;
-    final Color borderColor;
-
-    switch (state) {
-      case _StepState.pending:
-        labelColor = const Color(0xFF3A3A50); // dim – not reached yet
-        bgColor = Colors.transparent;
-        borderColor = Colors.transparent;
-      case _StepState.active:
-        labelColor = const Color(0xFFF0F0F8); // bright – currently running
-        bgColor = const Color(0xFF1A1A2E);
-        borderColor = const Color(0xFF9810FA).withValues(alpha: 0.3);
-      case _StepState.done:
-        labelColor = highlight
-            ? const Color(0xFF4ADE80) // green for completion card
-            : const Color(0xFFF0F0F8);
-        bgColor = highlight ? const Color(0xFF0D2010) : const Color(0xFF1A1A2E);
-        borderColor = highlight
-            ? const Color(0xFF4ADE80).withValues(alpha: 0.25)
-            : Colors.white.withValues(alpha: 0.06);
-    }
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: borderColor),
+        color: const Color(0xFF2A0A0A),
+        borderRadius: BorderRadius.circular(16),
+        border:
+            Border.all(color: const Color(0xFFE53935).withValues(alpha: 0.3)),
       ),
-      child: Row(
+      child: Column(
         children: [
-          _StepIcon(state: state),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: labelColor,
-                    fontSize: 14,
-                    fontFamily: 'Inter',
-                    fontWeight: highlight ? FontWeight.w700 : FontWeight.w500,
-                  ),
+          const Icon(Icons.error_outline_rounded,
+              color: Color(0xFFE53935), size: 36),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: Color(0xFFF0F0F8),
+              fontSize: 13,
+              fontFamily: 'Inter',
+            ),
+          ),
+          const SizedBox(height: 16),
+          GestureDetector(
+            onTap: onRetry,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF9810FA), Color(0xFFDB2777)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
                 ),
-                if (sublabel != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    sublabel!,
-                    style: const TextStyle(
-                      color: Color(0xFF4ADE80),
-                      fontSize: 12,
-                      fontFamily: 'Inter',
-                    ),
-                  ),
-                ],
-              ],
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Text(
+                AppLocalizations.of(context)!.tryAgain,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: 'Inter',
+                ),
+              ),
             ),
           ),
         ],
       ),
     );
-  }
-}
-
-// ── Step icon (circle / spinner / checkmark) ──────────────────────────────────
-
-class _StepIcon extends StatelessWidget {
-  const _StepIcon({required this.state});
-  final _StepState state;
-
-  @override
-  Widget build(BuildContext context) {
-    switch (state) {
-      case _StepState.pending:
-        // Empty circle outline
-        return Container(
-          width: 22,
-          height: 22,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFF3A3A50), width: 1.5),
-          ),
-        );
-      case _StepState.active:
-        // Spinning purple indicator
-        return const SizedBox(
-          width: 22,
-          height: 22,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF9810FA)),
-          ),
-        );
-      case _StepState.done:
-        // Solid green checkmark
-        return Container(
-          width: 22,
-          height: 22,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: Color(0xFF4ADE80),
-          ),
-          child: const Icon(Icons.check_rounded, color: Colors.white, size: 14),
-        );
-    }
   }
 }

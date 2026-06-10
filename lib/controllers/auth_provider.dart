@@ -89,7 +89,7 @@ class AuthProvider extends ChangeNotifier {
         userId: user.id.toString(),
         userToken: user.token,
         websocketHost: reverbWsHost,
-        authUrl: "$currentApiBaseUrl/broadcasting/auth",
+        authUrl: "$currentApiBaseUrl/api/broadcasting/auth",
       );
 
       _error = null;
@@ -128,7 +128,7 @@ class AuthProvider extends ChangeNotifier {
         userId: user.id.toString(),
         userToken: user.token,
         websocketHost: reverbWsHost,
-        authUrl: "$currentApiBaseUrl/broadcasting/auth",
+        authUrl: "$currentApiBaseUrl/api/broadcasting/auth",
       );
 
       _error = null;

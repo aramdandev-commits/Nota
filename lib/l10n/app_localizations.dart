@@ -1166,6 +1166,12 @@ abstract class AppLocalizations {
   /// **'Are you sure you want to log out?'**
   String get logoutConfirm;
 
+  /// No description provided for @tryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Again'**
+  String get tryAgain;
+
   /// No description provided for @dontHaveAccount.
   ///
   /// In en, this message translates to:

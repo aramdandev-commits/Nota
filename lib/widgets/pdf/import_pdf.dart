@@ -1,6 +1,5 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:nota/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/auth_provider.dart';
@@ -87,15 +86,38 @@ class _ImportPdfBodyState extends State<ImportPdfBody> {
   Widget build(BuildContext context) {
     final noteProvider = context.watch<NoteProvider>();
 
-    // When Pusher delivers the note → navigate and close the sheet
+    // When Pusher delivers the note → close sheet and show success SnackBar
     if (noteProvider.pdfNote != null) {
-      final noteId = noteProvider.pdfNote!.id;
-      // Schedule navigation after the current frame
+      final title = noteProvider.pdfNote!.title;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         noteProvider.resetPdfState();
         Navigator.of(context).pop(); // close the modal sheet
-        context.push('/new-note', extra: noteId);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_rounded,
+                    color: Color(0xFF4ADE80), size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    '"${title.isNotEmpty ? title : 'Untitled'}" saved to your notes.',
+                    style: const TextStyle(
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: const Color(0xFF1A2A1A),
+            behavior: SnackBarBehavior.floating,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            duration: const Duration(seconds: 4),
+          ),
+        );
       });
     }
 

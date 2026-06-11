@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'dart:convert';
 
 import 'auth_service.dart';
@@ -9,21 +10,25 @@ class PdfService {
 
   /// POST /api/v1/notes/read-pdf
   /// Sends the PDF as multipart/form-data with key "file".
-  /// Returns the raw response body map on success.
-  /// Throws [AuthException] on API errors.
   Future<Map<String, dynamic>> uploadPdf({
     required String filePath,
     required String token,
   }) async {
     final uri = Uri.parse('$_baseUrl/api/v1/notes/read-pdf');
 
+    // Do NOT set Content-Type manually — MultipartRequest sets the correct
+    // multipart/form-data boundary automatically. Setting it manually breaks it.
     final request = http.MultipartRequest('POST', uri)
       ..headers.addAll({
         'Accept': 'application/json',
         'Authorization': 'Bearer $token',
         'ngrok-skip-browser-warning': '69420',
       })
-      ..files.add(await http.MultipartFile.fromPath('file', filePath));
+      ..files.add(await http.MultipartFile.fromPath(
+        'file',
+        filePath,
+        contentType: MediaType('application', 'pdf'), // explicit MIME type
+      ));
 
     final streamed = await request.send();
     final response = await http.Response.fromStream(streamed);
@@ -40,7 +45,6 @@ class PdfService {
       return body;
     }
 
-    // Extract error message
     final message = body['message'] as String? ??
         body['error'] as String? ??
         'PDF upload failed (HTTP ${response.statusCode})';

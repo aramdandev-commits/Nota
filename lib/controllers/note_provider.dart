@@ -55,30 +55,79 @@ class NoteProvider extends ChangeNotifier {
 
   void onPdfExtracted(Map<String, dynamic> eventData) {
     debugPrint('📄 NoteProvider: onPdfExtracted called — data: $eventData');
+
+    // Dedup — if we already processed this, ignore
+    if (!_isPdfProcessing) {
+      debugPrint('📄 NoteProvider: onPdfExtracted ignored — not processing');
+      return;
+    }
+
     try {
-      final note = NoteModel.fromMap(
-        eventData.containsKey('data')
-            ? eventData['data'] as Map<String, dynamic>
-            : eventData,
-      );
+      // Unwrap data wrapper if present
+      final rawMap = eventData.containsKey('data')
+          ? eventData['data'] as Map<String, dynamic>
+          : eventData;
+
+      // content may arrive as a JSON string from Pusher — decode it
+      final decoded = Map<String, dynamic>.from(rawMap);
+      if (decoded['content'] is String) {
+        try {
+          decoded['content'] = jsonDecode(decoded['content'] as String);
+        } catch (_) {}
+      }
+
+      // Build preview from content if backend sent null
+      if (decoded['preview'] == null && decoded['content'] is List) {
+        final ops = decoded['content'] as List;
+        final buffer = StringBuffer();
+        for (final op in ops) {
+          if (op is Map && op['insert'] is String) {
+            buffer.write(op['insert'] as String);
+          }
+        }
+        final raw = buffer.toString().replaceAll('\n', ' ').trim();
+        decoded['preview'] = raw.length > 120 ? raw.substring(0, 120) : raw;
+      }
+
+      final note = NoteModel.fromMap(decoded);
       debugPrint(
-          '📄 NoteProvider: parsed note id=${note.id} title="${note.title}"');
+          '📄 NoteProvider: parsed note id=${note.id} title="${note.title}" preview="${note.preview?.substring(0, note.preview!.length.clamp(0, 60))}..."');
+
       _notes.removeWhere((n) => n.id == note.id);
       _notes.insert(0, note);
       _pdfNote = note;
+
+      notificationProvider.addNotification(
+        'PDF Imported ✅',
+        '"${note.title.isNotEmpty ? note.title : 'Untitled'}" has been saved to your notes.',
+      );
     } catch (e) {
       debugPrint('📄 NoteProvider: ❌ onPdfExtracted parse error: $e');
       _pdfError = 'Failed to parse extracted note.';
     }
     _isPdfProcessing = false;
     notifyListeners();
+    // Refresh from server to get the fully persisted note with all fields
+    loadNotes();
   }
 
   void onPdfExtractionFailed(Map<String, dynamic> eventData) {
     debugPrint(
         '📄 NoteProvider: onPdfExtractionFailed called — data: $eventData');
-    _pdfError = eventData['message'] as String? ?? 'PDF extraction failed.';
+
+    // Dedup
+    if (!_isPdfProcessing) return;
+
+    final msg = eventData['message'] as String? ?? 'PDF extraction failed.';
+    _pdfError = msg;
     _isPdfProcessing = false;
+
+    // Add failure notification
+    notificationProvider.addNotification(
+      'PDF Import Failed ❌',
+      msg,
+    );
+
     notifyListeners();
   }
 
@@ -335,9 +384,12 @@ class NoteProvider extends ChangeNotifier {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
-        final noteData = data is Map<String, dynamic> && data.containsKey('data') ? data['data'] : data;
+        final noteData =
+            data is Map<String, dynamic> && data.containsKey('data')
+                ? data['data']
+                : data;
         final note = NoteModel.fromMap(noteData);
-        
+
         final index = _notes.indexWhere((n) => n.id == note.id);
         if (index >= 0) {
           _notes[index] = note;
@@ -345,15 +397,16 @@ class NoteProvider extends ChangeNotifier {
           _notes.insert(0, note);
         }
         _notes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-        
+
         _isSummarizeSuccess = true;
-        
+
         notificationProvider.addNotification(
           'Text Summarized',
           'Your pasted text has been successfully summarized.',
         );
       } else {
-        debugPrint('Failed to request text summary. Status: ${response.statusCode}, Body: ${response.body}');
+        debugPrint(
+            'Failed to request text summary. Status: ${response.statusCode}, Body: ${response.body}');
         throw Exception('Failed to request summary: ${response.statusCode}');
       }
     } catch (e) {
@@ -368,12 +421,34 @@ class NoteProvider extends ChangeNotifier {
   void onSummaryEventReceived(Map<String, dynamic> eventData) {
     debugPrint('Received summary event: $eventData');
     try {
-      final note = NoteModel.fromMap(
-        eventData.containsKey('data')
-            ? eventData['data'] as Map<String, dynamic>
-            : eventData,
-      );
-      
+      final rawMap = eventData.containsKey('data')
+          ? eventData['data'] as Map<String, dynamic>
+          : eventData;
+
+      final decoded = Map<String, dynamic>.from(rawMap);
+
+      // content may arrive as a JSON string from Pusher — decode it
+      if (decoded['content'] is String) {
+        try {
+          decoded['content'] = jsonDecode(decoded['content'] as String);
+        } catch (_) {}
+      }
+
+      // Build preview from content ops if backend sent null
+      if (decoded['preview'] == null && decoded['content'] is List) {
+        final ops = decoded['content'] as List;
+        final buffer = StringBuffer();
+        for (final op in ops) {
+          if (op is Map && op['insert'] is String) {
+            buffer.write(op['insert'] as String);
+          }
+        }
+        final raw = buffer.toString().replaceAll('\n', ' ').trim();
+        decoded['preview'] = raw.length > 120 ? raw.substring(0, 120) : raw;
+      }
+
+      final note = NoteModel.fromMap(decoded);
+
       final index = _notes.indexWhere((n) => n.id == note.id);
       if (index >= 0) {
         _notes[index] = note;
@@ -381,12 +456,12 @@ class NoteProvider extends ChangeNotifier {
         _notes.insert(0, note);
       }
       _notes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-      
+
       _isSummarizeSuccess = true;
-      
+
       notificationProvider.addNotification(
-        'Note Summarized',
-        'Your note "${note.title}" has been successfully summarized.',
+        'Note Summarized ✅',
+        '"${note.title.isNotEmpty ? note.title : 'Untitled'}" has been successfully summarized.',
       );
     } catch (e) {
       debugPrint('Error parsing summary content: $e');

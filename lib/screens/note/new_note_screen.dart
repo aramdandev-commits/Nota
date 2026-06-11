@@ -46,8 +46,8 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
     super.initState();
 
     _isNewNote = widget.note == null;
-    _noteId = widget.note?.id ??
-        DateTime.now().millisecondsSinceEpoch.toString();
+    _noteId =
+        widget.note?.id ?? DateTime.now().millisecondsSinceEpoch.toString();
     _createdAt = widget.note?.createdAt ?? DateTime.now();
 
     _titleController = TextEditingController(text: widget.note?.title ?? '');
@@ -122,9 +122,11 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
     if (widget.note != null && widget.note!.content.isNotEmpty) {
       final firstElement = widget.note!.content.first;
       if (firstElement is Map && firstElement.containsKey('ops')) {
+        // Already a Quill Delta object {ops: [...]}
         payload = jsonEncode(firstElement);
       } else {
-        payload = jsonEncode(widget.note!.content);
+        // Raw ops array — wrap into a Delta object for Quill
+        payload = jsonEncode({'ops': widget.note!.content});
       }
     }
 
@@ -176,12 +178,10 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
           : _titleController.text;
 
       // Fetch plain text for the preview
-      final rawText = await _webViewController.runJavaScriptReturningResult("window.quill ? window.quill.getText() : document.body.innerText;");
-      String cleanPreview = rawText
-          .toString()
-          .replaceAll('"', '')
-          .replaceAll(r'\n', ' ')
-          .trim();
+      final rawText = await _webViewController.runJavaScriptReturningResult(
+          "window.quill ? window.quill.getText() : document.body.innerText;");
+      String cleanPreview =
+          rawText.toString().replaceAll('"', '').replaceAll(r'\n', ' ').trim();
       if (cleanPreview.length > 60) {
         cleanPreview = "${cleanPreview.substring(0, 60)}...";
       }
@@ -189,11 +189,13 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
       // Fetch Delta JSON string from JS
       List<dynamic> contentPayload = [];
       try {
-        final rawDeltaStr = await _webViewController.runJavaScriptReturningResult("JSON.stringify(window.quill.getContents());");
+        final rawDeltaStr =
+            await _webViewController.runJavaScriptReturningResult(
+                "JSON.stringify(window.quill.getContents());");
         String cleanDeltaStr = rawDeltaStr.toString();
         // Remove outer quotes and unescape string if it comes back double-escaped from JS
         if (cleanDeltaStr.startsWith('"') && cleanDeltaStr.endsWith('"')) {
-          cleanDeltaStr = jsonDecode(cleanDeltaStr); 
+          cleanDeltaStr = jsonDecode(cleanDeltaStr);
         }
 
         // Parse it into a Dart Map
@@ -233,7 +235,11 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
               _isNewNote = false;
             } else {
               await context.read<SpaceDetailsProvider>().updateNote(
-                  widget.spaceId!, _noteId, title, contentPayload, cleanPreview);
+                  widget.spaceId!,
+                  _noteId,
+                  title,
+                  contentPayload,
+                  cleanPreview);
             }
           } else {
             final newId = await context

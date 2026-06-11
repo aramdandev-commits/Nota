@@ -81,73 +81,49 @@ class SpaceDetailsRepository {
   }
 
   Future<List<SpaceMemberModel>> getMembersForSpace(String spaceId) async {
-    await Future.delayed(const Duration(milliseconds: 600));
+    final headers = await _getHeaders();
+    final response = await http.get(Uri.parse('$_baseUrl/$spaceId/users'), headers: headers);
 
-    final Map<String, List<SpaceMemberModel>> members = {
-      '1': [
-        SpaceMemberModel(
-          id: 'm1',
-          name: 'You',
-          email: 'you@nota.app',
-          role: SpaceRole.admin,
-          joinedAt: DateTime(2024, 10, 1),
-          isCurrentUser: true,
-          avatarColor: const Color(0xFFD838B5),
-        ),
-        SpaceMemberModel(
-          id: 'm2',
-          name: 'Sarah Khan',
-          email: 'sarah@team.com',
-          role: SpaceRole.contributor,
-          joinedAt: DateTime(2024, 10, 5),
-          avatarColor: const Color(0xFF238EFA),
-        ),
-        SpaceMemberModel(
-          id: 'm3',
-          name: 'Ahmed Ali',
-          email: 'ahmed@team.com',
-          role: SpaceRole.contributor,
-          joinedAt: DateTime(2024, 10, 12),
-          avatarColor: const Color(0xFF07C168),
-        ),
-        SpaceMemberModel(
-          id: 'm4',
-          name: 'Maria Garcia',
-          email: 'maria@team.com',
-          role: SpaceRole.viewer,
-          joinedAt: DateTime(2024, 10, 18),
-          avatarColor: const Color(0xFFFF5621),
-        ),
-      ],
-      '2': [
-        SpaceMemberModel(
-          id: 'm5',
-          name: 'Alex Chen',
-          email: 'alex@team.com',
-          role: SpaceRole.admin,
-          joinedAt: DateTime(2024, 9, 10),
-          avatarColor: const Color(0xFF238EFA),
-        ),
-        SpaceMemberModel(
-          id: 'm6',
-          name: 'You',
-          email: 'you@nota.app',
-          role: SpaceRole.contributor,
-          joinedAt: DateTime(2024, 9, 20),
-          isCurrentUser: true,
-          avatarColor: const Color(0xFFD838B5),
-        ),
-        SpaceMemberModel(
-          id: 'm7',
-          name: 'Lisa Wang',
-          email: 'lisa@team.com',
-          role: SpaceRole.contributor,
-          joinedAt: DateTime(2024, 10, 1),
-          avatarColor: const Color(0xFF9B59B6),
-        ),
-      ],
-    };
+    if (response.statusCode == 200) {
+      final jsonResponse = jsonDecode(response.body);
+      final List<dynamic> data = jsonResponse['data'] ?? jsonResponse;
+      return data.map((e) => SpaceMemberModel.fromJson(e)).toList();
+    } else {
+      throw Exception('Failed to load space members: ${response.statusCode} ${response.body}');
+    }
+  }
 
-    return members[spaceId] ?? [];
+  Future<Map<String, String>> inviteMember(String spaceId) async {
+    final headers = await _getHeaders();
+    final response = await http.post(
+      Uri.parse('$_baseUrl/$spaceId/invites'),
+      headers: headers,
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final jsonResponse = jsonDecode(response.body);
+      final data = jsonResponse['data'] ?? jsonResponse;
+      return {
+        'invite_url': data['invite_url']?.toString() ?? '',
+        'expires_at': data['expires_at']?.toString() ?? '',
+      };
+    } else {
+      throw Exception('Failed to generate invite: ${response.statusCode} ${response.body}');
+    }
+  }
+
+  Future<void> changeMemberRole(String spaceId, String userId, SpaceRole newRole) async {
+    final headers = await _getHeaders();
+    final String roleStr = newRole.toString().split('.').last;
+    
+    final response = await http.put(
+      Uri.parse('$_baseUrl/$spaceId/users/$userId'),
+      headers: headers,
+      body: jsonEncode({'role': roleStr}),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Failed to update member role: ${response.statusCode} ${response.body}');
+    }
   }
 }

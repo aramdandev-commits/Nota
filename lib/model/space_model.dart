@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-enum SpaceRole { admin, contributor, viewer }
+enum SpaceRole { owner, admin, editor, viewer }
 
 class SpaceModel {
   final String id;
   final String title;
   final String description;
-  final SpaceRole role;
+  final SpaceRole currentUserRole;
   final int memberCount;
   final int noteCount;
   final Color iconColor;
@@ -19,7 +19,7 @@ class SpaceModel {
     required this.id,
     required this.title,
     required this.description,
-    required this.role,
+    required this.currentUserRole,
     required this.memberCount,
     required this.noteCount,
     required this.iconColor,
@@ -34,10 +34,17 @@ class SpaceModel {
       id: json['id'].toString(),
       title: json['name'] ?? json['title'] ?? '',
       description: json['description'] ?? '',
-      role: SpaceRole.values.firstWhere(
-        (e) => e.toString().split('.').last == json['role'],
-        orElse: () => SpaceRole.admin,
-      ),
+      currentUserRole: () {
+        final pivot = json['pivot'] as Map<String, dynamic>?;
+        final roleStr = pivot != null ? pivot['role']?.toString() : json['role']?.toString();
+        final r = roleStr?.toLowerCase();
+        
+        if (r == 'owner') return SpaceRole.owner;
+        if (r == 'admin') return SpaceRole.admin;
+        if (r == 'editor') return SpaceRole.editor;
+        if (r == 'viewer') return SpaceRole.viewer;
+        return SpaceRole.viewer;
+      }(),
       memberCount: json['member_count'] as int? ?? 1,
       noteCount: json['note_count'] as int? ?? 0,
       iconColor: json['icon_color'] != null 
@@ -59,7 +66,7 @@ class SpaceModel {
       'id': id,
       'title': title,
       'description': description,
-      'role': role.toString().split('.').last,
+      'role': currentUserRole.toString().split('.').last,
       'member_count': memberCount,
       'note_count': noteCount,
       'icon_color': '#${iconColor.value.toRadixString(16).substring(2)}',

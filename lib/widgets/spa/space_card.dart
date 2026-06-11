@@ -92,7 +92,7 @@ class SpaceCard extends StatelessWidget {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      _buildRoleBadge(context, space.role),
+                      _buildRoleBadge(context, space.currentUserRole),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
@@ -123,22 +123,28 @@ class SpaceCard extends StatelessWidget {
     IconData? icon;
 
     switch (role) {
+      case SpaceRole.owner:
+        textColor = const Color(0xFFD946EF);
+        bgColor = const Color(0xFF3B1545);
+        text = 'Owner';
+        icon = Icons.verified_user_outlined;
+        break;
       case SpaceRole.admin:
         textColor = const Color(0xFFFBBF24); // Yellow
         bgColor = const Color(0xFF332B13);
-        text = AppLocalizations.of(context)!.admin;
+        text = AppLocalizations.of(context)!.admin ?? 'Admin';
         icon = Icons.star_border;
         break;
-      case SpaceRole.contributor:
+      case SpaceRole.editor:
         textColor = const Color(0xFF60A5FA);
         bgColor = const Color(0xFF14243B);
-        text = AppLocalizations.of(context)!.contributor;
+        text = 'Can Edit';
         icon = Icons.edit_outlined;
         break;
       case SpaceRole.viewer:
         textColor = const Color(0xFF9CA3AF);
         bgColor = const Color(0xFF202430);
-        text = AppLocalizations.of(context)!.viewer;
+        text = 'Can View';
         icon = Icons.visibility_outlined;
         break;
     }

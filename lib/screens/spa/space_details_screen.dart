@@ -3,6 +3,7 @@ import 'package:nota/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/space_details_provider.dart';
 import '../../controllers/spaces_provider.dart';
+import '../../controllers/auth_provider.dart';
 import '../../model/space_model.dart';
 import '../../model/space_note_model.dart';
 import '../../model/space_settings_model.dart';
@@ -26,9 +27,12 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final p = context.read<SpaceDetailsProvider>();
+      final auth = context.read<AuthProvider>();
+      p.initCurrentUserRole(widget.space.currentUserRole);
       p.fetchNotes(widget.space.id);
-      p.fetchMembers(widget.space.id);
+      p.fetchMembers(widget.space.id, currentUserId: auth.user?.id);
     });
   }
 
@@ -45,7 +49,7 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const _InviteMemberSheet(),
+      builder: (_) => _InviteMemberSheet(spaceId: widget.space.id),
     );
   }
 
@@ -63,6 +67,7 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final space = widget.space;
+    final currentUserRole = context.watch<SpaceDetailsProvider>().currentUserRole;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
@@ -106,11 +111,13 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
                       ],
                     ),
                   ),
-                  GestureDetector(
-                    onTap: _showOptionsSheet,
-                    child: Icon(Icons.settings_outlined,
-                        color: cs.onSurface.withValues(alpha: 0.5), size: 22),
-                  ),
+                  if (currentUserRole == SpaceRole.owner ||
+                      currentUserRole == SpaceRole.admin)
+                    GestureDetector(
+                      onTap: _showOptionsSheet,
+                      child: Icon(Icons.settings_outlined,
+                          color: cs.onSurface.withValues(alpha: 0.5), size: 22),
+                    ),
                 ],
               ),
             ),
@@ -152,7 +159,7 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
                       ),
                     ],
                   ),
-                  _RoleBadge(role: space.role),
+                  _RoleBadge(role: currentUserRole),
                 ],
               ),
             ),
@@ -224,38 +231,44 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      GestureDetector(
-                        onTap: isMembersTab
-                            ? _showInviteSheet
-                            : _showCreateNoteSheet,
-                        child: Container(
-                          height: 40,
-                          padding: const EdgeInsets.symmetric(horizontal: 14),
-                          decoration: BoxDecoration(
-                              color: const Color(0xFF6B58FF),
-                              borderRadius: BorderRadius.circular(12)),
-                          child: Row(
-                            children: [
-                              Icon(
-                                  isMembersTab
-                                      ? Icons.person_add_outlined
-                                      : Icons.add,
-                                  color: Colors.white,
-                                  size: 16),
-                              const SizedBox(width: 4),
-                              Text(
-                                  isMembersTab
-                                      ? AppLocalizations.of(context)!.invite
-                                      : AppLocalizations.of(context)!.addNote,
-                                  style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600)),
-                            ],
+                      if ((isMembersTab &&
+                              (currentUserRole == SpaceRole.owner ||
+                                  currentUserRole == SpaceRole.admin)) ||
+                          (!isMembersTab &&
+                              currentUserRole != SpaceRole.viewer)) ...[
+                        const SizedBox(width: 10),
+                        GestureDetector(
+                          onTap: isMembersTab
+                              ? _showInviteSheet
+                              : _showCreateNoteSheet,
+                          child: Container(
+                            height: 40,
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            decoration: BoxDecoration(
+                                color: const Color(0xFF6B58FF),
+                                borderRadius: BorderRadius.circular(12)),
+                            child: Row(
+                              children: [
+                                Icon(
+                                    isMembersTab
+                                        ? Icons.person_add_outlined
+                                        : Icons.add,
+                                    color: Colors.white,
+                                    size: 16),
+                                const SizedBox(width: 4),
+                                Text(
+                                    isMembersTab
+                                        ? AppLocalizations.of(context)!.invite
+                                        : AppLocalizations.of(context)!.addNote,
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600)),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 );
@@ -274,12 +287,14 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
                   }
                   if (provider.activeTab == 'members') {
                     return _MembersTab(
-                        myRole: widget.space.role, provider: provider);
+                        myRole: currentUserRole,
+                        provider: provider,
+                        spaceId: space.id);
                   }
                   return _NotesTab(
                       spaceId: space.id,
                       provider: provider,
-                      spaceRole: space.role);
+                      spaceRole: currentUserRole);
                 },
               ),
             ),
@@ -296,7 +311,8 @@ class _NotesTab extends StatelessWidget {
   final SpaceDetailsProvider provider;
   final SpaceRole spaceRole;
   final String spaceId;
-  const _NotesTab({required this.spaceId, required this.provider, required this.spaceRole});
+  const _NotesTab(
+      {required this.spaceId, required this.provider, required this.spaceRole});
 
   @override
   Widget build(BuildContext context) {
@@ -310,7 +326,8 @@ class _NotesTab extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: notes.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (ctx, i) => _NoteCard(spaceId: spaceId, note: notes[i], spaceRole: spaceRole),
+      itemBuilder: (ctx, i) =>
+          _NoteCard(spaceId: spaceId, note: notes[i], spaceRole: spaceRole),
     );
   }
 }
@@ -320,7 +337,9 @@ class _NotesTab extends StatelessWidget {
 class _MembersTab extends StatelessWidget {
   final SpaceRole myRole;
   final SpaceDetailsProvider provider;
-  const _MembersTab({required this.myRole, required this.provider});
+  final String spaceId;
+  const _MembersTab(
+      {required this.myRole, required this.provider, required this.spaceId});
 
   @override
   Widget build(BuildContext context) {
@@ -337,7 +356,8 @@ class _MembersTab extends StatelessWidget {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       itemCount: members.length,
-      itemBuilder: (ctx, i) => MemberCard(member: members[i], myRole: myRole),
+      itemBuilder: (ctx, i) =>
+          MemberCard(member: members[i], myRole: myRole, spaceId: spaceId),
     );
   }
 }
@@ -348,7 +368,8 @@ class _NoteCard extends StatelessWidget {
   final SpaceNoteModel note;
   final SpaceRole spaceRole;
   final String spaceId;
-  const _NoteCard({required this.spaceId, required this.note, required this.spaceRole});
+  const _NoteCard(
+      {required this.spaceId, required this.note, required this.spaceRole});
 
   String _timeLabel(DateTime dt, {bool isEdited = false}) {
     final diff = DateTime.now().difference(dt);
@@ -381,7 +402,8 @@ class _NoteCard extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => _NoteOptionsSheet(spaceId: spaceId, note: note, spaceRole: spaceRole),
+      builder: (_) =>
+          _NoteOptionsSheet(spaceId: spaceId, note: note, spaceRole: spaceRole),
     );
   }
 
@@ -391,7 +413,8 @@ class _NoteCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
-        onTap: () => Navigator.push(context,
+        onTap: () => Navigator.push(
+            context,
             MaterialPageRoute(
               builder: (_) => NewNoteScreen(
                 note: NoteModel(
@@ -468,7 +491,6 @@ class _NoteCard extends StatelessWidget {
         ));
   }
 }
-
 
 // ── Create Note Sheet ─────────────────────────────────────────────────────────
 
@@ -575,13 +597,15 @@ class _CreateNoteSheetState extends State<_CreateNoteSheet> {
                   if (name.isEmpty) return;
 
                   final desc = _descCtrl.text.trim();
-                  final List<dynamic> contentPayload = desc.isEmpty ? [] : [
-                    {
-                      "ops": [
-                        {"insert": "$desc\n"}
-                      ]
-                    }
-                  ];
+                  final List<dynamic> contentPayload = desc.isEmpty
+                      ? []
+                      : [
+                          {
+                            "ops": [
+                              {"insert": "$desc\n"}
+                            ]
+                          }
+                        ];
 
                   if (widget.note != null) {
                     await context.read<SpaceDetailsProvider>().updateNote(
@@ -591,11 +615,9 @@ class _CreateNoteSheetState extends State<_CreateNoteSheet> {
                         contentPayload,
                         desc);
                   } else {
-                    await context.read<SpaceDetailsProvider>().createNote(
-                        widget.spaceId,
-                        name,
-                        contentPayload,
-                        desc);
+                    await context
+                        .read<SpaceDetailsProvider>()
+                        .createNote(widget.spaceId, name, contentPayload, desc);
                   }
                   nav.pop();
                 },
@@ -614,14 +636,18 @@ class _NoteOptionsSheet extends StatelessWidget {
   final SpaceNoteModel note;
   final SpaceRole spaceRole;
   final String spaceId;
-  const _NoteOptionsSheet({required this.spaceId, required this.note, required this.spaceRole});
+  const _NoteOptionsSheet(
+      {required this.spaceId, required this.note, required this.spaceRole});
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final canEdit = spaceRole == SpaceRole.owner ||
+        spaceRole == SpaceRole.admin ||
+        spaceRole == SpaceRole.editor;
     final canDelete =
-        spaceRole == SpaceRole.admin || spaceRole == SpaceRole.contributor;
+        spaceRole == SpaceRole.owner || spaceRole == SpaceRole.admin;
     return Container(
       decoration: BoxDecoration(
           color: isDark
@@ -646,7 +672,7 @@ class _NoteOptionsSheet extends StatelessWidget {
               nav.pop();
             },
           ),
-          if (canDelete) ...[
+          if (canEdit) ...[
             Divider(color: cs.onSurface.withValues(alpha: 0.1)),
             _OptionTile(
               icon: Icons.edit_outlined,
@@ -659,10 +685,13 @@ class _NoteOptionsSheet extends StatelessWidget {
                   context: context,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
-                  builder: (_) => _CreateNoteSheet(spaceId: spaceId, note: note),
+                  builder: (_) =>
+                      _CreateNoteSheet(spaceId: spaceId, note: note),
                 );
               },
             ),
+          ],
+          if (canDelete)
             _OptionTile(
               icon: Icons.delete_outline,
               iconColor: const Color(0xFFEF4444),
@@ -670,11 +699,12 @@ class _NoteOptionsSheet extends StatelessWidget {
               labelColor: const Color(0xFFEF4444),
               onTap: () {
                 final nav = Navigator.of(context);
-                context.read<SpaceDetailsProvider>().deleteNote(spaceId, note.id);
+                context
+                    .read<SpaceDetailsProvider>()
+                    .deleteNote(spaceId, note.id);
                 nav.pop();
               },
             ),
-          ],
         ],
       ),
     );
@@ -691,7 +721,9 @@ class _OptionsBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isAdmin = space.role == SpaceRole.admin;
+    final currentUserRole = context.watch<SpaceDetailsProvider>().currentUserRole;
+    final isAdminOrOwner =
+        currentUserRole == SpaceRole.admin || currentUserRole == SpaceRole.owner;
     return Container(
       decoration: BoxDecoration(
           color: isDark
@@ -704,7 +736,7 @@ class _OptionsBottomSheet extends StatelessWidget {
         children: [
           _Handle(),
           const SizedBox(height: 20),
-          if (isAdmin) ...[
+          if (isAdminOrOwner) ...[
             _OptionTile(
               icon: Icons.edit_outlined,
               iconColor: const Color(0xFF6B58FF),
@@ -759,7 +791,8 @@ class _OptionsBottomSheet extends StatelessWidget {
                             nav.pop(); // pop details screen
                           } catch (e) {
                             nav.pop();
-                            scaffold.showSnackBar(SnackBar(content: Text(e.toString())));
+                            scaffold.showSnackBar(
+                                SnackBar(content: Text(e.toString())));
                           }
                         },
                         child: Text(AppLocalizations.of(context)!.delete,
@@ -919,18 +952,21 @@ class _EditSpaceSheetState extends State<_EditSpaceSheet> {
 // ── Invite Member Sheet ───────────────────────────────────────────────────────
 
 class _InviteMemberSheet extends StatefulWidget {
-  const _InviteMemberSheet();
+  final String spaceId;
+  const _InviteMemberSheet({required this.spaceId});
   @override
   State<_InviteMemberSheet> createState() => _InviteMemberSheetState();
 }
 
 class _InviteMemberSheetState extends State<_InviteMemberSheet> {
-  final _emailCtrl = TextEditingController();
-
   @override
-  void dispose() {
-    _emailCtrl.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<SpaceDetailsProvider>().clearInviteUrl();
+      }
+    });
   }
 
   @override
@@ -951,48 +987,95 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
         children: [
           _Handle(),
           const SizedBox(height: 20),
-          Text(AppLocalizations.of(context)!.inviteMembers,
+          Text(AppLocalizations.of(context)!.inviteMembers ?? 'Invite Members',
               style: TextStyle(
                   color: cs.onSurface,
                   fontSize: 20,
                   fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
-          Text(AppLocalizations.of(context)!.inviteMembersDescription,
+          Text(
+              AppLocalizations.of(context)!.inviteMembersDescription ??
+                  'Generate an invite link for this space',
               style: TextStyle(
                   color: cs.onSurface.withValues(alpha: 0.5), fontSize: 14)),
           const SizedBox(height: 20),
-          Text(AppLocalizations.of(context)!.emailAddress,
-              style: TextStyle(
-                  color: cs.onSurface.withValues(alpha: 0.6),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500)),
-          const SizedBox(height: 8),
-          SpaceTextField(
-              controller: _emailCtrl,
-              hintText: AppLocalizations.of(context)!.enterEmail,
-              keyboardType: TextInputType.emailAddress),
-          const SizedBox(height: 24),
-          Row(children: [
-            Expanded(
-                child: SpaceActionButton(
-                    label: AppLocalizations.of(context)!.cancel,
-                    variant: SpaceButtonVariant.secondary,
-                    onPressed: () => Navigator.pop(context))),
-            const SizedBox(width: 12),
-            Expanded(
-              child: SpaceActionButton(
-                label: AppLocalizations.of(context)!.sendInvite,
-                onPressed: () {
-                  final nav = Navigator.of(context);
-                  final email = _emailCtrl.text.trim();
-                  if (email.isNotEmpty) {
-                    context.read<SpaceDetailsProvider>().inviteMember(email);
-                  }
-                  nav.pop();
-                },
-              ),
-            ),
-          ]),
+          Consumer<SpaceDetailsProvider>(builder: (ctx, provider, _) {
+            if (provider.inviteUrl != null && provider.inviteUrl!.isNotEmpty) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Invite Link Generated',
+                      style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.6),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF202430)
+                          : Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color: cs.onSurface.withValues(alpha: 0.1)),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(provider.inviteUrl!,
+                              style:
+                                  TextStyle(color: cs.onSurface, fontSize: 13),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis),
+                        ),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Link copied to clipboard')),
+                            );
+                          },
+                          child: Icon(Icons.copy, color: cs.primary, size: 20),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SpaceActionButton(
+                      label: 'Done', onPressed: () => Navigator.pop(context)),
+                ],
+              );
+            }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  Expanded(
+                      child: SpaceActionButton(
+                          label:
+                              AppLocalizations.of(context)!.cancel ?? 'Cancel',
+                          variant: SpaceButtonVariant.secondary,
+                          onPressed: () => Navigator.pop(context))),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SpaceActionButton(
+                      label: 'Generate Link',
+                      isLoading: provider.isActionRunning,
+                      onPressed: () {
+                        context
+                            .read<SpaceDetailsProvider>()
+                            .inviteMember(widget.spaceId);
+                      },
+                    ),
+                  ),
+                ]),
+              ],
+            );
+          }),
         ],
       ),
     );
@@ -1120,22 +1203,28 @@ class _RoleBadge extends StatelessWidget {
     String label;
     IconData icon;
     switch (role) {
+      case SpaceRole.owner:
+        text = const Color(0xFFD946EF);
+        bg = const Color(0xFF3B1545);
+        label = 'Owner';
+        icon = Icons.verified_user_outlined;
+        break;
       case SpaceRole.admin:
         text = const Color(0xFFFBBF24);
         bg = const Color(0xFF332B13);
-        label = AppLocalizations.of(context)!.admin;
+        label = AppLocalizations.of(context)!.admin ?? 'Admin';
         icon = Icons.star_border;
         break;
-      case SpaceRole.contributor:
+      case SpaceRole.editor:
         text = const Color(0xFF60A5FA);
         bg = const Color(0xFF14243B);
-        label = AppLocalizations.of(context)!.contributor;
+        label = 'Editor';
         icon = Icons.edit_outlined;
         break;
       case SpaceRole.viewer:
         text = const Color(0xFF9CA3AF);
         bg = const Color(0xFF202430);
-        label = AppLocalizations.of(context)!.viewer;
+        label = AppLocalizations.of(context)!.viewer ?? 'Viewer';
         icon = Icons.visibility_outlined;
         break;
     }

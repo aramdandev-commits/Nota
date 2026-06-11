@@ -8,17 +8,18 @@ import '../../controllers/space_details_provider.dart';
 class MemberCard extends StatelessWidget {
   final SpaceMemberModel member;
   final SpaceRole myRole;
+  final String spaceId;
 
-  const MemberCard({super.key, required this.member, required this.myRole});
+  const MemberCard({super.key, required this.member, required this.myRole, required this.spaceId});
 
   void _showMemberOptions(BuildContext context) {
-    if (myRole != SpaceRole.admin) return;
+    if (myRole != SpaceRole.admin && myRole != SpaceRole.owner) return;
     if (member.isCurrentUser) return;
 
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => _MemberOptionsSheet(member: member),
+      builder: (_) => _MemberOptionsSheet(member: member, spaceId: spaceId),
     );
   }
 
@@ -134,8 +135,8 @@ class MemberCard extends StatelessWidget {
           ),
           // Role badge
           _RoleBadge(role: member.role),
-          // Options button (admin only, not for self)
-          if (myRole == SpaceRole.admin && !member.isCurrentUser) ...[
+          // Options button (owner/admin only, not for self)
+          if ((myRole == SpaceRole.admin || myRole == SpaceRole.owner) && !member.isCurrentUser) ...[
             const SizedBox(width: 8),
             GestureDetector(
               onTap: () => _showMemberOptions(context),
@@ -161,22 +162,28 @@ class _RoleBadge extends StatelessWidget {
     IconData icon;
 
     switch (role) {
+      case SpaceRole.owner:
+        text = const Color(0xFFD946EF);
+        bg = const Color(0xFF3B1545);
+        label = 'Owner';
+        icon = Icons.verified_user_outlined;
+        break;
       case SpaceRole.admin:
         text = const Color(0xFFFBBF24);
         bg = const Color(0xFF332B13);
-        label = AppLocalizations.of(context)!.admin;
+        label = AppLocalizations.of(context)!.admin ?? 'Admin';
         icon = Icons.star_border;
         break;
-      case SpaceRole.contributor:
+      case SpaceRole.editor:
         text = const Color(0xFF60A5FA);
         bg = const Color(0xFF14243B);
-        label = AppLocalizations.of(context)!.contributor;
+        label = 'Editor';
         icon = Icons.edit_outlined;
         break;
       case SpaceRole.viewer:
         text = const Color(0xFF9CA3AF);
         bg = const Color(0xFF202430);
-        label = AppLocalizations.of(context)!.viewer;
+        label = AppLocalizations.of(context)!.viewer ?? 'Viewer';
         icon = Icons.visibility_outlined;
         break;
     }
@@ -203,7 +210,8 @@ class _RoleBadge extends StatelessWidget {
 
 class _MemberOptionsSheet extends StatelessWidget {
   final SpaceMemberModel member;
-  const _MemberOptionsSheet({required this.member});
+  final String spaceId;
+  const _MemberOptionsSheet({required this.member, required this.spaceId});
 
   void _showChangeRole(BuildContext context) {
     final nav = Navigator.of(context);
@@ -211,7 +219,7 @@ class _MemberOptionsSheet extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (_) => _ChangeRoleSheet(member: member),
+      builder: (_) => _ChangeRoleSheet(member: member, spaceId: spaceId),
     );
   }
 
@@ -268,9 +276,17 @@ class _MemberOptionsSheet extends StatelessWidget {
 
 // ── Change Role Sheet ─────────────────────────────────────────────────────────
 
-class _ChangeRoleSheet extends StatelessWidget {
+class _ChangeRoleSheet extends StatefulWidget {
   final SpaceMemberModel member;
-  const _ChangeRoleSheet({required this.member});
+  final String spaceId;
+  const _ChangeRoleSheet({required this.member, required this.spaceId});
+
+  @override
+  State<_ChangeRoleSheet> createState() => _ChangeRoleSheetState();
+}
+
+class _ChangeRoleSheetState extends State<_ChangeRoleSheet> {
+  SpaceRole? _loadingRole;
 
   @override
   Widget build(BuildContext context) {
@@ -305,18 +321,33 @@ class _ChangeRoleSheet extends StatelessWidget {
                   fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           for (final role in [
-            SpaceRole.contributor,
+            SpaceRole.admin,
+            SpaceRole.editor,
             SpaceRole.viewer,
           ])
             _RoleOption(
               role: role,
-              isSelected: member.role == role,
-              onTap: () {
+              isSelected: widget.member.role == role,
+              isLoading: _loadingRole == role,
+              onTap: () async {
+                if (_loadingRole != null) return;
+                setState(() => _loadingRole = role);
+                final scaffold = ScaffoldMessenger.of(context);
                 final nav = Navigator.of(context);
-                context
-                    .read<SpaceDetailsProvider>()
-                    .changeMemberRole(member.id, role);
-                nav.pop();
+                try {
+                  await context
+                      .read<SpaceDetailsProvider>()
+                      .changeMemberRole(widget.spaceId, widget.member.id, role);
+                  nav.pop();
+                  scaffold.showSnackBar(const SnackBar(
+                      content: Text('User role updated successfully.'),
+                      duration: Duration(seconds: 2)));
+                } catch (e) {
+                  setState(() => _loadingRole = null);
+                  scaffold.showSnackBar(SnackBar(
+                      content: Text(e.toString()),
+                      backgroundColor: Colors.red));
+                }
               },
             ),
         ],
@@ -328,9 +359,13 @@ class _ChangeRoleSheet extends StatelessWidget {
 class _RoleOption extends StatelessWidget {
   final SpaceRole role;
   final bool isSelected;
+  final bool isLoading;
   final VoidCallback onTap;
   const _RoleOption(
-      {required this.role, required this.isSelected, required this.onTap});
+      {required this.role,
+      required this.isSelected,
+      this.isLoading = false,
+      required this.onTap});
 
   String get _label =>
       role.toString().split('.').last[0].toUpperCase() +
@@ -372,7 +407,15 @@ class _RoleOption extends StatelessWidget {
                         isSelected ? FontWeight.w600 : FontWeight.normal,
                   )),
             ),
-            if (isSelected)
+            if (isLoading)
+              SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation(
+                          isSelected ? cs.primary : cs.onSurface)))
+            else if (isSelected)
               Icon(Icons.check_circle, color: cs.primary, size: 18),
           ],
         ),

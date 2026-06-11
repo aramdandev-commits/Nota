@@ -28,18 +28,27 @@ class SpaceMemberModel {
   }
 
   factory SpaceMemberModel.fromJson(Map<String, dynamic> json) {
+    final pivot = json['pivot'] as Map<String, dynamic>?;
+    final String id = pivot != null ? pivot['user_id'].toString() : json['id']?.toString() ?? '';
+    final String roleStr = pivot != null ? pivot['role'].toString() : json['role']?.toString() ?? 'viewer';
+
     return SpaceMemberModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      email: json['email'] as String,
-      role: SpaceRole.values.firstWhere(
-        (e) => e.toString().split('.').last == json['role'],
-        orElse: () => SpaceRole.viewer,
-      ),
-      joinedAt: DateTime.parse(json['joined_at'] as String),
+      id: id,
+      name: json['name'] as String? ?? 'Unknown',
+      email: json['email'] as String? ?? '',
+      role: () {
+        final r = roleStr.toLowerCase();
+        if (r == 'owner') return SpaceRole.owner;
+        if (r == 'admin') return SpaceRole.admin;
+        if (r == 'editor') return SpaceRole.editor;
+        if (r == 'viewer') return SpaceRole.viewer;
+        return SpaceRole.viewer;
+      }(),
+      joinedAt: json['joined_at'] != null ? DateTime.parse(json['joined_at'] as String) : DateTime.now(),
       isCurrentUser: json['is_current_user'] as bool? ?? false,
-      avatarColor: Color(
-          int.parse(json['avatar_color'].toString().replaceAll('#', '0xff'))),
+      avatarColor: json['avatar_color'] != null 
+          ? Color(int.parse(json['avatar_color'].toString().replaceAll('#', '0xff'))) 
+          : const Color(0xFF6B58FF),
     );
   }
 

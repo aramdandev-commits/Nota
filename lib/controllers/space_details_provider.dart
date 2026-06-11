@@ -24,6 +24,8 @@ class SpaceDetailsProvider extends ChangeNotifier {
   bool _isPublic = false;
   bool _isSaving = false;
   bool _isActionRunning = false;
+  String? _inviteUrl;
+  SpaceRole _currentUserRole = SpaceRole.viewer;
 
   // ── Tab state ────────────────────────────────────────────────────────────────
   String _activeTab = 'notes';
@@ -56,6 +58,24 @@ class SpaceDetailsProvider extends ChangeNotifier {
   String get activeTab => _activeTab;
   bool get allowMembersToEdit => _allowMembersToEdit;
   bool get isPublic => _isPublic;
+  String? get inviteUrl => _inviteUrl;
+  SpaceRole get currentUserRole => _currentUserRole;
+
+  void initCurrentUserRole(SpaceRole initialRole) {
+    _currentUserRole = initialRole;
+  }
+
+  void _calculateCurrentUserRole(String? currentUserId) {
+    if (currentUserId == null) return;
+    try {
+      final me = _members.firstWhere((m) => m.id == currentUserId || m.isCurrentUser);
+      _currentUserRole = me.role;
+    } catch (e) {
+      if (_currentUserRole != SpaceRole.owner) {
+        _currentUserRole = SpaceRole.viewer;
+      }
+    }
+  }
 
   // ── Notes actions ─────────────────────────────────────────────────────────────
   Future<void> fetchNotes(String spaceId) async {
@@ -136,11 +156,14 @@ class SpaceDetailsProvider extends ChangeNotifier {
   }
 
   // ── Members actions ───────────────────────────────────────────────────────────
-  Future<void> fetchMembers(String spaceId) async {
+  Future<void> fetchMembers(String spaceId, {String? currentUserId}) async {
     _isMembersLoading = true;
     notifyListeners();
     try {
       _members = await _repository.getMembersForSpace(spaceId);
+      if (currentUserId != null) {
+        _calculateCurrentUserRole(currentUserId);
+      }
     } finally {
       _isMembersLoading = false;
       notifyListeners();
@@ -152,10 +175,20 @@ class SpaceDetailsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void changeMemberRole(String memberId, SpaceRole newRole) {
-    final i = _members.indexWhere((m) => m.id == memberId);
-    if (i != -1) {
-      _members[i].role = newRole;
+  Future<void> changeMemberRole(String spaceId, String memberId, SpaceRole newRole) async {
+    _isActionRunning = true;
+    notifyListeners();
+    try {
+      await _repository.changeMemberRole(spaceId, memberId, newRole);
+      final i = _members.indexWhere((m) => m.id == memberId);
+      if (i != -1) {
+        _members[i].role = newRole;
+      }
+    } catch (e) {
+      _errorMessage = e.toString();
+      throw e;
+    } finally {
+      _isActionRunning = false;
       notifyListeners();
     }
   }
@@ -165,17 +198,23 @@ class SpaceDetailsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void inviteMember(String email) {
-    // Simulate adding a pending member
-    final pending = SpaceMemberModel(
-      id: 'pending_${DateTime.now().millisecondsSinceEpoch}',
-      name: email.split('@').first,
-      email: email,
-      role: SpaceRole.viewer,
-      joinedAt: DateTime.now(),
-      avatarColor: const Color(0xFF6B58FF),
-    );
-    _members.add(pending);
+  Future<void> inviteMember(String spaceId) async {
+    _isActionRunning = true;
+    notifyListeners();
+    try {
+      final result = await _repository.inviteMember(spaceId);
+      _inviteUrl = result['invite_url'];
+    } catch (e) {
+      _errorMessage = e.toString();
+      throw e;
+    } finally {
+      _isActionRunning = false;
+      notifyListeners();
+    }
+  }
+
+  void clearInviteUrl() {
+    _inviteUrl = null;
     notifyListeners();
   }
 
@@ -213,5 +252,6 @@ class SpaceDetailsProvider extends ChangeNotifier {
     _memberSearchQuery = '';
     _activeTab = 'notes';
     _isLoading = true;
+    _inviteUrl = null;
   }
 }

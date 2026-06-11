@@ -3,6 +3,7 @@ import 'package:nota/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../model/space_model.dart';
 import '../../controllers/space_details_provider.dart';
+import '../../controllers/spaces_provider.dart';
 import '../../screens/spa/space_details_screen.dart';
 
 class SpaceCard extends StatelessWidget {
@@ -24,7 +25,11 @@ class SpaceCard extends StatelessWidget {
           MaterialPageRoute(
             builder: (_) => SpaceDetailsScreen(space: space),
           ),
-        );
+        ).then((_) {
+          if (context.mounted) {
+            context.read<SpacesProvider>().fetchSpaces();
+          }
+        });
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),

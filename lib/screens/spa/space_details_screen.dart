@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nota/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/space_details_provider.dart';
@@ -752,57 +753,59 @@ class _OptionsBottomSheet extends StatelessWidget {
                 );
               },
             ),
-            Divider(color: cs.onSurface.withValues(alpha: 0.1)),
-            _OptionTile(
-              icon: Icons.delete_outline,
-              iconColor: const Color(0xFFEF4444),
-              label: AppLocalizations.of(context)!.deleteSpace,
-              labelColor: const Color(0xFFEF4444),
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (dialogCtx) => AlertDialog(
-                    backgroundColor: isDark
-                        ? const Color(0xFF151821)
-                        : Theme.of(context).scaffoldBackgroundColor,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                    title: Text(AppLocalizations.of(context)!.deleteSpace,
-                        style: TextStyle(color: cs.onSurface)),
-                    content: Text(
-                        '${AppLocalizations.of(context)!.delete}" ${space.title} "${AppLocalizations.of(context)!.thisCannotBe}',
-                        style: TextStyle(
-                            color: cs.onSurface.withValues(alpha: 0.5))),
-                    actions: [
-                      TextButton(
-                          onPressed: () => Navigator.pop(dialogCtx),
-                          child: Text(AppLocalizations.of(context)!.cancel,
-                              style: TextStyle(
-                                  color: cs.onSurface.withValues(alpha: 0.5)))),
-                      TextButton(
-                        onPressed: () async {
-                          final provider = dialogCtx.read<SpacesProvider>();
-                          final scaffold = ScaffoldMessenger.of(context);
-                          final nav = Navigator.of(context);
-                          try {
-                            await provider.deleteSpace(space.id);
-                            nav.pop(); // pop dialog
-                            nav.pop(); // pop bottom sheet
-                            nav.pop(); // pop details screen
-                          } catch (e) {
-                            nav.pop();
-                            scaffold.showSnackBar(
-                                SnackBar(content: Text(e.toString())));
-                          }
-                        },
-                        child: Text(AppLocalizations.of(context)!.delete,
-                            style: TextStyle(color: Color(0xFFEF4444))),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
+            if (currentUserRole == SpaceRole.owner) ...[
+              Divider(color: cs.onSurface.withValues(alpha: 0.1)),
+              _OptionTile(
+                icon: Icons.delete_outline,
+                iconColor: const Color(0xFFEF4444),
+                label: AppLocalizations.of(context)!.deleteSpace,
+                labelColor: const Color(0xFFEF4444),
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (dialogCtx) => AlertDialog(
+                      backgroundColor: isDark
+                          ? const Color(0xFF151821)
+                          : Theme.of(context).scaffoldBackgroundColor,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                      title: Text(AppLocalizations.of(context)!.deleteSpace,
+                          style: TextStyle(color: cs.onSurface)),
+                      content: Text(
+                          '${AppLocalizations.of(context)!.delete}" ${space.title} "${AppLocalizations.of(context)!.thisCannotBe}',
+                          style: TextStyle(
+                              color: cs.onSurface.withValues(alpha: 0.5))),
+                      actions: [
+                        TextButton(
+                            onPressed: () => Navigator.pop(dialogCtx),
+                            child: Text(AppLocalizations.of(context)!.cancel,
+                                style: TextStyle(
+                                    color: cs.onSurface.withValues(alpha: 0.5)))),
+                        TextButton(
+                          onPressed: () async {
+                            final provider = dialogCtx.read<SpacesProvider>();
+                            final scaffold = ScaffoldMessenger.of(context);
+                            final nav = Navigator.of(context);
+                            try {
+                              await provider.deleteSpace(space.id);
+                              nav.pop(); // pop dialog
+                              nav.pop(); // pop bottom sheet
+                              nav.pop(); // pop details screen
+                            } catch (e) {
+                              nav.pop();
+                              scaffold.showSnackBar(
+                                  SnackBar(content: Text(e.toString())));
+                            }
+                          },
+                          child: Text(AppLocalizations.of(context)!.delete,
+                              style: TextStyle(color: Color(0xFFEF4444))),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
           ] else
             _OptionTile(
               icon: Icons.logout,
@@ -1015,8 +1018,8 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
                         horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
                       color: isDark
-                          ? const Color(0xFF202430)
-                          : Theme.of(context).cardColor,
+                          ? cs.surfaceVariant ?? const Color(0xFF202430)
+                          : cs.surfaceVariant ?? const Color(0xFFF3F4F6),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                           color: cs.onSurface.withValues(alpha: 0.1)),
@@ -1030,22 +1033,33 @@ class _InviteMemberSheetState extends State<_InviteMemberSheet> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis),
                         ),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('Link copied to clipboard')),
-                            );
-                          },
-                          child: Icon(Icons.copy, color: cs.primary, size: 20),
-                        ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 24),
-                  SpaceActionButton(
-                      label: 'Done', onPressed: () => Navigator.pop(context)),
+                  Row(children: [
+                    Expanded(
+                        child: SpaceActionButton(
+                            label:
+                                AppLocalizations.of(context)!.cancel ?? 'Cancel',
+                            variant: SpaceButtonVariant.secondary,
+                            onPressed: () => Navigator.pop(context))),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SpaceActionButton(
+                        label: AppLocalizations.of(context)!.copy ?? 'Copy',
+                        onPressed: () {
+                          Clipboard.setData(
+                              ClipboardData(text: provider.inviteUrl!));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text('Link copied to clipboard!')),
+                          );
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
+                  ]),
                 ],
               );
             }

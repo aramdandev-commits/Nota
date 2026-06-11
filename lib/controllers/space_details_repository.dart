@@ -102,7 +102,7 @@ class SpaceDetailsRepository {
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       final jsonResponse = jsonDecode(response.body);
-      final data = jsonResponse['data'] ?? jsonResponse;
+      final data = jsonResponse['data'] ?? jsonResponse['date'] ?? jsonResponse;
       return {
         'invite_url': data['invite_url']?.toString() ?? '',
         'expires_at': data['expires_at']?.toString() ?? '',

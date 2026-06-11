@@ -15,6 +15,7 @@ class MemberCard extends StatelessWidget {
   void _showMemberOptions(BuildContext context) {
     if (myRole != SpaceRole.admin && myRole != SpaceRole.owner) return;
     if (member.isCurrentUser) return;
+    if (myRole == SpaceRole.admin && (member.role == SpaceRole.owner || member.role == SpaceRole.admin)) return;
 
     showModalBottomSheet(
       context: context,
@@ -136,7 +137,7 @@ class MemberCard extends StatelessWidget {
           // Role badge
           _RoleBadge(role: member.role),
           // Options button (owner/admin only, not for self)
-          if ((myRole == SpaceRole.admin || myRole == SpaceRole.owner) && !member.isCurrentUser) ...[
+          if ((myRole == SpaceRole.owner || (myRole == SpaceRole.admin && member.role != SpaceRole.owner && member.role != SpaceRole.admin)) && !member.isCurrentUser) ...[
             const SizedBox(width: 8),
             GestureDetector(
               onTap: () => _showMemberOptions(context),

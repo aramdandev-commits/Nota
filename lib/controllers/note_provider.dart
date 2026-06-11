@@ -4,8 +4,10 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../model/note_model.dart';
 import '../services/pusher_service.dart';
+import 'notification_provider.dart';
 
 class NoteProvider extends ChangeNotifier {
+  final NotificationProvider notificationProvider;
   final String baseUrl =
       'https://synopsis-cursive-ethics.ngrok-free.dev/api/v1';
   List<NoteModel> _notes = [];
@@ -14,27 +16,14 @@ class NoteProvider extends ChangeNotifier {
 
   // AI Summary State
   bool _isSummarizing = false;
-  String? _summarizedText;
-  bool _isEditingSummary = false;
+  bool _isSummarizeSuccess = false;
 
   bool get isSummarizing => _isSummarizing;
-  String? get summarizedText => _summarizedText;
-  bool get isEditingSummary => _isEditingSummary;
-
-  set isEditingSummary(bool value) {
-    _isEditingSummary = value;
-    notifyListeners();
-  }
-
-  set summarizedText(String? value) {
-    _summarizedText = value;
-    notifyListeners();
-  }
+  bool get isSummarizeSuccess => _isSummarizeSuccess;
 
   void resetSummaryState() {
     _isSummarizing = false;
-    _summarizedText = null;
-    _isEditingSummary = false;
+    _isSummarizeSuccess = false;
     notifyListeners();
   }
 
@@ -93,7 +82,7 @@ class NoteProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  NoteProvider() {
+  NoteProvider(this.notificationProvider) {
     loadNotes();
     // Register callbacks to PusherService
     PusherService().onNoteSummarized = onSummaryEventReceived;
@@ -297,8 +286,7 @@ class NoteProvider extends ChangeNotifier {
 
   Future<void> generateSummary(String noteId) async {
     _isSummarizing = true;
-    _summarizedText = null;
-    _isEditingSummary = false;
+    _isSummarizeSuccess = false;
     notifyListeners();
 
     try {
@@ -326,28 +314,84 @@ class NoteProvider extends ChangeNotifier {
     }
   }
 
-  void onSummaryEventReceived(Map<String, dynamic> eventData) {
-    String? extractedText;
+  Future<void> summarizeText(String text) async {
+    _isSummarizing = true;
+    _isSummarizeSuccess = false;
+    notifyListeners();
 
     try {
-      if (eventData.containsKey('content') &&
-          eventData['content'] is List &&
-          (eventData['content'] as List).isNotEmpty) {
-        final firstElement = (eventData['content'] as List).first;
-        if (firstElement is Map && firstElement.containsKey('insert')) {
-          extractedText = firstElement['insert']?.toString();
+      final token = await _getToken();
+      final url = Uri.parse('$baseUrl/summarize');
+      final response = await http.post(
+        url,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': '69420',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+        body: json.encode({'content': text}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = json.decode(response.body);
+        final noteData = data is Map<String, dynamic> && data.containsKey('data') ? data['data'] : data;
+        final note = NoteModel.fromMap(noteData);
+        
+        final index = _notes.indexWhere((n) => n.id == note.id);
+        if (index >= 0) {
+          _notes[index] = note;
+        } else {
+          _notes.insert(0, note);
         }
+        _notes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+        
+        _isSummarizeSuccess = true;
+        
+        notificationProvider.addNotification(
+          'Text Summarized',
+          'Your pasted text has been successfully summarized.',
+        );
+      } else {
+        debugPrint('Failed to request text summary. Status: ${response.statusCode}, Body: ${response.body}');
+        throw Exception('Failed to request summary: ${response.statusCode}');
       }
+    } catch (e) {
+      debugPrint('Error generating summary from text: $e');
+      rethrow;
+    } finally {
+      _isSummarizing = false;
+      notifyListeners();
+    }
+  }
+
+  void onSummaryEventReceived(Map<String, dynamic> eventData) {
+    debugPrint('Received summary event: $eventData');
+    try {
+      final note = NoteModel.fromMap(
+        eventData.containsKey('data')
+            ? eventData['data'] as Map<String, dynamic>
+            : eventData,
+      );
+      
+      final index = _notes.indexWhere((n) => n.id == note.id);
+      if (index >= 0) {
+        _notes[index] = note;
+      } else {
+        _notes.insert(0, note);
+      }
+      _notes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+      
+      _isSummarizeSuccess = true;
+      
+      notificationProvider.addNotification(
+        'Note Summarized',
+        'Your note "${note.title}" has been successfully summarized.',
+      );
     } catch (e) {
       debugPrint('Error parsing summary content: $e');
     }
 
-    // Fallback to title if extraction failed or is empty
-    if (extractedText == null || extractedText.isEmpty) {
-      extractedText = eventData['title']?.toString() ?? '';
-    }
-
-    _summarizedText = extractedText;
     _isSummarizing = false;
     notifyListeners();
   }

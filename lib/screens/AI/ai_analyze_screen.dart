@@ -11,7 +11,6 @@ import '../../widgets/ai/ai_mode_toggle.dart';
 import '../../widgets/ai/ai_text_input.dart';
 import '../../widgets/ai/ai_note_selector.dart';
 import '../../widgets/ai/ai_generate_button.dart';
-import '../../widgets/ai/ai_result_card.dart';
 
 class AIAnalyzeScreen extends StatefulWidget {
   const AIAnalyzeScreen({super.key});
@@ -24,44 +23,66 @@ class _AIAnalyzeScreenState extends State<AIAnalyzeScreen> {
   final _textController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<NoteProvider>().resetSummaryState();
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _textController.dispose();
     super.dispose();
   }
 
-  Future<void> _onGenerate(AiAnalyzeProvider provider) async {
+  Future<void> _onGenerate(BuildContext context, AiAnalyzeProvider provider, NoteProvider noteProvider) async {
     if (provider.mode == AiAnalyzeMode.pasteText) {
-      await provider.analyzeText(_textController.text);
+      final text = _textController.text.trim();
+      if (text.isEmpty) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please enter some text to summarize'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return;
+      }
+      try {
+        await noteProvider.summarizeText(text);
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to request summary: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     } else {
-      await provider.analyzeNote();
+      if (provider.selectedNote != null) {
+        try {
+          await noteProvider.generateSummary(provider.selectedNote!.id);
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to request summary: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      }
     }
   }
 
-  void _onSaveAsNote(BuildContext context, AiAnalyzeProvider provider) {
-    final result = provider.result;
-    if (result == null) return;
 
-    // Build plain text content and encode it as a Quill Delta JSON,
-    // which is exactly what NewNoteScreen stores and reads.
-    final plainText =
-        'Summary:\n${result.summary}\n\nKey Points:\n${result.keyPoints.map((p) => '• $p').join('\n')}\n';
-
-    final List<dynamic> deltaPayload = [
-      {'insert': plainText}
-    ];
-
-    final note = NoteModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      title: 'AI Analysis',
-      content: deltaPayload,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-
-    // Save directly via NoteProvider, then open the note in the editor.
-    context.read<NoteProvider>().saveNote(note);
-    context.push('/new-note', extra: note.id);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,11 +102,85 @@ class _AIAnalyzeScreenState extends State<AIAnalyzeScreen> {
                     _AiHeader(),
                     const SizedBox(height: 24),
 
-                    if (!aiProvider.hasResult) ...[
+                    if (noteProvider.isSummarizing || noteProvider.isSummarizeSuccess) ...[
+                      // ── Note Analysis WebSocket State ──────────────────
+                      const SizedBox(height: 40),
+                      if (noteProvider.isSummarizing)
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const CircularProgressIndicator(color: Color(0xFF7A36DC)),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Summary in progress',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.check_circle, color: Colors.green, size: 48),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Summarized successfully!',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Your note has been updated with the summary.',
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Theme.of(context).cardColor,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
+                                  elevation: 0,
+                                ),
+                                onPressed: () {
+                                  noteProvider.resetSummaryState();
+                                },
+                                icon: Icon(Icons.refresh, color: Theme.of(context).colorScheme.onSurface, size: 18),
+                                label: Text('New Analysis',
+                                    style: TextStyle(
+                                        color: Theme.of(context).colorScheme.onSurface,
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ] else ...[
                       // ── Input area ───────────────────────────────────
                       AiModeToggle(
                         selected: aiProvider.mode,
-                        onChanged: aiProvider.setMode,
+                        onChanged: (mode) {
+                          aiProvider.setMode(mode);
+                          noteProvider.resetSummaryState();
+                        },
                       ),
                       const SizedBox(height: 20),
 
@@ -96,32 +191,17 @@ class _AIAnalyzeScreenState extends State<AIAnalyzeScreen> {
                           notes: noteProvider.notes,
                           selected: aiProvider.selectedNote,
                           onChanged: (note) {
-                            if (note != null) aiProvider.selectNote(note);
+                            if (note != null) {
+                              aiProvider.selectNote(note);
+                              noteProvider.resetSummaryState();
+                            }
                           },
                         ),
                       const SizedBox(height: 24),
 
                       AiGenerateButton(
-                        isLoading: aiProvider.status == AiAnalyzeStatus.loading,
-                        onTap: () => _onGenerate(aiProvider),
-                      ),
-
-                      // ── Error state ──────────────────────────────────
-                      if (aiProvider.status == AiAnalyzeStatus.error) ...[
-                        const SizedBox(height: 16),
-                        _ErrorBanner(message: aiProvider.errorMessage),
-                      ],
-                    ] else ...[
-                      // ── Result area ──────────────────────────────────
-                      AiResultCard(
-                        result: aiProvider.result!,
-                        copied: aiProvider.copied,
-                        onCopy: aiProvider.markCopied,
-                        onSaveAsNote: () => _onSaveAsNote(context, aiProvider),
-                        onNewAnalysis: () {
-                          aiProvider.reset();
-                          _textController.clear();
-                        },
+                        isLoading: noteProvider.isSummarizing,
+                        onTap: () => _onGenerate(context, aiProvider, noteProvider),
                       ),
                     ],
                   ],
@@ -185,31 +265,3 @@ class _AiHeader extends StatelessWidget {
   }
 }
 
-class _ErrorBanner extends StatelessWidget {
-  final String? message;
-  const _ErrorBanner({this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2B0D0D) : const Color(0xFFFEF2F2),
-        borderRadius: BorderRadius.circular(12),
-        border:
-            Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
-      ),
-      child: Text(
-        message ?? 'Something went wrong. Please try again.',
-        style: const TextStyle(
-          color: Color(0xFFEF4444),
-          fontSize: 13,
-          fontFamily: 'Inter',
-        ),
-      ),
-    );
-  }
-}

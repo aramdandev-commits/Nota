@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:nota/l10n/app_localizations.dart';
+import 'package:provider/provider.dart';
+import 'package:nota/controllers/notification_provider.dart';
+import 'package:intl/intl.dart';
 
 class HomeHeader extends StatelessWidget {
   const HomeHeader({super.key});
@@ -11,6 +14,8 @@ class HomeHeader extends StatelessWidget {
     final syncBg = isDark ? const Color(0xFF0F2922) : const Color(0xFFE8F8F1);
     final syncColor = const Color(0xFF00B074);
     final notifBg = isDark ? const Color(0xFF1E2029) : const Color(0xFFEEEEF5);
+
+    final notificationProvider = context.watch<NotificationProvider>();
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -65,30 +70,68 @@ class HomeHeader extends StatelessWidget {
             const SizedBox(width: 12),
             GestureDetector(
               onTap: () {
+                notificationProvider.markAllAsRead();
                 showDialog(
                   context: context,
-                  builder: (context) => AlertDialog(
-                    backgroundColor: Theme.of(context).cardColor,
-                    title: Text(AppLocalizations.of(context)!.notifications,
-                        style: TextStyle(color: cs.onSurface)),
-                    content: Row(
-                      children: [
-                        Icon(Icons.cloud_done_outlined,
-                            color: syncColor, size: 24),
-                        const SizedBox(width: 12),
-                        Text(
-                          AppLocalizations.of(context)!.allChangesSyncedPop,
-                          style: TextStyle(color: cs.onSurface),
+                  builder: (context) {
+                    // Use a Consumer or just pass the current list if we don't expect real-time updates while dialog is open.
+                    // For dynamic rendering we can use the provider.
+                    final notifications = context.watch<NotificationProvider>().notifications;
+                    return AlertDialog(
+                      backgroundColor: Theme.of(context).cardColor,
+                      title: Text(AppLocalizations.of(context)!.notifications,
+                          style: TextStyle(color: cs.onSurface)),
+                      content: SizedBox(
+                        width: double.maxFinite,
+                        height: 300,
+                        child: notifications.isEmpty
+                            ? Center(
+                                child: Text('No notifications',
+                                    style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5))))
+                            : ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: notifications.length,
+                                itemBuilder: (context, index) {
+                                  final n = notifications[index];
+                                  return ListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    leading: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: cs.primary.withValues(alpha: 0.1),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(Icons.notifications, color: cs.primary, size: 20),
+                                    ),
+                                    title: Text(n.title, style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold, fontSize: 14)),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(n.message, style: TextStyle(color: cs.onSurface.withValues(alpha: 0.7), fontSize: 12)),
+                                        const SizedBox(height: 4),
+                                        Text(DateFormat('MMM d, h:mm a').format(n.timestamp), 
+                                          style: TextStyle(color: cs.onSurface.withValues(alpha: 0.4), fontSize: 10)),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
+                      actions: [
+                        if (notifications.isNotEmpty)
+                          TextButton(
+                            onPressed: () {
+                              context.read<NotificationProvider>().clearNotifications();
+                            },
+                            child: const Text('Clear All', style: TextStyle(color: Colors.red)),
+                          ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(AppLocalizations.of(context)!.close),
                         ),
                       ],
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text(AppLocalizations.of(context)!.close),
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 );
               },
               child: Container(
@@ -101,18 +144,19 @@ class HomeHeader extends StatelessWidget {
                   children: [
                     Icon(Icons.notifications_none,
                         color: cs.onSurface.withValues(alpha: 0.5), size: 24),
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Colors.redAccent,
-                          shape: BoxShape.circle,
+                    if (notificationProvider.hasUnread)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Colors.redAccent,
+                            shape: BoxShape.circle,
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),

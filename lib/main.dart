@@ -10,6 +10,7 @@ import 'package:nota/controllers/space_details_provider.dart';
 import 'package:nota/controllers/theme_provider.dart';
 import 'package:nota/controllers/locale_provider.dart';
 import 'package:nota/controllers/auth_provider.dart';
+import 'package:nota/controllers/notification_provider.dart';
 import 'package:nota/helper/app_theme.dart';
 
 late final GoRouter router;
@@ -21,7 +22,13 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => NoteProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProxyProvider<NotificationProvider, NoteProvider>(
+          create: (context) => NoteProvider(
+              Provider.of<NotificationProvider>(context, listen: false)),
+          update: (context, notificationProvider, previous) =>
+              previous ?? NoteProvider(notificationProvider),
+        ),
         ChangeNotifierProvider(create: (_) => SpacesProvider()),
         ChangeNotifierProvider(create: (_) => SpaceDetailsProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),

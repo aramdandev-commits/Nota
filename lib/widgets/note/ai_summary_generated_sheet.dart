@@ -1,58 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:nota/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/note_provider.dart';
 
-enum SummaryState { initial, loading, generated, editing }
+enum SummaryState { initial, loading, success }
 
 class AiSummaryGeneratedSheet extends StatefulWidget {
   final String noteId;
-  final Function(String)? onInsert;
 
-  const AiSummaryGeneratedSheet({super.key, required this.noteId, this.onInsert});
+  const AiSummaryGeneratedSheet({super.key, required this.noteId});
 
   @override
-  State<AiSummaryGeneratedSheet> createState() =>
-      _AiSummaryGeneratedSheetState();
+  State<AiSummaryGeneratedSheet> createState() => _AiSummaryGeneratedSheetState();
 }
 
 class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
-  final TextEditingController _summaryController = TextEditingController();
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<NoteProvider>(context, listen: false).resetSummaryState();
     });
-  }
-
-  @override
-  void dispose() {
-    _summaryController.dispose();
-    super.dispose();
-  }
-
-  void _copyToClipboard() async {
-    if (_summaryController.text.isNotEmpty) {
-      final messenger = ScaffoldMessenger.of(context);
-      await Clipboard.setData(ClipboardData(text: _summaryController.text));
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Summary copied to clipboard'),
-          backgroundColor: Color(0xFF3D7AF9),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
-  }
-
-  void _insertSummary() {
-    if (widget.onInsert != null && _summaryController.text.isNotEmpty) {
-      widget.onInsert!(_summaryController.text);
-    }
-    Navigator.pop(context);
   }
 
   @override
@@ -69,27 +37,14 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
     const Color buttonColorEnd = Color(0xFF7A36DC);
     final Color closeButtonColor =
         isDark ? const Color(0xFF2A2A38) : Theme.of(context).cardColor;
-    final Color summaryBoxColor =
-        isDark ? const Color(0xFF242038) : cs.primary.withValues(alpha: 0.05);
 
-    // Watch NoteProvider to rebuild on changes
     final noteProvider = context.watch<NoteProvider>();
 
-    // Sync TextEditingController with provider when not editing
-    if (!noteProvider.isEditingSummary &&
-        noteProvider.summarizedText != null &&
-        noteProvider.summarizedText != _summaryController.text) {
-      _summaryController.text = noteProvider.summarizedText!;
-    }
-
-    // Determine current UI state
     final SummaryState currentState;
     if (noteProvider.isSummarizing) {
       currentState = SummaryState.loading;
-    } else if (noteProvider.summarizedText != null) {
-      currentState = noteProvider.isEditingSummary
-          ? SummaryState.editing
-          : SummaryState.generated;
+    } else if (noteProvider.isSummarizeSuccess) {
+      currentState = SummaryState.success;
     } else {
       currentState = SummaryState.initial;
     }
@@ -99,9 +54,7 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       child: Container(
-        height: currentState == SummaryState.initial
-            ? MediaQuery.of(context).size.height * 0.45
-            : MediaQuery.of(context).size.height * 0.55,
+        height: MediaQuery.of(context).size.height * 0.45,
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
         decoration: BoxDecoration(
           color: sheetColor,
@@ -110,7 +63,6 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Drag Indicator
             Center(
               child: Container(
                 width: 40,
@@ -122,8 +74,6 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -176,9 +126,8 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
               ],
             ),
             const SizedBox(height: 24),
-
             Expanded(
-              child: _buildBody(context, noteProvider, currentState, summaryBoxColor, closeButtonColor),
+              child: _buildBody(context, noteProvider, currentState),
             ),
           ],
         ),
@@ -186,139 +135,61 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
     );
   }
 
-  Widget _buildBody(
-      BuildContext context, NoteProvider noteProvider, SummaryState currentState, Color summaryBoxColor, Color secondaryBtnColor) {
+  Widget _buildBody(BuildContext context, NoteProvider noteProvider, SummaryState currentState) {
     final cs = Theme.of(context).colorScheme;
 
     switch (currentState) {
       case SummaryState.loading:
-        return const Center(
-          child: CircularProgressIndicator(color: Color(0xFF7A36DC)),
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(color: Color(0xFF7A36DC)),
+              const SizedBox(height: 16),
+              Text(
+                'Summary in progress',
+                style: TextStyle(
+                  color: cs.onSurface,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
         );
 
-      case SummaryState.generated:
-      case SummaryState.editing:
-        final isEditing = currentState == SummaryState.editing;
-        return Column(
-          children: [
-            // Summary Box
-            Expanded(
-              child: Container(
-                width: double.infinity,
+      case SummaryState.success:
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: summaryBoxColor,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                      color: const Color(0xFF7A36DC).withValues(alpha: 0.3)),
+                  color: Colors.green.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
                 ),
-                child: isEditing
-                    ? TextField(
-                        controller: _summaryController,
-                        style: TextStyle(
-                            color: cs.onSurface, fontSize: 14, height: 1.5),
-                        maxLines: null,
-                        expands: true,
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'Edit your summary...',
-                          hintStyle: TextStyle(
-                              color: cs.onSurface.withValues(alpha: 0.5)),
-                        ),
-                      )
-                    : SingleChildScrollView(
-                        child: Text(
-                          _summaryController.text,
-                          style: TextStyle(
-                              color: cs.onSurface, fontSize: 14, height: 1.5),
-                        ),
-                      ),
+                child: const Icon(Icons.check_circle, color: Colors.green, size: 48),
               ),
-            ),
-            const SizedBox(height: 16),
-
-            // Action Buttons
-            Row(
-              children: [
-                // + Insert Button
-                Expanded(
-                  flex: 2,
-                  child: Container(
-                    height: 50,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF4A2B75), Color(0xFF381F59)],
-                      ),
-                    ),
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                      ),
-                      onPressed: _insertSummary,
-                      icon:
-                          const Icon(Icons.add, color: Colors.white, size: 18),
-                      label: const Text('Insert',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold)),
-                    ),
-                  ),
+              const SizedBox(height: 16),
+              Text(
+                'Summarized successfully!',
+                style: TextStyle(
+                  color: cs.onSurface,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
-                const SizedBox(width: 12),
-
-                // Edit / Save Button
-                Expanded(
-                  flex: 2,
-                  child: SizedBox(
-                    height: 50,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: secondaryBtnColor,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
-                      ),
-                      onPressed: () {
-                        if (isEditing) {
-                          noteProvider.summarizedText = _summaryController.text;
-                          noteProvider.isEditingSummary = false;
-                        } else {
-                          noteProvider.isEditingSummary = true;
-                        }
-                      },
-                      icon: Icon(isEditing ? Icons.check : Icons.edit_outlined,
-                          color: cs.onSurface, size: 18),
-                      label: Text(isEditing ? 'Save' : 'Edit',
-                          style: TextStyle(
-                              color: cs.onSurface,
-                              fontWeight: FontWeight.bold)),
-                    ),
-                  ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Your note has been updated with the summary.',
+                style: TextStyle(
+                  color: cs.onSurface.withValues(alpha: 0.6),
+                  fontSize: 14,
                 ),
-                const SizedBox(width: 12),
-
-                // Copy Button
-                Container(
-                  height: 50,
-                  width: 50,
-                  decoration: BoxDecoration(
-                    color: secondaryBtnColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: IconButton(
-                    onPressed: _copyToClipboard,
-                    icon: Icon(Icons.copy_rounded,
-                        color: cs.onSurface.withValues(alpha: 0.5), size: 20),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: MediaQuery.of(context).padding.bottom),
-          ],
+              ),
+            ],
+          ),
         );
 
       case SummaryState.initial:
@@ -356,8 +227,7 @@ class _AiSummaryGeneratedSheetState extends State<AiSummaryGeneratedSheet> {
                     );
                   }
                 },
-                icon: const Icon(Icons.auto_awesome,
-                    color: Colors.white, size: 20),
+                icon: const Icon(Icons.auto_awesome, color: Colors.white, size: 20),
                 label: Text(
                   AppLocalizations.of(context)!.generateSummary,
                   style: const TextStyle(

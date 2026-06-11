@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-/// Result returned after a Google Sign-In attempt.
+/// Result returned after a Google Sign-In
 class GoogleSignInResult {
   final String email;
   final String? displayName;
@@ -92,3 +92,4 @@ class GoogleAuthService {
     await _googleSignIn.signOut();
   }
 }
+// this is new

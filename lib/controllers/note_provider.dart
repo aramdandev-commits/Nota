@@ -384,7 +384,7 @@ class NoteProvider extends ChangeNotifier {
         body: json.encode({'content': text}),
       );
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
+      if (response.statusCode == 200 || response.statusCode == 202) {
         final data = json.decode(response.body);
         final noteData =
             data is Map<String, dynamic> && data.containsKey('data')
@@ -420,7 +420,7 @@ class NoteProvider extends ChangeNotifier {
     }
   }
 
-  void onSummaryEventReceived(Map<String, dynamic> eventData) {
+  Future<void> onSummaryEventReceived(Map<String, dynamic> eventData) async {
     debugPrint('Received summary event: $eventData');
     try {
       final rawMap = eventData.containsKey('data')
@@ -429,14 +429,13 @@ class NoteProvider extends ChangeNotifier {
 
       final decoded = Map<String, dynamic>.from(rawMap);
 
-      // content may arrive as a JSON string from Pusher — decode it
+      // We still update locally if possible to ensure immediate UI sync for spaces
       if (decoded['content'] is String) {
         try {
           decoded['content'] = jsonDecode(decoded['content'] as String);
         } catch (_) {}
       }
 
-      // Build preview from content ops if backend sent null
       if (decoded['preview'] == null && decoded['content'] is List) {
         final ops = decoded['content'] as List;
         final buffer = StringBuffer();
@@ -458,6 +457,9 @@ class NoteProvider extends ChangeNotifier {
         _notes.insert(0, note);
       }
       _notes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+
+      // As per user request: globally fetch the freshly updated data from backend
+      await loadNotes();
 
       _isSummarizeSuccess = true;
 

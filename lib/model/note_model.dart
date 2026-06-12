@@ -53,6 +53,17 @@ class NoteModel {
     final rawContent = data['content'];
     if (rawContent is List) {
       parsedContent = rawContent;
+    } else if (rawContent is String && rawContent.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(rawContent);
+        if (decoded is List) {
+          parsedContent = decoded;
+        } else {
+          parsedContent = [{'insert': rawContent + '\n'}];
+        }
+      } catch (_) {
+        parsedContent = [{'insert': rawContent + '\n'}];
+      }
     }
 
     // Fallback logic for preview if it's null

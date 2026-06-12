@@ -40,6 +40,8 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
 
   final ValueNotifier<String> _saveStateNotifier =
       ValueNotifier<String>('Saved');
+  
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -288,6 +290,14 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
               TextField(
                 controller: _titleController,
                 focusNode: _titleFocusNode,
+                onChanged: (value) {
+                  // Instantly clear error message state when typing valid text
+                  if (_errorMessage != null) {
+                    setState(() {
+                      _errorMessage = null;
+                    });
+                  }
+                },
                 style: TextStyle(
                   color: cs.onSurface,
                   fontSize: 28,
@@ -295,6 +305,7 @@ class _NewNoteScreenState extends State<NewNoteScreen> {
                 ),
                 decoration: InputDecoration(
                   hintText: AppLocalizations.of(context)!.untitledNote,
+                  errorText: _errorMessage,
                   hintStyle: TextStyle(
                     color: cs.onSurface.withValues(alpha: 0.25),
                     fontSize: 28,

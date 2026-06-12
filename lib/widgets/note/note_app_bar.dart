@@ -61,45 +61,6 @@ class NoteAppBar extends StatelessWidget implements PreferredSizeWidget {
             // Right: Action buttons
             Row(
               children: [
-                // Avatars
-                SizedBox(
-                  width: 50,
-                  height: 32,
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        right: 18,
-                        child: CircleAvatar(
-                          radius: 16,
-                          backgroundColor: Colors.pinkAccent,
-                          child: const Text(
-                            'ME',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        right: 0,
-                        child: CircleAvatar(
-                          radius: 16,
-                          backgroundColor: Colors.lightBlue,
-                          child: const Text(
-                            'SK',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-
                 // AI Summary button
                 GestureDetector(
                   onTap: () {

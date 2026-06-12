@@ -298,51 +298,6 @@ class NoteProvider extends ChangeNotifier {
   }
 
   Future<void> moveNoteToTrash(String id) async {
-    final index = _notes.indexWhere((note) => note.id == id);
-    if (index >= 0) {
-      _notes[index] = _notes[index].copyWith(isDeleted: true);
-      notifyListeners();
-    }
-    // TODO: Connect to actual backend endpoint for soft delete when ready.
-    // For now, it just updates local state.
-  }
-
-  Future<void> restoreNote(String id) async {
-    final index = _notes.indexWhere((note) => note.id == id);
-    if (index >= 0) {
-      _notes[index] = _notes[index].copyWith(isDeleted: false, content: []);
-      notifyListeners();
-    }
-
-    try {
-      final token = await _getToken();
-      final response = await http.post(
-        Uri.parse('$baseUrl/notes/$id/restore'),
-        headers: {
-          'Accept': 'application/json',
-          'ngrok-skip-browser-warning': '69420',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      );
-      if (response.statusCode != 200 && response.statusCode != 204) {
-        debugPrint('Failed to restore note via API: ${response.statusCode}');
-        // Do NOT revert on server errors (like 404 or 500) to prevent UI stuttering
-        // if the backend is not fully implemented yet.
-      }
-    } catch (e) {
-      debugPrint('Critical network error restoring note via API: $e');
-      if (index >= 0) {
-        // Only revert on critical network errors
-        _notes[index] = _notes[index].copyWith(isDeleted: true);
-        notifyListeners();
-      }
-    }
-  }
-
-  Future<void> permanentlyDeleteNote(String id) async {
-    _notes.removeWhere((note) => note.id == id);
-    notifyListeners();
-
     try {
       final token = await _getToken();
       final response = await http.delete(
@@ -353,11 +308,58 @@ class NoteProvider extends ChangeNotifier {
           if (token != null) 'Authorization': 'Bearer $token',
         },
       );
-      if (response.statusCode != 200 && response.statusCode != 204) {
-        debugPrint('Failed to delete note via API: ${response.statusCode}');
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        _notes.removeWhere((note) => note.id == id);
+        notifyListeners();
+      } else {
+        debugPrint('Failed to move note to trash via API: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('Failed to delete note via API: $e');
+      debugPrint('Failed to move note to trash via API: $e');
+    }
+  }
+
+  Future<void> restoreNote(String id) async {
+    try {
+      final token = await _getToken();
+      final response = await http.post(
+        Uri.parse('$baseUrl/notes/$id/restore'),
+        headers: {
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': '69420',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        // Since we remove trashed notes from the list entirely now, we should re-fetch.
+        await loadNotes();
+      } else {
+        debugPrint('Failed to restore note via API: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Critical network error restoring note via API: $e');
+    }
+  }
+
+  Future<void> permanentlyDeleteNote(String id) async {
+    try {
+      final token = await _getToken();
+      final response = await http.delete(
+        Uri.parse('$baseUrl/notes/$id/force'),
+        headers: {
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': '69420',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        _notes.removeWhere((note) => note.id == id);
+        notifyListeners();
+      } else {
+        debugPrint('Failed to permanently delete note via API: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Failed to permanently delete note via API: $e');
     }
   }
 

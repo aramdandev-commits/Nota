@@ -341,13 +341,15 @@ class NoteProvider extends ChangeNotifier {
     try {
       final token = await _getToken();
       final url = Uri.parse('$baseUrl/notes/$noteId/summarize');
-      final response = await http.get(
+      final response = await http.post(
         url,
         headers: {
           'Accept': 'application/json',
+          'Content-Type': 'application/json',
           'ngrok-skip-browser-warning': '69420',
           if (token != null) 'Authorization': 'Bearer $token',
         },
+        body: json.encode({'note_id': noteId}),
       );
 
       if (response.statusCode != 200 && response.statusCode != 202) {

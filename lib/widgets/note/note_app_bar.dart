@@ -123,28 +123,7 @@ class NoteAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
                 const SizedBox(width: 8),
 
-                // Share button
-                GestureDetector(
-                  onTap: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      builder: (context) => const ShareNoteSheet(),
-                    );
-                  },
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.share,
-                        color: Colors.blueAccent, size: 18),
-                  ),
-                ),
-                const SizedBox(width: 8),
+
 
                 // More options button
                 GestureDetector(

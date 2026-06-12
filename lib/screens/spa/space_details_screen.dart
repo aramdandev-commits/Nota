@@ -137,12 +137,10 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
                       Icon(Icons.description_outlined,
                           color: cs.onSurface.withValues(alpha: 0.4), size: 14),
                       const SizedBox(width: 4),
-                      Consumer<SpaceDetailsProvider>(
-                        builder: (_, p, __) => Text('${p.notes.length} notes',
-                            style: TextStyle(
-                                color: cs.onSurface.withValues(alpha: 0.4),
-                                fontSize: 12)),
-                      ),
+                      Text('${space.noteCount} notes',
+                          style: TextStyle(
+                              color: cs.onSurface.withValues(alpha: 0.4),
+                              fontSize: 12)),
                     ],
                   ),
                   Row(
@@ -151,13 +149,10 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
                       Icon(Icons.people_outline,
                           color: cs.onSurface.withValues(alpha: 0.4), size: 14),
                       const SizedBox(width: 4),
-                      Consumer<SpaceDetailsProvider>(
-                        builder: (_, p, __) => Text(
-                            '${p.members.length} members',
-                            style: TextStyle(
-                                color: cs.onSurface.withValues(alpha: 0.4),
-                                fontSize: 12)),
-                      ),
+                      Text('${space.memberCount} members',
+                          style: TextStyle(
+                              color: cs.onSurface.withValues(alpha: 0.4),
+                              fontSize: 12)),
                     ],
                   ),
                   _RoleBadge(role: currentUserRole),

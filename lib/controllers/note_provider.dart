@@ -229,6 +229,38 @@ class NoteProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> moveNoteToSpace(String noteId, String? newSpaceId) async {
+    try {
+      final token = await _getToken();
+      final url = Uri.parse('$baseUrl/notes/$noteId');
+      final response = await http.put(
+        url,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': '69420',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'space_id': newSpaceId}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final index = _notes.indexWhere((n) => n.id == noteId);
+        if (index >= 0) {
+          // If viewing personal notes, we might want it to disappear if moved to a space,
+          // or we can just update its spaceId so the UI knows.
+          _notes[index] = _notes[index].copyWith(spaceId: newSpaceId);
+          notifyListeners();
+        }
+      } else {
+        throw Exception('Failed to move note: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error moving note: $e');
+      rethrow;
+    }
+  }
+
   Future<void> toggleFavorite(String noteId) async {
     final noteIndex = _notes.indexWhere((n) => n.id == noteId);
     if (noteIndex == -1) return;

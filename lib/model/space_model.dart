@@ -45,8 +45,8 @@ class SpaceModel {
         if (r == 'viewer') return SpaceRole.viewer;
         return SpaceRole.viewer;
       }(),
-      memberCount: json['member_count'] as int? ?? 1,
-      noteCount: json['note_count'] as int? ?? 0,
+      memberCount: json['users_count'] as int? ?? json['member_count'] as int? ?? 1,
+      noteCount: json['notes_count'] as int? ?? json['note_count'] as int? ?? 0,
       iconColor: json['icon_color'] != null 
           ? Color(int.parse(json['icon_color'].toString().replaceAll('#', '0xff'))) 
           : const Color(0xFF6B58FF),

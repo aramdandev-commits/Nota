@@ -65,23 +65,7 @@ class NoteOptionsSheet extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-          _buildOptionItem(
-            context: context,
-            icon: Icons.share_outlined,
-            iconColor: iconAccentColor,
-            title: AppLocalizations.of(context)!.share,
-            bgColor: itemBg,
-            onTap: () {
-              Navigator.pop(context);
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (context) => const ShareNoteSheet(),
-              );
-            },
-          ),
-          const SizedBox(height: 10),
+
           _buildOptionItem(
             context: context,
             icon: Icons.folder_outlined,
@@ -91,12 +75,18 @@ class NoteOptionsSheet extends StatelessWidget {
             showArrow: true,
             bgColor: itemBg,
             onTap: () {
+              final note = Provider.of<NoteProvider>(context, listen: false)
+                  .notes
+                  .firstWhere((n) => n.id == noteId);
               Navigator.pop(context);
               showModalBottomSheet(
                 context: context,
                 isScrollControlled: true,
                 backgroundColor: Colors.transparent,
-                builder: (context) => const MoveToSpaceSheet(),
+                builder: (context) => MoveToSpaceSheet(
+                  noteId: noteId,
+                  currentSpaceId: note.spaceId,
+                ),
               );
             },
           ),

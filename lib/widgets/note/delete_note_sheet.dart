@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:nota/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../../controllers/note_provider.dart';
+import '../../controllers/space_details_provider.dart';
 
 class DeleteNoteSheet extends StatelessWidget {
   final String noteId;
@@ -100,11 +101,18 @@ class DeleteNoteSheet extends StatelessWidget {
                       .moveNoteToTrash(noteId);
                 }
 
+                // Update Space state instantly if this note belongs to a space
+                try {
+                  Provider.of<SpaceDetailsProvider>(context, listen: false)
+                      .removeNoteLocally(noteId);
+                } catch (_) {
+                  // Ignore if not in a Space context
+                }
+
                 if (onDeleted != null) {
                   onDeleted!();
-                } else {
-                  Navigator.pop(context);
                 }
+                Navigator.pop(context);
               },
               child: Text(
                 AppLocalizations.of(context)!.delete,

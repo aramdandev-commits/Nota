@@ -11,8 +11,10 @@ class NoteProvider extends ChangeNotifier {
   final String baseUrl =
       'https://synopsis-cursive-ethics.ngrok-free.dev/api/v1';
   List<NoteModel> _notes = [];
+  List<NoteModel> _trashNotes = [];
 
   List<NoteModel> get notes => _notes;
+  List<NoteModel> get trashNotes => _trashNotes;
 
   // AI Summary State
   bool _isSummarizing = false;
@@ -177,6 +179,34 @@ class NoteProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> fetchTrashNotes() async {
+    try {
+      final token = await _getToken();
+      final response = await http.get(
+        Uri.parse('$baseUrl/notes/trashed'), // Using standard Laravel convention
+        headers: {
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': '69420',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseBody = json.decode(response.body);
+        final List<dynamic> list =
+            responseBody is Map && responseBody.containsKey('data')
+                ? responseBody['data']
+                : responseBody;
+
+        _trashNotes = list.map((item) => NoteModel.fromMap(item)).toList();
+        _trashNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+        notifyListeners();
+      }
+    } catch (e) {
+      print('Failed to load trash notes from API: $e');
+    }
+  }
+
   Future<String> saveNote(NoteModel note, {bool isNew = false}) async {
     // Add optimistic UI temporarily
     final index = _notes.indexWhere((n) => n.id == note.id);
@@ -309,7 +339,12 @@ class NoteProvider extends ChangeNotifier {
         },
       );
       if (response.statusCode == 200 || response.statusCode == 204) {
-        _notes.removeWhere((note) => note.id == id);
+        final noteIndex = _notes.indexWhere((note) => note.id == id);
+        if (noteIndex >= 0) {
+          final deletedNote = _notes[noteIndex].copyWith(isDeleted: true);
+          _notes.removeAt(noteIndex);
+          _trashNotes.insert(0, deletedNote);
+        }
         notifyListeners();
       } else {
         debugPrint('Failed to move note to trash via API: ${response.statusCode}');
@@ -331,7 +366,8 @@ class NoteProvider extends ChangeNotifier {
         },
       );
       if (response.statusCode == 200 || response.statusCode == 204) {
-        // Since we remove trashed notes from the list entirely now, we should re-fetch.
+        _trashNotes.removeWhere((note) => note.id == id);
+        notifyListeners();
         await loadNotes();
       } else {
         debugPrint('Failed to restore note via API: ${response.statusCode}');
@@ -354,6 +390,7 @@ class NoteProvider extends ChangeNotifier {
       );
       if (response.statusCode == 200 || response.statusCode == 204) {
         _notes.removeWhere((note) => note.id == id);
+        _trashNotes.removeWhere((note) => note.id == id);
         notifyListeners();
       } else {
         debugPrint('Failed to permanently delete note via API: ${response.statusCode}');

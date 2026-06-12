@@ -143,10 +143,30 @@ class _MoveToSpaceSheetState extends State<MoveToSpaceSheet> {
                   return const Center(child: CircularProgressIndicator());
                 }
 
+                final validSpaces = provider.spaces.where((space) => 
+                    space.currentUserRole == SpaceRole.owner || 
+                    space.currentUserRole == SpaceRole.admin).toList();
+
+                if (!provider.isLoading && validSpaces.isEmpty) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 32.0),
+                      child: Text(
+                        'You don\'t have permission to add notes to any space.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.5),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
                 // Create a generic item for "Personal Space"
                 return ListView.separated(
                   shrinkWrap: true,
-                  itemCount: provider.spaces.length + 1,
+                  itemCount: validSpaces.length + 1,
                   separatorBuilder: (context, index) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     if (index == 0) {
@@ -165,7 +185,7 @@ class _MoveToSpaceSheetState extends State<MoveToSpaceSheet> {
                       );
                     }
 
-                    final space = provider.spaces[index - 1];
+                    final space = validSpaces[index - 1];
                     final isCurrent = widget.currentSpaceId == space.id;
                     return _buildSpaceItem(
                       context: context,

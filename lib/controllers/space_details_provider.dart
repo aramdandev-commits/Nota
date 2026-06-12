@@ -135,6 +135,11 @@ class SpaceDetailsProvider extends ChangeNotifier {
     }
   }
 
+  void removeNoteLocally(String noteId) {
+    _notes.removeWhere((n) => n.id == noteId);
+    notifyListeners();
+  }
+
   Future<void> updateNote(
       String spaceId, String noteId, String title, List<dynamic> content, String preview) async {
     _isActionRunning = true;

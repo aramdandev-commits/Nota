@@ -231,7 +231,8 @@ class _SpaceDetailsScreenState extends State<SpaceDetailsScreen> {
                               (currentUserRole == SpaceRole.owner ||
                                   currentUserRole == SpaceRole.admin)) ||
                           (!isMembersTab &&
-                              currentUserRole != SpaceRole.viewer)) ...[
+                              (currentUserRole == SpaceRole.owner ||
+                                  currentUserRole == SpaceRole.admin))) ...[
                         const SizedBox(width: 10),
                         GestureDetector(
                           onTap: isMembersTab

@@ -7,6 +7,7 @@ import '../../controllers/space_details_provider.dart';
 import '../../model/note_model.dart';
 import '../../widgets/home/bottom_navigation.dart';
 import '../../widgets/note/delete_note_sheet.dart';
+import 'trash_screen.dart';
 
 class NotesScreen extends StatefulWidget {
   const NotesScreen({super.key});
@@ -160,7 +161,7 @@ class _NotesScreenState extends State<NotesScreen>
                 children: [
                   _buildNotesList(context, filter: 'all'),
                   _buildNotesList(context, filter: 'favorites'),
-                  _buildNotesList(context, filter: 'trash'),
+                  const TrashScreen(),
                 ],
               ),
             ),
@@ -194,35 +195,7 @@ class _NotesScreenState extends State<NotesScreen>
     );
   }
 
-  Widget _buildTrashView(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.delete_outline,
-              size: 64, color: cs.onSurface.withValues(alpha: 0.2)),
-          const SizedBox(height: 16),
-          Text(
-            AppLocalizations.of(context)!.trashIsEmpty,
-            style: TextStyle(
-              color: cs.onSurface.withValues(alpha: 0.7),
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            AppLocalizations.of(context)!.deletedNotesWillAppearHere,
-            style: TextStyle(
-              color: cs.onSurface.withValues(alpha: 0.5),
-              fontSize: 14,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildNotesList(BuildContext context, {required String filter}) {
     return Consumer2<NoteProvider, SpaceDetailsProvider>(
@@ -245,13 +218,8 @@ class _NotesScreenState extends State<NotesScreen>
         allNotes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
         List<NoteModel> filteredNotes = allNotes;
-        if (filter == 'trash') {
-          filteredNotes = filteredNotes.where((n) => n.isDeleted).toList();
-        } else {
-          filteredNotes = filteredNotes.where((n) => !n.isDeleted).toList();
-          if (filter == 'favorites') {
-            filteredNotes = filteredNotes.where((n) => n.isFavorite).toList();
-          }
+        if (filter == 'favorites') {
+          filteredNotes = filteredNotes.where((n) => n.isFavorite).toList();
         }
 
         if (_searchQuery.isNotEmpty) {
@@ -264,9 +232,6 @@ class _NotesScreenState extends State<NotesScreen>
         }
 
         if (filteredNotes.isEmpty) {
-          if (filter == 'trash') {
-            return _buildTrashView(context);
-          }
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -301,7 +266,6 @@ class _NotesScreenState extends State<NotesScreen>
           itemBuilder: (context, index) {
             return NoteCard(
               note: filteredNotes[index],
-              isTrashView: filter == 'trash',
             );
           },
         );
@@ -312,9 +276,8 @@ class _NotesScreenState extends State<NotesScreen>
 
 class NoteCard extends StatelessWidget {
   final NoteModel note;
-  final bool isTrashView;
 
-  const NoteCard({super.key, required this.note, this.isTrashView = false});
+  const NoteCard({super.key, required this.note});
 
   Color _getAvatarColor(String letter) {
     final colors = [
@@ -369,7 +332,7 @@ class NoteCard extends StatelessWidget {
     }
 
     return GestureDetector(
-      onTap: isTrashView ? null : () => context.push('/new-note', extra: note),
+      onTap: () => context.push('/new-note', extra: note),
       onLongPress: () {
         showModalBottomSheet(
           context: context,
@@ -431,16 +394,7 @@ class NoteCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (isTrashView)
-                        GestureDetector(
-                          onTap: () {
-                            context.read<NoteProvider>().restoreNote(note.id);
-                          },
-                          child: Icon(Icons.restore,
-                              color: cs.onSurface.withValues(alpha: 0.6),
-                              size: 20),
-                        )
-                      else
+
                         GestureDetector(
                           onTap: () {
                             context
